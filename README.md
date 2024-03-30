@@ -1,54 +1,5 @@
 # SignalFlow Portal
 
-<style>
-  /* Styles for the SignalFlow Portal README */
-  body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    margin: 0;
-    padding: 0;
-  }
-
-  h1, h2, h3 {
-    font-weight: bold;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-  }
-
-  h1 {
-    font-size: 2.5rem;
-  }
-
-  h2 {
-    font-size: 2rem;
-  }
-
-  h3 {
-    font-size: 1.5rem;
-  }
-
-  ul {
-    list-style-type: disc;
-    margin-left: 1.5rem;
-  }
-
-  p {
-    margin-bottom: 1rem;
-  }
-
-  .feature {
-    background-color: #f5f5f5;
-    padding: 1.5rem;
-    border-radius: 5px;
-    margin-bottom: 1.5rem;
-  }
-
-  .feature h3 {
-    margin-top: 0;
-  }
-</style>
-
 ## Overview
 The `signalflow_portal` is a comprehensive platform designed to streamline the execution of EEG analyses. Leveraging the power of Airflow, this system provides a robust and scalable infrastructure for orchestrating complex workflows, ensuring efficient and reliable data processing. The platform features a user-friendly web interface, a Python and MATLAB backend for analysis tasks, and an integrated uploader for seamless data ingestion.
 
