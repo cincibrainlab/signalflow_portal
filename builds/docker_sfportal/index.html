@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SignalFlow EEG Analysis Portal</title>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="public/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>SignalFlow EEG Analysis Portal</h1>
+    <form id="uploadForm">
+      <div class="form-group">
+        <label for="projectName">Project Name</label>
+        <input type="text" id="projectName" name="projectName" placeholder="Enter project name">
+      </div>
+	  <div class="form-group">
+        <label for="projectDescription">Project Description</label>
+        <textarea id="projectDescription" name="projectDescription" placeholder="Enter project description"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="eegDataType">EEG Format</label>
+        <select id="eegDataType" name="eegDataType">
+          <option value="">Select EEG Data Type</option>
+          <option value="EGI128">Human: EGI 128 SET</option>
+          <option value="MEA30">Mouse: Neuronexus 30 SET</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="jobType">Analysis Type</label>
+        <select id="jobType" name="jobType">
+          <option value="">Select Job Type</option>
+          <option value="connectivity">Connectivity (DWPLI/ISPC/SOH)</option>
+          <option value="powerMeasure">Band Power Measure (Relative + Absolute)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="Enter email address">
+      </div>
+      <div class="form-group">
+        <label>Upload Files</label>
+		<div id="app"></div>
+
+		<script src="src/index.js">
+		</script>
+      </div>
+      <button type="submit" class="btn">Upload</button>
+    </form>
+  </div>
+</body>
+</html>

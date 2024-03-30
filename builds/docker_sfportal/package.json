@@ -1,0 +1,38 @@
+{
+  "name": "uppy-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "@uppy/audio": "latest",
+    "@uppy/aws-s3": "latest",
+    "@uppy/aws-s3-multipart": "latest",
+    "@uppy/companion": "^4.13.0",
+    "@uppy/compressor": "latest",
+    "@uppy/core": "latest",
+    "@uppy/dashboard": "latest",
+    "@uppy/drop-target": "latest",
+    "@uppy/golden-retriever": "latest",
+    "@uppy/image-editor": "latest",
+    "@uppy/remote-sources": "latest",
+    "@uppy/screen-capture": "latest",
+    "@uppy/tus": "latest",
+    "@uppy/webcam": "latest",
+    "@uppy/xhr-upload": "latest",
+    "p-queue": "^8.0.1",
+    "parcel-bundler": "latest",
+    "tus-node-server": "^0.9.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.3",
+    "typescript": "4.4.4"
+  },
+  "resolutions": {
+    "@babel/preset-env": "7.13.8"
+  },
+  "keywords": []
+}
