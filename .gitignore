@@ -1,3 +1,10 @@
+
+output/
+uploads/
+node_modules/
+logs/
+
+
 # Logs
 logs
 *.log
