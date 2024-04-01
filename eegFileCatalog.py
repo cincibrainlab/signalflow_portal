@@ -40,7 +40,7 @@ class EegAnalysisQueue(Base):
     fdtFilePath = Column(Text)
 
 def get_db_session():
-    engine = create_engine('postgresql://airflow:airflow@localhost/airflow')
+    engine = create_engine('postgresql://sfportal:sfportal@localhost:5433/sfportal')
     Base.metadata.create_all(engine)  # This line creates all tables
     Session = sessionmaker(bind=engine)
     return Session()

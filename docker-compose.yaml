@@ -97,6 +97,24 @@ services:
     image: cbl/sfportal
     ports:
       - "3000:1234"
+
+  sf_db:
+    image: postgres:13
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: sfportal
+      POSTGRES_PASSWORD: sfportal
+      POSTGRES_DB: sfportal
+    volumes:
+      - sfdb-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sfportal"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+
   postgres:
     image: postgres:13
     ports:
@@ -298,3 +316,4 @@ services:
 volumes:
   postgres-db-volume:
   tusd:
+  sfdb-db-volume:

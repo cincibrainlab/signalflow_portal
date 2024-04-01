@@ -3,7 +3,9 @@ output/
 uploads/
 node_modules/
 logs/
+import/
 
+*.pyc 
 .DS_Store
 # Logs
 logs
