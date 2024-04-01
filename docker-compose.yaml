@@ -90,14 +90,22 @@ services:
     command: -verbose -upload-dir=/uploads
     volumes:
       - tusd:/data
-      - ./uploads:/uploads
+      - ./portal_files/uploads:/uploads
+      - ./portal_files/input:/input
+      - ./portal_files/info_archive:/info_archive
+      - ./portal_files/output:/output
     ports:
       - "1080:1080"
   sf_portal:
     image: cbl/sfportal
     ports:
       - "3000:1234"
-
+    volumes:
+      - tusd:/data
+      - ./portal_files/uploads:/uploads
+      - ./portal_files/input:/input
+      - ./portal_files/info_archive:/info_archive
+      - ./portal_files/output:/output
   sf_db:
     image: postgres:13
     ports:
@@ -115,6 +123,24 @@ services:
       start_period: 5s
     restart: always
 
+  signalfloweeg-jdatascience:
+    image: ghcr.io/cincibrainlab/signalfloweeg-jdatascience
+    container_name: signalfloweeg-jdatascience
+    volumes:
+      - ./portal_files/uploads:/uploads
+      - ./portal_files/input:/input
+      - ./portal_files/info_archive:/info_archive
+      - ./portal_files/output:/output
+    ports:
+      - 13450:8888
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - GRANT_SUDO=yes
+      - NB_USER=jovyan
+      - JUPYTER_PASSWORD=welcome
+    user: root
+    command: sh -c "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
+    
   postgres:
     image: postgres:13
     ports:
