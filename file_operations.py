@@ -14,37 +14,6 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-def add_uppy_metadata_to_db(info_files):
-    session = get_db_session()
-
-    def extract_metadata(info_file, folder_path='./portal_files/uploads/'):
-        with open(info_file, 'r') as f:
-            file_metadata = json.load(f)
-        row = {
-            'status': add_status_code(200),
-            'dataset_name': file_metadata['MetaData'].get('datasetName', 'NA'),
-            'remove_upload': False,
-            'upload_id': file_metadata.get('ID', 'NA'),
-            'date_added': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'size': file_metadata.get('Size', 'NA'),
-            'original_name': file_metadata['MetaData'].get('filename', 'NA'),
-            'hash': create_file_hash(os.path.join(folder_path, os.path.basename(file_metadata['Storage'].get('Path', ''))))
-        }
-        return row
-
-    for info_file in info_files:
-        row = extract_metadata(info_file)
-        dataset_name = row['dataset_name']
-        dataset = session.query(DatasetCatalog).filter_by(dataset_name=dataset_name).first()
-        if not dataset:
-            dataset = DatasetCatalog(dataset_name=dataset_name)
-            session.add(dataset)
-            session.commit()
-        eeg_file = UploadCatalog(dataset_id=dataset.id, **row)
-        session.merge(eeg_file)
-        session.commit()
-        logging.info(f"Metadata added to database for file: {row['original_name']}")
-    session.close()
 
 def align_fdt_files(folder_path='./portal_files/uploads/'):
     session = get_db_session()
@@ -122,27 +91,9 @@ def add_eeg_metadata_to_db():
         if row.filename.endswith('.set'):
             print(row.filename)
 
-def add_metadata_to_db(info_files):
-    add_uppy_metadata_to_db(info_files)
-    #align_fdt_files()
-    #add_eeg_metadata_to_db()
 
-def create_file_hash(file_path):
-    hash_blake2 = hashlib.blake2b()
-    with open(file_path, 'rb') as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_blake2.update(chunk)
-    return hash_blake2.hexdigest()
 
-def add_status_code(code):
-    if code == 200:
-        return 'NEW'
-    elif code == 201:
-        return 'IMPORTED'
-    elif code == 204:
-        return 'DELETED'
-    else:
-        return 'ERROR'
+
 
 if __name__ == "__main__":
     scan_new_files()

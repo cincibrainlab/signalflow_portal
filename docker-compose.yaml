@@ -92,7 +92,7 @@ services:
     volumes:
       - tusd:/data
       - ./portal_files/uploads:/uploads
-      - ./portal_files/input:/input
+      - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
     ports:
@@ -105,7 +105,7 @@ services:
       - "3000:1234"
     volumes:
       - ./portal_files/uploads:/uploads
-      - ./portal_files/input:/input
+      - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
     depends_on:
@@ -134,7 +134,7 @@ services:
     container_name: sf_analysis
     volumes:
       - ./portal_files/uploads:/uploads
-      - ./portal_files/input:/input
+      - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
     ports:
