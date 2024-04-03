@@ -3,7 +3,7 @@ body {
   background-color: #f5f5f5;
   margin: 0;
   padding: 0;
-  font-size: 16px; /* Added to make font consistent */
+  font-size: 16px; /* Consistent font size across the application */
 }
 
 .container {
@@ -19,6 +19,38 @@ h1 {
   color: #333;
   text-align: center;
   margin-bottom: 20px;
+}
+
+.tabs {
+  overflow: hidden;
+  background-color: #f1f1f1;
+  margin-bottom: 20px; /* Added margin for spacing between tabs and content */
+}
+
+.tablinks {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: background-color 0.3s;
+  font-size: 17px;
+}
+
+.tablinks:hover {
+  background-color: #ddd;
+}
+
+.tablinks.active {
+  background-color: #ccc;
+}
+
+.tabcontent {
+  display: none;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-top: none;
 }
 
 .form-group {
@@ -70,5 +102,5 @@ textarea {
   border: 1px solid #ccc;
   border-radius: 4px;
   resize: vertical;
-  font-size: 16px; /* Added to make font consistent */
+  font-size: 16px; /* Consistent font size across the application */
 }

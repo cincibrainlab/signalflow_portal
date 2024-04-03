@@ -81,11 +81,12 @@ x-airflow-common:
     &airflow-common-depends-on
     redis:
       condition: service_healthy
-    postgres:
+    airflow-db:
       condition: service_healthy
 
 services:
-  tusd:
+  sf_uploader:
+    container_name: sf_uploader
     image: tusproject/tusd:v1.9
     command: -verbose -upload-dir=/uploads
     volumes:
@@ -96,17 +97,22 @@ services:
       - ./portal_files/output:/output
     ports:
       - "1080:1080"
-  sf_portal:
+
+  sf_frontend:
+    container_name: sf_frontend
     image: cbl/sfportal
     ports:
       - "3000:1234"
     volumes:
-      - tusd:/data
       - ./portal_files/uploads:/uploads
       - ./portal_files/input:/input
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
+    depends_on:
+      - sf_uploader
+
   sf_db:
+    container_name: sf_db
     image: postgres:13
     ports:
       - "5433:5432"
@@ -123,9 +129,9 @@ services:
       start_period: 5s
     restart: always
 
-  signalfloweeg-jdatascience:
+  sf_analysis:
     image: ghcr.io/cincibrainlab/signalfloweeg-jdatascience
-    container_name: signalfloweeg-jdatascience
+    container_name: sf_analysis
     volumes:
       - ./portal_files/uploads:/uploads
       - ./portal_files/input:/input
@@ -140,8 +146,9 @@ services:
       - JUPYTER_PASSWORD=welcome
     user: root
     command: sh -c "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
+  
     
-  postgres:
+  airflow-db:
     image: postgres:13
     ports:
       - "5432:5432"

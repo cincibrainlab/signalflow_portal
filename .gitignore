@@ -4,6 +4,8 @@ uploads/
 node_modules/
 logs/
 import/
+portal_files/
+uploads_backup/
 
 *.pyc 
 .DS_Store

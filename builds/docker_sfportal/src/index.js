@@ -1,122 +1,38 @@
-import Uppy from "@uppy/core";
-import Dashboard from "@uppy/dashboard";
-import RemoteSources from "@uppy/remote-sources";
-import Webcam from "@uppy/webcam";
-import ScreenCapture from "@uppy/screen-capture";
-import GoldenRetriever from "@uppy/golden-retriever";
-import Tus from "@uppy/tus";
-import AwsS3 from "@uppy/aws-s3";
-import AwsS3Multipart from "@uppy/aws-s3-multipart";
-import XHRUpload from "@uppy/xhr-upload";
-import ImageEditor from "@uppy/image-editor";
-import DropTarget from "@uppy/drop-target";
-import Audio from "@uppy/audio";
-import Compressor from "@uppy/compressor";
+const { createUppyInstance } = require("./uppy_config.js");
+const { addEventListeners } = require("./event_listeners.js");
+// index.js
+const uppy = createUppyInstance();
+window.uppy = uppy;
 
-import "@uppy/core/dist/style.css";
-import "@uppy/dashboard/dist/style.css";
-import "@uppy/audio/dist/style.css";
-import "@uppy/screen-capture/dist/style.css";
-import "@uppy/image-editor/dist/style.css";
-
-const UPLOADER = "tus";
-const COMPANION_URL = "http://companion.uppy.io";
-const companionAllowedHosts = [];
-const TUS_ENDPOINT = "http://0.0.0.0:1080/files/";
-const XHR_ENDPOINT = "";
-
-const RESTORE = false;
-
-const uppyDashboard = new Uppy({ debug: false,   
-    restrictions: {
-    allowedFileTypes: ['.set', '.fdt', '.edf']
-  } })
-  .use(Dashboard, {
-    inline: true,
-    target: "#app",
-    showProgressDetails: true,
-    proudlyDisplayPoweredByUppy: true,
-  })
-  .use(RemoteSources, {
-    companionUrl: COMPANION_URL,
-    sources: [
-      "Box",
-      "Dropbox",
-    //  "Facebook",
-      "GoogleDrive",
-    //  "Instagram",
-      "OneDrive",
-    //  "Unsplash",
-      "Url",
-    ],
-    companionAllowedHosts,
-  })
-  .use(Webcam, {
-    target: Dashboard,
-    showVideoSourceDropdown: true,
-    showRecordingLength: true,
-  })
-  .use(Audio, {
-    target: Dashboard,
-    showRecordingLength: true,
-  })
-  .use(ScreenCapture, { target: Dashboard })
-  .use(ImageEditor, { target: Dashboard })
-  .use(DropTarget, {
-    target: document.body,
-  })
-  .use(Compressor);
-
-switch (UPLOADER) {
-  case "tus":
-    uppyDashboard.use(Tus, { endpoint: TUS_ENDPOINT, limit: 6 });
-    break;
-  case "s3":
-    uppyDashboard.use(AwsS3, { companionUrl: COMPANION_URL, limit: 6 });
-    break;
-  case "s3-multipart":
-    uppyDashboard.use(AwsS3Multipart, {
-      companionUrl: COMPANION_URL,
-      limit: 6,
-    });
-    break;
-  case "xhr":
-    uppyDashboard.use(XHRUpload, {
-      endpoint: XHR_ENDPOINT,
-      limit: 6,
-      bundle: true,
-    });
-    break;
-  default:
-}
-
-if (RESTORE) {
-  uppyDashboard.use(GoldenRetriever, { serviceWorker: true });
-}
-
-window.uppy = uppyDashboard;
-
-uppyDashboard.on("complete", (result) => {
+uppy.on("complete", (result) => {
   if (result.failed.length === 0) {
     console.log("Upload successful");
   } else {
     console.warn("Upload failed");
   }
+
   console.log("successful files:", result.successful);
   console.log("failed files:", result.failed);
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('projectName').placeholder = 'Project_' + Date.now();
-});
+addEventListeners(uppy);
 
-document.getElementById('uploadForm').addEventListener('submit', function(event) {
-  event.preventDefault(); // Prevent the form from submitting normally
-  const formData = new FormData(this);
-  const metadata = {};
-  formData.forEach((value, key) => {
-    metadata[key] = value;
-  });
-  uppy.setMeta(metadata);
-  uppy.upload();
-});
+async function populateDatasetDropdown() {
+  try {
+    const response = await fetch('/api/datasets');
+    const datasetNames = await response.json();
+    console.log('Dataset names:', datasetNames);
+    const dropdown = document.getElementById('existingDatasets');
+    datasetNames.forEach(dataset => {
+      const option = document.createElement('option');
+      option.value = dataset.dataset_name; // Ensure this matches the property name in your API response
+      option.textContent = dataset.dataset_name; // Same here
+      dropdown.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error fetching dataset names', error);
+  }
+}
+
+// Call the function to populate the dataset dropdown when the page loads
+populateDatasetDropdown();

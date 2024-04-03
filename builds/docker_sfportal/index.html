@@ -1,54 +1,116 @@
 <!DOCTYPE html>
 <html>
-
-<!DOCTYPE html>
-<html>
 <head>
-  <title>SignalFlow EEG Analysis Portal</title>
+  <title>SignalFlow EEG Dataset Portal</title>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="public/styles.css">
 </head>
 <body>
   <div class="container">
     <h1>SignalFlow EEG Analysis Portal</h1>
-    <form id="uploadForm">
-      <div class="form-group">
-        <label for="projectName">Project Name</label>
-        <input type="text" id="projectName" name="projectName" placeholder="Enter project name">
-      </div>
-	  <div class="form-group">
-        <label for="projectDescription">Project Description</label>
-        <textarea id="projectDescription" name="projectDescription" placeholder="Enter project description"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="eegDataType">EEG Format</label>
-        <select id="eegDataType" name="eegDataType">
-          <option value="">Select EEG Data Type</option>
-          <option value="EGI128">Human: EGI 128 SET</option>
-          <option value="MEA30">Mouse: Neuronexus 30 SET</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="jobType">Analysis Type</label>
-        <select id="jobType" name="jobType">
-          <option value="">Select Job Type</option>
-          <option value="connectivity">Connectivity (DWPLI/ISPC/SOH)</option>
-          <option value="powerMeasure">Band Power Measure (Relative + Absolute)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" name="email" placeholder="Enter email address">
-      </div>
-      <div class="form-group">
-        <label>Upload Files</label>
-		<div id="app"></div>
+    <div class="tabs">
+      <button class="tablinks" onclick="openTab(event, 'Upload')">Upload EEG Data</button>
+      <button class="tablinks" onclick="openTab(event, 'Manage')">Manage EEG Datasets</button>
+    </div>
+    <div id="Upload" class="tabcontent">
+      <form id="uploadForm">
+        <div class="form-group">
+          <label for="datasetOption">Choose Dataset Action:</label>
+          <select id="datasetOption" name="datasetOption" onchange="datasetOptionChanged(this)">
+            <option value="new" selected>Create New Dataset</option>
+            <option value="merge">Merge with an Existing Dataset</option>
+          </select>
+        </div>
+        <div class="form-group" id="datasetNameGroup">
+          <label for="datasetName">New Dataset Name:</label>
+          <input type="text" id="datasetName" name="datasetName" placeholder="Enter new dataset name">
+        </div>
+        <div class="form-group" id="datasetMergeGroup" style="display:none;">
+          <label for="existingDatasets">Select an Existing Dataset to Merge:</label>
+          <select id="existingDatasets" name="existingDatasets">
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="eegDataType">Select EEG Data Format:</label>
+          <select id="eegDataType" name="eegDataType">
+            <option value="SET" selected>EEGLAB SET Format</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="email">Your Email Address:</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email address" value="user@example.com">
+        </div>
+        <div class="form-group">
+          <label>Dataset Files Upload:</label>
+          <div id="app"></div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+          <button type="submit" class="btn" style="font-size: 0.8rem; margin-right: 10px;">Start Upload</button>
+          <button type="reset" class="btn" style="background-color:red; font-size: 0.8rem;">Reset Form</button>
+        </div>
+      </form>
+    </div>
 
-		<script src="src/index.js">
-		</script>
+    <div id="Manage" class="tabcontent">
+      <h2>Dataset Organization and Management</h2>
+      <div class="dataset-actions" style="display: flex; justify-content: flex-end; margin-top: 10px;">
+        <button class="btn" style="font-size: 0.8rem; margin-right: 10px;" onclick="createDataset()">Create Dataset</button>
+        <button class="btn" style="font-size: 0.8rem; margin-right: 10px;" onclick="deleteDataset()">Delete Dataset</button>
+        <button class="btn" style="font-size: 0.8rem;" onclick="downloadDataset()">Download Dataset</button>
       </div>
-      <button type="submit" class="btn">Upload</button>
-    </form>
+      <div class="dataset-table-container">
+        <table class="dataset-table">
+          <thead>
+            <tr>
+              <th>Dataset Name</th>
+              <th>File Count</th>
+              <th>Total Size</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="dataset-table-body">
+            <!-- Dataset records will be dynamically inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+
+    <script>
+      function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+      }
+
+      function datasetOptionChanged(selectObj) {
+        var value = selectObj.value;
+        if (value == 'new') {
+          document.getElementById('datasetNameGroup').style.display = 'block';
+          document.getElementById('datasetMergeGroup').style.display = 'none';
+        } else if (value == 'merge') {
+          document.getElementById('datasetNameGroup').style.display = 'none';
+          document.getElementById('datasetMergeGroup').style.display = 'block';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('datasetName').value = 'Dataset_' + Date.now();
+        // Automatically open the Upload tab on page load
+        document.getElementsByClassName('tablinks')[0].click();
+      });
+    </script>
+    <script src="src/index.js"></script>
   </div>
 </body>
 </html>
+
