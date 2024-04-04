@@ -31,17 +31,22 @@ class CatalogBase(Base):
     is_set_file = Column(Boolean)
     has_fdt_file = Column(Boolean)
     fdt_filename = Column(String)
+    fdt_upload_id = Column(String)
     hash = Column(String)
-    remove_upload = Column(Boolean)
 
 class UploadCatalog(CatalogBase):
     __tablename__ = 'upload_catalog'
     size = Column(String)
-
+    remove_upload = Column(Boolean)
+    
 class ImportCatalog(CatalogBase):
     __tablename__ = 'import_catalog'
-    import_id = Column(String, unique=True)
     remove_import = Column(Boolean, name='remove')
+    sample_rate = Column(Integer)
+    n_channels = Column(Integer)
+    n_epochs = Column(Integer)
+    total_samples = Column(Integer)
+    mne_load_error = Column(Boolean)
 
 class AnalysisCatalog(CatalogBase):
     __tablename__ = 'analysis_catalog'
