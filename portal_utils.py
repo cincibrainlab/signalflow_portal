@@ -1,7 +1,19 @@
 import hashlib
 import yaml
 
-def load_config(file_path="portal_config.yaml"):
+# Define the default configuration file name
+YAML_CONFIG = "portal_config.yaml"
+
+def load_config(file_path=YAML_CONFIG):
+    """
+    Loads the YAML configuration file.
+
+    Args:
+        file_path (str): The path to the YAML configuration file. Defaults to YAML_CONFIG.
+
+    Returns:
+        dict: The loaded YAML configuration as a dictionary, or None if an error occurs.
+    """
     try:
         with open(file_path, 'r') as stream:
             return yaml.safe_load(stream)
@@ -11,6 +23,15 @@ def load_config(file_path="portal_config.yaml"):
         print(exc)
 
 def create_file_hash(file_path):
+    """
+    Creates a BLAKE2 hash for a given file.
+
+    Args:
+        file_path (str): The path to the file to hash.
+
+    Returns:
+        str: The hexadecimal representation of the hash.
+    """
     hash_blake2 = hashlib.blake2b()
     with open(file_path, 'rb') as f:
         for chunk in iter(lambda: f.read(4096), b""):
@@ -18,11 +39,22 @@ def create_file_hash(file_path):
     return hash_blake2.hexdigest()
 
 def add_status_code(code):
+    """
+    Maps a status code to a status string.
+
+    Args:
+        code (int): The status code to map.
+
+    Returns:
+        str: The corresponding status string.
+    """
     if code == 200:
         return 'NEW'
     elif code == 201:
         return 'IMPORTED'
     elif code == 204:
         return 'DELETED'
+    elif code == 500:
+        return 'LOAD_ERROR'
     else:
-        return 'ERROR'
+        return 'UNHANDLED'
