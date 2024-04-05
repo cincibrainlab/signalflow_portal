@@ -1,0 +1,27 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/bookmarks
+
+- Code Repositories:
+    - Visual High-Throughput Pipeline:
+        - icon: github.png
+          abbr: VHTP
+          href: https://github.com/cincibrainlab/vhtp/
+    - SignalFlowEEG:
+        - icon: github.png
+          abbr: SF
+          href: https://github.com/cincibrainlab/signalfloweeg/
+    - SignalFlowEEG Portal:
+        - icon: github.png
+          abbr: SFP
+          href: https://github.com/cincibrainlab/signalflow_portal/
+    - SignalFlowEEG Python:
+        - icon: github.png
+          abbr: SFPY
+          href: https://github.com/cincibrainlab/signalfloweeg_py/
+
+- Documentation:
+    - Development Blog:
+        - icon: github.png
+          abbr: DB
+          href: https://github.com/cincibrainlab/devblog

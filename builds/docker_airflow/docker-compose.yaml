@@ -74,84 +74,17 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR:-.}/uploads:/uploads
-    - ${AIRFLOW_PROJ_DIR:-.}/output:/output
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
     redis:
       condition: service_healthy
-    airflow-db:
+    postgres:
       condition: service_healthy
 
 services:
-  sf_uploader:
-    container_name: sf_uploader
-    image: tusproject/tusd:v1.9
-    command: -verbose -upload-dir=/uploads
-    volumes:
-      - tusd:/data
-      - ./portal_files/uploads:/uploads
-      - ./portal_files/import:/import
-      - ./portal_files/info_archive:/info_archive
-      - ./portal_files/output:/output
-    ports:
-      - "1080:1080"
-
-  sf_frontend:
-    container_name: sf_frontend
-    image: cbl/sfportal
-    ports:
-      - "3000:1234"
-    volumes:
-      - ./portal_files/uploads:/uploads
-      - ./portal_files/import:/import
-      - ./portal_files/info_archive:/info_archive
-      - ./portal_files/output:/output
-    depends_on:
-      - sf_uploader
-
-  sf_db:
-    container_name: sf_db
+  postgres:
     image: postgres:13
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: sfportal
-      POSTGRES_PASSWORD: sfportal
-      POSTGRES_DB: sfportal
-    volumes:
-      - sfdb-db-volume:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "sfportal"]
-      interval: 10s
-      retries: 5
-      start_period: 5s
-    restart: always
-
-  sf_analysis:
-    image: ghcr.io/cincibrainlab/signalfloweeg-jdatascience
-    container_name: sf_analysis
-    volumes:
-      - ./portal_files/uploads:/uploads
-      - ./portal_files/import:/import
-      - ./portal_files/info_archive:/info_archive
-      - ./portal_files/output:/output
-    ports:
-      - 13450:8888
-    environment:
-      - DISPLAY=host.docker.internal:0
-      - GRANT_SUDO=yes
-      - NB_USER=jovyan
-      - JUPYTER_PASSWORD=welcome
-    user: root
-    command: sh -c "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
-  
-    
-  airflow-db:
-    image: postgres:13
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
@@ -164,6 +97,8 @@ services:
       retries: 5
       start_period: 5s
     restart: always
+    networks:
+      - eeg-network
 
   redis:
     image: redis:latest
@@ -176,6 +111,8 @@ services:
       retries: 50
       start_period: 30s
     restart: always
+    networks:
+      - eeg-network
 
   airflow-webserver:
     <<: *airflow-common
@@ -193,6 +130,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - eeg-network
 
   airflow-scheduler:
     <<: *airflow-common
@@ -208,6 +147,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - eeg-network
 
   airflow-worker:
     <<: *airflow-common
@@ -231,6 +172,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - eeg-network
 
   airflow-triggerer:
     <<: *airflow-common
@@ -246,6 +189,8 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - eeg-network
 
   airflow-init:
     <<: *airflow-common
@@ -310,6 +255,8 @@ services:
     user: "0:0"
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
+    networks:
+      - eeg-network
 
   airflow-cli:
     <<: *airflow-common
@@ -323,6 +270,8 @@ services:
       - bash
       - -c
       - airflow
+    networks:
+      - eeg-network
 
   # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
   # or by explicitly targeted on the command line e.g. docker-compose up flower.
@@ -345,9 +294,153 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+    networks:
+      - eeg-network
 
+  sf_frontend:
+    container_name: sf_frontend
+    image: cbl/sfportal
+    ports:
+      - "3004:1234"
+    volumes:
+      - ${PORTAL_DIR:-./portal_files}/uploads:/uploads
+      - ${PORTAL_DIR:-./portal_files}/input:/input
+      - ${PORTAL_DIR:-./portal_files}/info_archive:/info_archive
+      - ${PORTAL_DIR:-./portal_files}/output:/output
+    restart: always
+    networks:
+      - eeg-network
+
+  sf_uploader:
+    container_name: sf_uploader
+    image: tusproject/tusd:v1.9
+    command: -verbose -upload-dir=/uploads
+    volumes:
+      - tusd:/data
+      - ${PORTAL_DIR:-./portal_files}/uploads:/uploads
+      - ${PORTAL_DIR:-./portal_files}/input:/input
+      - ${PORTAL_DIR:-./portal_files}/info_archive:/info_archive
+      - ${PORTAL_DIR:-./portal_files}/output:/output
+    ports:
+      - "3001:1080"
+    restart: always      
+    networks:
+      - eeg-network
+
+  sf_fastapi:
+    container_name: sf_fastapi
+    build: 
+      context: ./builds/docker_fastapi/
+      dockerfile: Dockerfile
+    image: cbl/fastapi
+    volumes:
+      - ${PORTAL_DIR:-./portal_files}/uploads:/uploads
+      - ${PORTAL_DIR:-./portal_files}/input:/input
+      - ${PORTAL_DIR:-./portal_files}/info_archive:/info_archive
+      - ${PORTAL_DIR:-./portal_files}/output:/output
+    ports:
+      - "3005:80"
+    restart: always
+    networks:
+      - eeg-network
+
+  sf_db:
+    container_name: sf_db
+    image: postgres:13
+    ports:
+      - "3002:5432"
+    environment:
+      POSTGRES_USER: sfportal
+      POSTGRES_PASSWORD: sfportal
+      POSTGRES_DB: sfportal
+    volumes:
+      - sfdb-db-volume:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - eeg-network
+
+  sf_analysis:
+    image: ghcr.io/cincibrainlab/signalfloweeg-jdatascience
+    container_name: sf_analysis
+    volumes:
+      - ${PORTAL_DIR:-./portal_files}/uploads:/uploads
+      - ${PORTAL_DIR:-./portal_files}/input:/input
+      - ${PORTAL_DIR:-./portal_files}/info_archive:/info_archive
+      - ${PORTAL_DIR:-./portal_files}/output:/output
+    ports:
+      - 3003:8888
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - GRANT_SUDO=yes
+      - NB_USER=jovyan
+      - JUPYTER_PASSWORD=welcome
+    user: root
+    command: sh -c "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
+    restart: always
+    labels:
+      - homepage.group=Media
+      - homepage.name=Emby
+      - homepage.icon=emby.png
+      - homepage.href=http://emby.home/
+      - homepage.description=Media server
+    networks:
+      - eeg-network
+
+  sf_homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: sf_homepage
+    environment:
+      PUID: ${AIRFLOW_UID:-501}
+      PGID: ${AIRFLOW_GID:-20}
+    ports:
+      - 3000:3000
+    volumes:
+      - ${HOMEPAGE_DIR:-.}/homepage_config:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
+    restart: unless-stopped
+    networks:
+      - eeg-network
+
+  # pgAdmin 4 service
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      # Default email for pgAdmin 4
+      PGADMIN_DEFAULT_EMAIL: admin@email.com
+      # Password for pgAdmin 4
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    ports:
+      # Map host port 5050 to container port 80
+      - "3006:80"
+    volumes:
+      # Mount a volume to persist pgAdmin 4 data
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      # Ensure that this service starts after 'db'
+      - sf_db
+    networks:
+      - eeg-network
+    restart: always
+
+  filebrowser:
+    image: hurlenko/filebrowser
+    user: "${AIRFLOW_UID:-501}:${AIRFLOW_GID:-20}"
+    ports:
+      - 3007:8080
+    volumes:
+      - ${PORTAL_DIR:-./portal_files}:/data
+      - ${HOMEPAGE_DIR:-.}/fb_config:/config
+    environment:
+      - FB_BASEURL=/filebrowser
+      - FB_AUTH_METHOD=noauth
+    restart: always
 
 volumes:
   postgres-db-volume:
   tusd:
   sfdb-db-volume:
+  pgadmin_data:
+
+networks:
+  eeg-network:
+    driver: bridge

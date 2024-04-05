@@ -1,0 +1,35 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/latest/configs/services
+- Data Portal:
+    - SF Frontend:
+        href: http://localhost:3004
+        description: SignalFlow Portal Frontend
+    - SF Uploader:
+        href: http://localhost:3001
+        description: SignalFlow Uploader
+    - SF FastAPI:
+        href: http://localhost:3005/docs
+        description: SignalFlow FastAPI Backend
+
+- Data Analysis:
+    - File Browser:
+        href: http://localhost:3007
+        description: File Browser
+    - SF Jupyter Notebook:
+        href: http://localhost:3003
+        description: SignalFlow Data Analysis Notebook
+
+- Administration:
+    - Airflow Webserver:
+        href: http://localhost:8080
+        description: "U: airflow P: airflow"
+    - PgAdmin:
+        href: http://localhost:3006
+        description: "U: admin@email.com P: adminpassword"
+    - Flower:
+        href: http://localhost:5555
+        description: Airflow Flower
+    - HomePage:
+        href: http://localhost:3000
+        description: Docker Containers Homepage

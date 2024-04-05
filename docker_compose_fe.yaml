@@ -15,7 +15,9 @@ services:
       - ./portal_files/input:/input
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
-    restart: always      
+    restart: always
+    networks:
+      - eeg-network
 
   sf_uploader:
     container_name: sf_uploader
@@ -30,6 +32,25 @@ services:
     ports:
       - "3001:1080"
     restart: always      
+    networks:
+      - eeg-network
+
+  sf_fastapi:
+    container_name: sf_fastapi
+    build: 
+      context: ./builds/docker_fastapi/
+      dockerfile: Dockerfile
+    image: cbl/fastapi
+    volumes:
+      - ./portal_files/uploads:/uploads
+      - ./portal_files/input:/input
+      - ./portal_files/info_archive:/info_archive
+      - ./portal_files/output:/output
+    ports:
+      - "3005:80"
+    restart: always
+    networks:
+      - eeg-network
 
   sf_db:
     container_name: sf_db
@@ -43,6 +64,8 @@ services:
     volumes:
       - sfdb-db-volume:/var/lib/postgresql/data
     restart: always
+    networks:
+      - eeg-network
 
   sf_analysis:
     image: ghcr.io/cincibrainlab/signalfloweeg-jdatascience
@@ -61,7 +84,14 @@ services:
       - JUPYTER_PASSWORD=welcome
     user: root
     command: sh -c "jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
+    restart: always
+    networks:
+      - eeg-network
   
 volumes:
   tusd:
   sfdb-db-volume:
+
+networks:
+  eeg-network:
+    driver: bridge
