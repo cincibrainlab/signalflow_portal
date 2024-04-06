@@ -8,7 +8,7 @@ RUN npm install && npm rebuild
 
 RUN sed -i '5s/.*/import PQueue from '"'"'p-queue\/dist\/'"'"';/' /app/node_modules/@uppy/provider-views/lib/ProviderView/ProviderView.js
 
-ENTRYPOINT ["npm", "start"]
+ENTRYPOINT ["npm", "run", "dev"]
 
 # Use the "sleep" command as the entry point
 #ENTRYPOINT ["sleep", "infinity"]

@@ -8,6 +8,7 @@ class EEGFileCatalog(Base):
     id = Column(Integer, primary_key=True)
     filename = Column(String)
     dataset_name = Column(String)
+    dataset_id = Column(String)    # unique upload ID
     storage = Column(Text, unique=True)
     upload_id = Column(String, unique=True)
     size = Column(String)
@@ -60,3 +61,15 @@ class DatasetCatalog(Base):
     description = Column(Text)
     eeg_format = Column(Integer)
     is_event_related = Column(Integer)
+
+class EegFormat(Base):
+    __tablename__ = 'eeg_format'
+    id = Column(Integer, primary_key=True)
+    format_name = Column(String, unique=True)
+    description = Column(Text)
+
+class EegParadigm(Base):
+    __tablename__ = 'eeg_paradigm'
+    id = Column(Integer, primary_key=True)
+    paradigm_name = Column(String, unique=True)
+    description = Column(Text)

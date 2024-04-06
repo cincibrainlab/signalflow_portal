@@ -1,18 +1,18 @@
 ---
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/services
-- Data Portal:
-    - SF Frontend:
+- SignalFlowEEG Data Portal:
+    - SF Upload Data:
         href: http://localhost:3004
         description: SignalFlow Portal Frontend
-    - SF Uploader:
-        href: http://localhost:3001
-        description: SignalFlow Uploader
-    - SF FastAPI:
+    - SF FastAPI Documentation:
         href: http://localhost:3005/docs
         description: SignalFlow FastAPI Backend
+    - SF Uploader (Endpoint):
+        href: http://localhost:3001
+        description: SignalFlow Uploader
 
-- Data Analysis:
+- SignalFlowEEG Data Analysis:
     - File Browser:
         href: http://localhost:3007
         description: File Browser
@@ -22,7 +22,7 @@
 
 - Administration:
     - Airflow Webserver:
-        href: http://localhost:8080
+        href: http://localhost:3008
         description: "U: airflow P: airflow"
     - PgAdmin:
         href: http://localhost:3006

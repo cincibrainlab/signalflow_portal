@@ -2,7 +2,7 @@ import hashlib
 import yaml
 
 # Define the default configuration file name
-YAML_CONFIG = "portal_config.yaml"
+YAML_CONFIG = "./portal_config.yaml"
 
 def load_config(file_path=YAML_CONFIG):
     """

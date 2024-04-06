@@ -28,6 +28,17 @@ async function getDatasetNames() {
   }
 }
 
+async function getEegFormats() {
+  const client = await pool.connect();
+  try {
+    const res = await client.query('SELECT format_name, description FROM eeg_format');
+    return res.rows;
+  } finally {
+    client.release();
+  }
+}
+
+
 async function getDatasetFileCounts() {
   const client = await pool.connect();
   try {
@@ -52,5 +63,6 @@ async function getDatasetFileCounts() {
 module.exports = {
   getFilenames,
   getDatasetNames,
+  getEegFormats
 };
 

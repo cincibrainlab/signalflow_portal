@@ -1,0 +1,33 @@
+# Instructions for generating the YAML file:
+# The YAML file should have two top-level keys: 'eeg_formats' and 'eeg_paradigms'.
+# Under 'eeg_formats', each format should be represented as a dictionary with 'format_name' and 'description' keys.
+# Under 'eeg_paradigms', each paradigm should be represented as a dictionary with 'paradigm_name' and 'description' keys.
+# Example YAML file:
+# eeg_formats:
+#   - format_name: 'EDF'
+#     description: 'European Data Format'
+#   - format_name: 'BDF'
+#     description: 'Biosemi Data Format'
+# eeg_paradigms:
+#   - paradigm_name: 'Oddball'
+#     description: 'Auditory oddball paradigm'
+#   - paradigm_name: 'Stroop'
+#     description: 'Stroop color-word interference task'
+
+eeg_formats:
+  - format_name: 'EGI128'
+    description: 'Adult/Child 128 channel EGI Hydrocel net'
+  - format_name: 'EGI32'
+    description: 'Adult/Child 32 channel EGI Hydrocel net'
+  - format_name: 'MEA30'
+    description: 'NeuroNexus 30 channel MEA'
+  - format_name: 'MEA30 (v2)'
+    description: 'EGI MFF Data Format'
+
+eeg_paradigms:
+  - paradigm_name: 'Resting State'
+    description: 'Subject is at rest with eyes open or closed'
+  - paradigm_name: 'Visual'
+    description: 'Subject is presented with visual stimuli'
+  - paradigm_name: 'Auditory Chirp A'
+    description: 'Subject is presented with auditory chirp stimuli'

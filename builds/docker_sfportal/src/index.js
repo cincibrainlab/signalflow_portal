@@ -34,5 +34,32 @@ async function populateDatasetDropdown() {
   }
 }
 
+window.addEventListener('load', async () => {
+  try {
+    const response = await fetch('/api/eegformats');
+    const eegFormats = await response.json();
+    console.log('EEG Types:', eegFormats);
+    const dropdown = document.getElementById('eegDataType');
+
+    // Add the new API results to the dropdown
+    eegFormats.forEach(format => {
+      const option = document.createElement('option');
+      console.log('format', format.format_name);
+      option.value = format.format_name;
+      option.text = format.format_name;
+      //option.attr('data-description', "format.description");
+
+      //option.data('description') = format.description;
+      //option.description = format.description;
+      //option.setAttribute('description', `${format.format_name} - ${format.description}`);
+      dropdown.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error fetching EEG format names', error);
+  }
+});
+
 // Call the function to populate the dataset dropdown when the page loads
 populateDatasetDropdown();
+
+//populateEegFormatDropDown();

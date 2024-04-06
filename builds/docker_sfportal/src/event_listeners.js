@@ -1,7 +1,11 @@
 // eventListeners.js
+import { v4 as uuidv4 } from 'uuid';
+
 export const addEventListeners = (uppy) => {
+
     document.addEventListener('DOMContentLoaded', function() {
-      document.getElementById('datasetName').placeholder = 'Dataset_' + Date.now();
+      document.getElementById('datasetName').value = 'Dataset_' + Date.now();
+      document.getElementById('datasetId').value = uuidv4();      
     });
   
     document.getElementById('uploadForm').addEventListener('submit', function(event) {
@@ -17,4 +21,5 @@ export const addEventListeners = (uppy) => {
       uppy.setMeta(metadata);
       uppy.upload();
     });
+
   };

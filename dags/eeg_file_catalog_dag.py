@@ -1,10 +1,13 @@
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import datetime, timedelta
+from db import drop_all_tables
+from portal_utils import load_config
+from upload_catalog import update_upload_catalog
+from import_catalog import update_import_catalog
 import os
 import glob
-import csv
-import json
+import logging
 
 default_args = {
     'owner': 'airflow',
@@ -19,55 +22,32 @@ default_args = {
 dag = DAG(
     'eeg_file_catalog',
     default_args=default_args,
-    description='Catalog EEG files and metadata',
-    schedule=timedelta(minutes=5),
+    description='Process new EEG file uploads and update catalogs',
+    schedule_interval=timedelta(days=1),
 )
 
-def catalog_eeg_files():
-    folder_path = '/uploads'  # Replace with the actual folder path
-    info_files = glob.glob(os.path.join(folder_path, '*.info'))
-    
-    table_data = []
-    for info_file in info_files:
-        with open(info_file, 'r') as file:
-            file_metadata = json.load(file)
-            
-            metadata = file_metadata.get('MetaData', {})
-            file_metadata['filename'] = metadata.get('filename', 'N/A')
-            file_metadata['filetype'] = metadata.get('filetype', 'N/A')
-            file_metadata['name'] = metadata.get('name', 'N/A')
-            file_metadata['relativePath'] = metadata.get('relativePath', 'N/A')
-            file_metadata['type'] = metadata.get('type', 'N/A')
-            file_metadata['status'] = 'pending'
-            
-            table_data.append(file_metadata)
-    
-    # Save the table as a CSV file
-    csv_file = '/uploads/catalog.csv'  # Replace with the desired file path
-    with open(csv_file, 'w', newline='') as file:
-        fieldnames = ['filename', 'filetype', 'name', 'relativePath', 'type', 'status']
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(table_data)
-    
-    # Display the table
-    print("EEG File Catalog:")
-    print("=" * 50)
-    for row in table_data:
-        print(f"Filename: {row.get('filename', 'N/A')}")
-        print(f"Filetype: {row.get('filetype', 'N/A')}")
-        print(f"Name: {row.get('name', 'N/A')}")
-        print(f"Relative Path: {row.get('relativePath', 'N/A')}")
-        print(f"Type: {row.get('type', 'N/A')}")
-        print(f"Status: {row.get('status', 'N/A')}")
-        print("-" * 50)
-    
-    # Check for new files
-    if len(info_files) > len(table_data):
-        print("New file(s) detected!")
+def find_info_files(upload_dir):
+    info_files = glob.glob(os.path.join(upload_dir, "*.info"))
+    logging.info(f"Detected {len(info_files)} .info files in {upload_dir}.")
+    return info_files
 
-catalog_task = PythonOperator(
-    task_id='catalog_eeg_files',
-    python_callable=catalog_eeg_files,
+def process_new_uploads(upload_dir, **context):
+    logging.info(f"Scanning upload directory: {upload_dir}")
+    update_upload_catalog(find_info_files(upload_dir))
+    update_import_catalog()
+    logging.info("Upload and import catalogs updated.")
+
+drop_all_tables_task = PythonOperator(
+    task_id='drop_all_tables',
+    python_callable=drop_all_tables,
     dag=dag,
 )
+
+process_new_uploads_task = PythonOperator(
+    task_id='process_new_uploads',
+    python_callable=process_new_uploads,
+    op_kwargs={'upload_dir': load_config()['folder_paths']['uploads']},
+    dag=dag,
+)
+
+drop_all_tables_task >> process_new_uploads_task

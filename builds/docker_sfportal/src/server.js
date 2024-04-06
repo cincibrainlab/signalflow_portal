@@ -1,6 +1,6 @@
 
 const express = require('express');
-const { getFilenames, getDatasetNames } = require('./db.js'); // Adjust the path as necessary
+const { getFilenames, getDatasetNames, getEegFormats } = require('./db.js'); // Adjust the path as necessary
 const path = require('path');
 
 const app = express();
@@ -39,8 +39,41 @@ app.get('/api/datasets', async (req, res) => {
   }
 });
 
+app.get('/api/eegformats', async (req, res) => {
+  try {
+    const names = await getEegFormats();
+    res.json(names);
+  } catch (error) {
+    console.error('Failed to fetch dataset names:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+const apiResults = [
+  { format_name: "EGI128", description: "Adult/Child 128 channel EGI Hydrocel net" },
+  { format_name: "EGI32", description: "Adult/Child 32 channel EGI Hydrocel net" },
+  { format_name: "MEA30", description: "NeuroNexus 30 channel MEA" },
+  { format_name: "MEA30 (v2)", description: "EGI MFF Data Format" }
+];
+
+const transformedResults = apiResults.map((result, index) => {
+  return {
+    id: index + 1,
+    text: result.format_name
+  };
+});
+
+const transformedData = {
+  results: transformedResults,
+  pagination: {
+    more: true
+  }
+};
+
+
+
 // Start the server
-const port = 3400; // You can change the port number if needed
+const port = 1234; // You can change the port number if needed
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

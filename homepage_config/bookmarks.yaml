@@ -21,7 +21,15 @@
           href: https://github.com/cincibrainlab/signalfloweeg_py/
 
 - Documentation:
-    - Development Blog:
-        - icon: github.png
+    - SignalFlow Development Blog:
+        - icon: https://cincibrainlab.github.io/devblog/assets/images/logo.png
           abbr: DB
           href: https://github.com/cincibrainlab/devblog
+    - MNE Python:
+        - icon: https://mne.tools/stable/_images/mne_logo.svg
+          abbr: MNE
+          href: https://mne.tools/stable/index.html
+    - EEGLAB:
+        - icon: https://sccn.ucsd.edu/images/sccn.svg
+          abbr: EEGLAB
+          href: https://sccn.ucsd.edu/eeglab/index.php

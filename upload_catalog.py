@@ -26,6 +26,7 @@ def extract_metadata(info_file, folder_path=UPLOAD_PATH):
     row = {
         'status': add_status_code(200),
         'dataset_name': file_metadata['MetaData'].get('datasetName', 'NA'),
+        'dataset_id': file_metadata['MetaData'].get('datasetId', 'NA'),
         'remove_upload': False,
         'upload_id': file_metadata.get('ID', 'NA'),
         'date_added': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
