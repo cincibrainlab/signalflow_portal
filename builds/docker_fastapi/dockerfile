@@ -1,7 +1,6 @@
 # Use the Python 3.11 base image
 FROM python:3.11
 
-
 # Install additional packages
 RUN apt-get update && apt-get install -y nala && \
     nala install -y libx11-dev wget ca-certificates curl git nano unzip zip software-properties-common build-essential && \
@@ -20,18 +19,23 @@ RUN /root/.cargo/bin/uv venv /opt/venv && \
 # Copy the requirements.txt file to the working directory
 COPY ./requirements.txt /code/requirements.txt
 
-RUN /root/.cargo/bin/uv pip install --system --no-cache -r requirements.txt && \
-    mkdir /code/github/ && \
-    cd /code/github && \
-    git clone https://github.com/cincibrainlab/signalfloweeg_py.git && \
-    cd /code/github/signalfloweeg_py && \
-    /root/.cargo/bin/uv pip install -e .
+# && \
+#     mkdir /code/github/ && \
+#     cd /code/github && \
+#     git clone https://github.com/cincibrainlab/signalfloweeg_py.git && \
+#     cd /code/github/signalfloweeg_py && \
+#     /root/.cargo/bin/uv pip install -e .
 
 # Set the working directory to /code
 WORKDIR /code
 
 # Copy the FastAPI application code to the working directory
 COPY ./app /code/app
+COPY ./github /code/github
+
+RUN /root/.cargo/bin/uv pip install --system --no-cache -r requirements.txt
+RUN /root/.cargo/bin/uv pip install -e /code/github/signalfloweeg_py
+
 
 # Start the FastAPI application using Uvicorn
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]

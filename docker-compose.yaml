@@ -325,6 +325,7 @@ services:
       - ${PORTAL_DIR:-./portal_files}/input:/portal_files/input
       - ${PORTAL_DIR:-./portal_files}/info_archive:/portal_files/info_archive
       - ${PORTAL_DIR:-./portal_files}/output:/portal_files/output
+      - ${PORTAL_DIR:-./portal_files}/output:/portal_files/logs
     ports:
       - "3005:80"
     restart: always
