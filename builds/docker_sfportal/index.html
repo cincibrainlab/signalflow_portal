@@ -52,6 +52,16 @@
             <select id="existingDatasets" name="existingDatasets"></select>
           </div>
           <div class="form-group">
+            <label for="eegparadigm">EEG Paradigm:</label>
+            <select
+              id="eegparadigm"
+              class="js-example-basic-single"
+              name="eegparadigm"
+            >
+              <option value="">Select an option</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label for="eegformat">Channel Information:</label>
             <select
               id="eegformat"
@@ -68,7 +78,7 @@
                   return option.text;
                 }
                 var $option = $(
-                  `<div><strong>${option.format_name}</strong><br><small>${option.description}</small></div>`
+                  `<div><strong>${option.name}</strong><br><small>${option.description}</small></div>`
                 );
                 return $option;
               }
@@ -85,8 +95,8 @@
                   success: function (data) {
                     var options = data.map(function (item) {
                       return {
-                        id: item.format_name,
-                        format_name: item.format_name,
+                        id: item.name,
+                        name: item.name,
                         description: item.description,
                       };
                     });
@@ -98,6 +108,27 @@
                   },
                   error: function (xhr, status, error) {
                     console.error("Error fetching options:", error);
+                  },
+                });
+
+                $.ajax({
+                  url: "api/eegparadigms",
+                  type: "GET",
+                  dataType: "json",
+                  success: function (data) {
+                    var options = data.map(function (item) {
+                      return {
+                        id: item.name,
+                        name: item.name,
+                        description: item.description,
+                      };
+                    });
+                    $("#eegparadigm")
+                      .empty()
+                      .select2({ data: options, templateResult: formatOption });
+                  },
+                  error: function (xhr, status, error) {
+                    console.error("Error fetching EEG paradigms:", error);
                   },
                 });
               });

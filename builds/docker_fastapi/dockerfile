@@ -1,17 +1,21 @@
-# 
-FROM python:3.9
+# Use the Python 3.11 base image
+FROM python:3.11
 
-# 
+# Download and install the Astral UV package
+ADD --chmod=755 https://astral.sh/uv/install.sh /install.sh
+RUN /install.sh && rm /install.sh
+
+# Set the working directory to /code
 WORKDIR /code
 
-# 
+# Copy the requirements.txt file to the working directory
 COPY ./requirements.txt /code/requirements.txt
 
-# 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+# Install the Python dependencies using the Astral UV package manager
+RUN /root/.cargo/bin/uv pip install --system --no-cache -r requirements.txt
 
-# 
+# Copy the FastAPI application code to the working directory
 COPY ./app /code/app
 
-# 
+# Start the FastAPI application using Uvicorn
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
