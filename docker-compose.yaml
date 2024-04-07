@@ -319,12 +319,12 @@ services:
     build: 
       context: ./builds/docker_fastapi/
       dockerfile: Dockerfile
-    image: cbl/fastapi
+    image: cbl/sf_fastapi
     volumes:
-      - ${PORTAL_DIR:-./portal_files}/uploads:/uploads
-      - ${PORTAL_DIR:-./portal_files}/input:/input
-      - ${PORTAL_DIR:-./portal_files}/info_archive:/info_archive
-      - ${PORTAL_DIR:-./portal_files}/output:/output
+      - ${PORTAL_DIR:-./portal_files}/uploads:/portal_files/uploads
+      - ${PORTAL_DIR:-./portal_files}/input:/portal_files/input
+      - ${PORTAL_DIR:-./portal_files}/info_archive:/portal_files/info_archive
+      - ${PORTAL_DIR:-./portal_files}/output:/portal_files/output
     ports:
       - "3005:80"
     restart: always
