@@ -17,49 +17,20 @@ uppy.on("complete", (result) => {
 
 addEventListeners(uppy);
 
-async function populateDatasetDropdown() {
-  try {
-    const response = await fetch('/api/datasets');
-    const datasetNames = await response.json();
-    console.log('Dataset names:', datasetNames);
-    const dropdown = document.getElementById('existingDatasets');
-    datasetNames.forEach(dataset => {
-      const option = document.createElement('option');
-      option.value = dataset.dataset_name; // Ensure this matches the property name in your API response
-      option.textContent = dataset.dataset_name; // Same here
-      dropdown.appendChild(option);
-    });
-  } catch (error) {
-    console.error('Error fetching dataset names', error);
-  }
-}
+// async function populateDatasetDropdown() {
+//   try {
+//     const response = await fetch('/api/datasets');
+//     if (!response.ok) {
+//       throw new Error(`HTTP error ${response.status}`);
+//     }
+//     const datasetNames = await response.json();
+//     console.log('Dataset names:', datasetNames);
+//     // Rest of the code
+//   } catch (error) {
+//     console.error('Error fetching dataset names', error);
+//   }
+// }
 
-window.addEventListener('load', async () => {
-  try {
-    const response = await fetch('/api/eegformats');
-    const eegFormats = await response.json();
-    console.log('EEG Types:', eegFormats);
-    const dropdown = document.getElementById('eegDataType');
+// // Call the function to populate the dataset dropdown when the page loads
+// populateDatasetDropdown();
 
-    // Add the new API results to the dropdown
-    eegFormats.forEach(format => {
-      const option = document.createElement('option');
-      console.log('format', format.format_name);
-      option.value = format.format_name;
-      option.text = format.format_name;
-      //option.attr('data-description', "format.description");
-
-      //option.data('description') = format.description;
-      //option.description = format.description;
-      //option.setAttribute('description', `${format.format_name} - ${format.description}`);
-      dropdown.appendChild(option);
-    });
-  } catch (error) {
-    console.error('Error fetching EEG format names', error);
-  }
-});
-
-// Call the function to populate the dataset dropdown when the page loads
-populateDatasetDropdown();
-
-//populateEegFormatDropDown();

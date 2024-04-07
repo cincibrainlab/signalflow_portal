@@ -11,9 +11,7 @@
   </head>
   <body>
     <div class="container">
-      <header>
-        <h1>SignalFlow EEG Dataset Portal</h1>
-      </header>
+      <h1>SignalFlow EEG Analysis Portal</h1>
       <div class="tabs">
         <button class="tablinks" onclick="openTab(event, 'Upload')">
           Upload EEG Data
@@ -62,7 +60,7 @@
             </select>
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-            <script>
+                        <script>
               function formatOption(option) {
                 if (!option.id) {
                   return option.text;
@@ -75,7 +73,7 @@
 
               $(document).ready(function () {
                 $(".js-example-basic-single").select2({
-                  templateResult: formatOption,
+                  templateResult: formatOption
                 });
 
                 $.ajax({

@@ -1,9 +1,14 @@
+// Static imports
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const express = require('express');
-const { getFilenames, getDatasetNames, getEegFormats } = require('./db.js'); // Adjust the path as necessary
-const path = require('path');
+const { getFilenames, getDatasetNames, getEegFormats } = await import('./db.cjs'); // Adjust the path as necessary
 
 const app = express();
+
+// Get the __dirname equivalent by using the URL of the current module
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(express.static(path.join(__dirname, '../dist')));
 
@@ -16,7 +21,6 @@ app.use((req, res, next) => {
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Test API endpoint is working!' });
 });
-
 
 // API endpoint to get filenames
 app.get('/api/filenames', async (req, res) => {
@@ -48,29 +52,6 @@ app.get('/api/eegformats', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-const apiResults = [
-  { format_name: "EGI128", description: "Adult/Child 128 channel EGI Hydrocel net" },
-  { format_name: "EGI32", description: "Adult/Child 32 channel EGI Hydrocel net" },
-  { format_name: "MEA30", description: "NeuroNexus 30 channel MEA" },
-  { format_name: "MEA30 (v2)", description: "EGI MFF Data Format" }
-];
-
-const transformedResults = apiResults.map((result, index) => {
-  return {
-    id: index + 1,
-    text: result.format_name
-  };
-});
-
-const transformedData = {
-  results: transformedResults,
-  pagination: {
-    more: true
-  }
-};
-
-
 
 // Start the server
 const port = 1234; // You can change the port number if needed

@@ -1,4 +1,7 @@
-const { Pool } = require('pg');
+// db.cjs
+const pg = require('pg');
+const { Pool } = pg;
+// ... rest of your CommonJS code
 
 const pool = new Pool({
   user: 'sfportal',
