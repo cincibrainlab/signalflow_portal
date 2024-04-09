@@ -84,6 +84,12 @@ def get_import_ids():
     import_ids = import_catalog.get_import_ids()
     return import_ids
 
+@app.get("/api/gen-job-list")
+def generate_joblist():
+    logging.info("Generating job list...")
+    job_list = import_catalog.generate_joblist()
+    return job_list
+
 @app.post("/api/trigger_analysis/{upload_id}")
 async def trigger_analysis(upload_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     from rich.console import Console
