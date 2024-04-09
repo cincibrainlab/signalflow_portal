@@ -170,6 +170,70 @@
       </div>
 
       <div id="Manage" class="tabcontent">
+        <h2>Database Management</h2>
+        <div
+          class="dataset-actions"
+          style="display: flex; justify-content: flex-end; margin-top: 10px"
+        >
+          <button
+            class="btn"
+            style="font-size: 0.8rem; margin-right: 10px"
+            onclick="dropTables()"
+          >
+            Drop All Tables
+          </button>
+        </div>
+        <h2>Portal Tasks and Tests</h2>
+        <div
+          class="dataset-actions"
+          style="display: flex; justify-content: flex-end; margin-top: 10px"
+        >
+          <button
+            class="btn"
+            style="font-size: 0.8rem; margin-right: 10px"
+            onclick="process_uploads()"
+          >
+            Process Uploads
+          </button>
+        </div>
+        <div
+          class="dataset-actions"
+          style="display: flex; justify-content: flex-end; margin-top: 10px"
+        >
+          <button
+            class="btn"
+            style="font-size: 0.8rem; margin-right: 10px"
+            onclick="toggleConfig()"
+          >
+            View Config
+          </button>
+          <pre
+            id="show-config"
+            style="margin-left: 10px; font-size: 0.8rem; display: none;"
+          ></pre>
+        </div>
+
+        <script>
+          let configVisible = false;
+
+          function toggleConfig() {
+            const configDiv = document.getElementById("show-config");
+            if (configVisible) {
+              configDiv.style.display = "none";
+            } else {
+              fetch("http://localhost:8001/api/request-config")
+                .then((response) => response.json())
+                .then((data) => {
+                  configDiv.textContent = JSON.stringify(data, null, 2);
+                  configDiv.style.display = "block";
+                })
+                .catch((error) => {
+                  console.error("Error fetching config:", error);
+                });
+            }
+            configVisible = !configVisible;
+          }
+        </script>
         <h2>Dataset Organization and Management</h2>
         <div
           class="dataset-actions"
@@ -242,6 +306,34 @@
             document.getElementById("datasetMergeGroup").style.display =
               "block";
           }
+        }
+
+        function dropTables() {
+          if (confirm("Are you sure you want to drop all tables?")) {
+            fetch("http://localhost:8001/api/drop-tables", {
+              method: "GET",
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                alert(data.message);
+              })
+              .catch((error) => {
+                console.error("Error dropping tables:", error);
+              });
+          }
+        }
+
+        function process_uploads() {
+          fetch("http://localhost:8001/api/process-uploads", {
+            method: "GET",
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              alert(data.message);
+            })
+            .catch((error) => {
+              console.error("Error processing uploads:", error);
+            });
         }
 
         document.addEventListener("DOMContentLoaded", function () {
