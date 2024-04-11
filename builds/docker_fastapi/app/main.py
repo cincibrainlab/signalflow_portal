@@ -2,7 +2,15 @@ import logging
 from fastapi import FastAPI, Depends, BackgroundTasks
 import os
 from sqlalchemy.orm import Session  # Add this import
-from signalfloweeg.portal.sessionmaker import get_db, drop_all_tables, generate_eeg_format_and_paradigm, generate_database_summary
+from signalfloweeg.portal.sessionmaker import ( 
+    get_db, drop_all_tables, 
+    generate_eeg_format_and_paradigm, 
+    generate_database_summary, 
+    get_eeg_formats, 
+    get_eeg_paradigms, 
+    get_dataset_info, 
+    get_eligible_files
+    )
 from signalfloweeg.portal import portal_utils, upload_catalog, import_catalog
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -38,21 +46,29 @@ def load_channels_paradigms():
 @app.get("/api/clean-uploads")
 def clean_uploads():
     logging.info("Cleaning up uploads folder and resetting database...")
-    
+    from rich.console import Console
+    console = Console()
     # Clean up uploads folder
     UPLOAD_PATH = portal_utils.load_config()['folder_paths']['uploads']
-    for filename in os.listdir(UPLOAD_PATH):
-        file_path = os.path.join(UPLOAD_PATH, filename)
-        try:
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-        except Exception as e:
-            logging.error(f"Error deleting file {filename}: {e}")
-    
-    # Reset database
+    console.print(f"Cleaning up uploads folder: {UPLOAD_PATH}")
+
+    import shutil
+    try:
+        for filename in os.listdir(UPLOAD_PATH):
+            file_path = os.path.join(UPLOAD_PATH, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        console.print("All files in the uploads folder have been removed.")
+    except Exception as e:
+        console.print(f"Error occurred while deleting files in the uploads folder: {e}")
+
     drop_all_tables()
     generate_eeg_format_and_paradigm()
     generate_database_summary()
+
+    return {"message": "Uploads folder cleaned and database reset successfully."}
     
     return {"message": "Uploads folder cleaned and database reset successfully."}
 
@@ -68,6 +84,15 @@ def request_config():
     config = portal_utils.load_config()
     logging.info(config)
     return config
+
+@app.get("/api/list-eeg-formats")
+def list_eeg_formats():
+    return get_eeg_formats()
+
+@app.get("/api/list-eeg-paradigms")
+def list_eeg_paradigms():
+    return get_eeg_paradigms()
+
 
 @app.get("/api/process-uploads")
 def process_uploads():
@@ -122,6 +147,34 @@ async def trigger_analysis(upload_id: str, background_tasks: BackgroundTasks, db
 
     return {"message": "Analysis triggered"}
 
+@app.get("/api/get-dataset-info")
+def list_dataset_info():
+    from rich.console import Console
+    from rich.table import Table
+
+    logging.info("Getting dataset information...")
+    dataset_info = get_dataset_info()
+
+    console = Console()
+    table = Table(title="Dataset Information")
+    table.add_column("ID", style="cyan", no_wrap=True)
+    table.add_column("Name", style="magenta", no_wrap=True)
+    table.add_column("Description", style="green", no_wrap=True)
+    table.add_column("EEG Format ID", style="yellow", no_wrap=True)
+    table.add_column("EEG Paradigm ID", style="blue", no_wrap=True)
+    for dataset in dataset_info:
+        table.add_row(dataset["dataset_id"], dataset["dataset_name"], dataset["description"], 
+            dataset["eeg_format"], dataset["eeg_paradigm"])
+
+    console.print(table)
+    #console.print(dataset_info)
+    return dataset_info
+
+@app.get("/api/get-eligible-files")
+def list_eligible_files():
+    logging.info("Getting eligible files...")
+    eligible_files = get_eligible_files()
+    return eligible_files
 
 
 if __name__ == "__main__":

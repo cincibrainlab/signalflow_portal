@@ -18,7 +18,7 @@ folder_paths:
 
 # List of EEG formats
 eeg_formats:
-  - name: 'EGI128'
+  - name: 'EGI128B'
     description: 'Adult/Child 128 channel EGI Hydrocel net'
   - name: 'EGI32'
     description: 'Adult/Child 32 channel EGI Hydrocel net'

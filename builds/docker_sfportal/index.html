@@ -21,6 +21,9 @@
         <button class="tablinks" onclick="openTab(event, 'Manage')">
           Manage EEG Datasets
         </button>
+        <button class="tablinks" onclick="openTab(event, 'DatasetManagement')">
+          Edit EEG Datasets
+        </button>
       </div>
       <div id="Upload" class="tabcontent">
         <form id="uploadForm">
@@ -51,89 +54,52 @@
             </label>
             <select id="existingDatasets" name="existingDatasets"></select>
           </div>
-          <div class="form-group">
-            <label for="eegparadigm">EEG Paradigm:</label>
-            <select
-              id="eegparadigm"
-              class="js-example-basic-single"
-              name="eegparadigm"
-            >
-              <option value="">Select an option</option>
-            </select>
+
+          <div class="form-group" id="eegFormatsGroup">
+            <label for="eegFormats"> Select EEG Format: </label>
+            <select id="eegFormats" name="eegFormats"></select>
           </div>
-          <div class="form-group">
-            <label for="eegformat">Channel Information:</label>
-            <select
-              id="eegformat"
-              class="js-example-basic-single"
-              name="eegformat"
-            >
-              <option value="">Select an option</option>
-            </select>
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-            <script>
-              function formatOption(option) {
-                if (!option.id) {
-                  return option.text;
-                }
-                var $option = $(
-                  `<div><strong>${option.name}</strong><br><small>${option.description}</small></div>`
-                );
-                return $option;
-              }
 
-              $(document).ready(function () {
-                $(".js-example-basic-single").select2({
-                  templateResult: formatOption,
-                });
+          <script>
+            window.addEventListener("load", function () {
+              fetch("http://localhost:8001/api/list-eeg-formats")
+                .then((response) => response.json())
+                .then((data) => {
+                  const select = document.getElementById("eegFormats");
+                  data.forEach((item) => {
+                    const option = document.createElement("option");
+                    option.value = item.id;
+                    option.text =
+                      item.name.toUpperCase() + " (" + item.description + ")";
+                    select.appendChild(option);
+                  });
+                })
+                .catch((error) => console.error("Error:", error));
+            });
+          </script>
 
-                $.ajax({
-                  url: "api/eegformats",
-                  type: "GET",
-                  dataType: "json",
-                  success: function (data) {
-                    var options = data.map(function (item) {
-                      return {
-                        id: item.name,
-                        name: item.name,
-                        description: item.description,
-                      };
-                    });
-
-                    $(".js-example-basic-single").empty().select2({
-                      data: options,
-                      templateResult: formatOption,
-                    });
-                  },
-                  error: function (xhr, status, error) {
-                    console.error("Error fetching options:", error);
-                  },
-                });
-
-                $.ajax({
-                  url: "api/eegparadigms",
-                  type: "GET",
-                  dataType: "json",
-                  success: function (data) {
-                    var options = data.map(function (item) {
-                      return {
-                        id: item.name,
-                        name: item.name,
-                        description: item.description,
-                      };
-                    });
-                    $("#eegparadigm")
-                      .empty()
-                      .select2({ data: options, templateResult: formatOption });
-                  },
-                  error: function (xhr, status, error) {
-                    console.error("Error fetching EEG paradigms:", error);
-                  },
-                });
-              });
-            </script>
+          <div class="form-group" id="eegParadigmsGroup">
+            <label for="eegParadigms"> Select EEG Paradigm: </label>
+            <select id="eegParadigms" name="eegParadigms"></select>
           </div>
+          <script>
+            window.onload = function () {
+              fetch("http://localhost:8001/api/list-eeg-paradigms")
+                .then((response) => response.json())
+                .then((data) => {
+                  const select = document.getElementById("eegParadigms");
+                  data.forEach((item) => {
+                    const option = document.createElement("option");
+                    option.value = item.id;
+                    option.text =
+                      item.name.toUpperCase() + " (" + item.description + ")";
+                    select.appendChild(option);
+                  });
+                })
+                .catch((error) => console.error("Error:", error));
+            };
+          </script>
+
           <div class="form-group">
             <label for="email">Your Email Address:</label>
             <input
@@ -209,7 +175,7 @@
           </button>
           <pre
             id="show-config"
-            style="margin-left: 10px; font-size: 0.8rem; display: none;"
+            style="margin-left: 10px; font-size: 0.8rem; display: none"
           ></pre>
         </div>
 
@@ -277,6 +243,159 @@
           </table>
         </div>
       </div>
+
+      <div id="DatasetManagement" class="tabcontent">
+        <h2>Manage Dataset Catalog</h2>
+        <div class="dataset-catalog-table-container" style="width: 100%;">
+          <table class="dataset-catalog-table table table-striped" style="width: 100%;">
+            <thead>
+              <tr style="text-align: left;">
+                <th>Name</th>
+                <th>ID</th>
+                <th>Desc</th>
+                <th>Format</th>
+                <th>Paradigm</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dataset-catalog-table-body">
+              <!-- Dataset Catalog records will be dynamically inserted here -->
+            <script>
+              window.addEventListener("load", function () {
+                fetch("http://localhost:8001/api/get-dataset-info")
+                  .then((response) => response.json())
+                  .then((data) => {
+                    const tableBody = document.getElementById("dataset-catalog-table-body");
+                    data.forEach((item) => {
+                      const row = document.createElement("tr");
+                      row.innerHTML = `
+                        <td style="text-align: left;">${item.dataset_name}</td>
+                        <td>${item.dataset_id}</td>
+                        <td>${item.description}</td>
+                        <td>${item.eeg_format.name}</td>
+                        <td>${item.eeg_paradigm.name}</td>
+                        <td>
+                          <button class="btn btn-info" style="font-size: 1rem;" onclick="updateDatasetCatalog('${item.dataset_id}')">Update</button>
+                        </td>
+                      `;
+                      tableBody.appendChild(row);
+                    });
+                  })
+                  .catch((error) => console.error("Error:", error));
+              });
+            </script>
+            </tbody>
+          </table>
+        </div>
+        <div class="dataset-catalog-form-container">
+          <button class="btn btn-success" onclick="toggleDatasetForm()">Add/Edit Dataset</button>
+          <div id="dataset-form" class="card mt-3" style="display: none;">
+            <div class="card-body">
+              <form onsubmit="saveDataset(event)">
+                <div class="form-group">
+                  <label for="dataset-name">Dataset Name:</label>
+                  <input type="text" id="dataset-name" name="dataset-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label for="dataset-id">Dataset ID:</label>
+                  <input type="text" id="dataset-id" name="dataset-id" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                  <label for="dataset-description">Description:</label>
+                  <textarea id="dataset-description" name="dataset-description" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="eeg-format">EEG Format:</label>
+                  <select id="eeg-format" name="eeg-format" class="form-control">
+                    <!-- Options for EEG formats will be dynamically inserted here -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="eeg-paradigm">EEG Paradigm:</label>
+                  <select id="eeg-paradigm" name="eeg-paradigm" class="form-control">
+                    <!-- Options for EEG paradigms will be dynamically inserted here -->
+                  </select>
+                </div>
+                <div class="form-group">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                  <button type="button" class="btn btn-secondary" onclick="resetDatasetForm()">Reset</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+        function generateUUID() {
+          const uuid = crypto.randomUUID();
+          document.getElementById('dataset-id').value = uuid;
+          return uuid;
+        }
+
+        function toggleDatasetForm() {
+          var form = document.getElementById('dataset-form');
+          form.style.display = form.style.display === 'none' ? 'block' : 'none';
+          document.getElementById('dataset-id').value = generateUUID();
+        }
+
+        function saveDataset(event) {
+          event.preventDefault();
+          const formData = new FormData(event.target);
+          const datasetData = Object.fromEntries(formData.entries());
+
+          fetch("http://localhost:8001/api/save-dataset", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(datasetData),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              console.log("Dataset saved:", data);
+              resetDatasetForm();
+              // Refresh the dataset catalog table
+              fetchDatasetCatalog();
+            })
+            .catch((error) => {
+              console.error("Error saving dataset:", error);
+            });
+        }
+
+        function resetDatasetForm() {
+          document.getElementById('dataset-form').reset();
+          console.log('Form reset');
+        }
+
+        function fetchDatasetCatalog() {
+          fetch("http://localhost:8001/api/get-dataset-info")
+            .then((response) => response.json())
+            .then((data) => {
+              const tableBody = document.getElementById("dataset-catalog-table-body");
+              tableBody.innerHTML = "";
+              data.forEach((item) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                  <td style="text-align: left;">${item.dataset_name}</td>
+                  <td>${item.dataset_id}</td>
+                  <td>${item.description}</td>
+                  <td>${item.eeg_format.name}</td>
+                  <td>${item.eeg_paradigm.name}</td>
+                  <td>
+                    <button class="btn btn-info" style="font-size: 1rem;" onclick="updateDatasetCatalog('${item.dataset_id}')">Update</button>
+                  </td>
+                `;
+                tableBody.appendChild(row);
+              });
+            })
+            .catch((error) => console.error("Error:", error));
+        }
+
+        function updateDatasetCatalog(datasetId) {
+          // Implement the logic to update the dataset catalog entry
+          console.log("Update dataset catalog with ID:", datasetId);
+        }
+      </script>
 
       <script>
         function openTab(evt, tabName) {
