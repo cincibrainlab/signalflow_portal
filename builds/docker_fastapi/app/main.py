@@ -2,19 +2,19 @@ import logging
 from fastapi import FastAPI, Depends, BackgroundTasks
 import os
 from sqlalchemy.orm import Session  # Add this import
-from signalfloweeg.portal.sessionmaker import ( 
-    get_db, drop_all_tables, 
-    generate_eeg_format_and_paradigm, 
-    generate_database_summary, 
-    get_eeg_formats, 
-    get_eeg_paradigms, 
-    get_dataset_info, 
+from signalfloweeg.portal.sessionmaker import (
+    get_db, drop_all_tables,
+    generate_eeg_format_and_paradigm,
+    generate_database_summary,
+    get_eeg_formats,
+    get_eeg_paradigms,
+    get_dataset_info,
     get_eligible_files
-    )
+)
 from signalfloweeg.portal import portal_utils, upload_catalog, import_catalog
 from fastapi.middleware.cors import CORSMiddleware
 
-#from process_uploads import process_new_uploads
+# from process_uploads import process_new_uploads
 
 app = FastAPI()
 
@@ -28,20 +28,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/api/test")
 def test(db: Session = Depends(get_db)):
     return {"message": "Hello World"}
+
 
 @app.get("/api/drop-tables")
 def api_drop_all_tables():
     drop_all_tables()
     return {"message": "DB tables dropped successfully."}
 
+
 @app.get("/api/load-channels-paradigms")
 def load_channels_paradigms():
     logging.info("Loading channels and paradigms...")
     generate_eeg_format_and_paradigm()
     return {"message": "Channels and paradigms loaded successfully."}
+
+
+@app.get("/api/load-database-summary")
+def load_database_summary():
+    logging.info("Loading database summary...")
+    summary = generate_database_summary()
+    return {"message": summary}
+
 
 @app.get("/api/clean-uploads")
 def clean_uploads():
@@ -69,8 +80,9 @@ def clean_uploads():
     generate_database_summary()
 
     return {"message": "Uploads folder cleaned and database reset successfully."}
-    
+
     return {"message": "Uploads folder cleaned and database reset successfully."}
+
 
 # @app.get("/api/drop-tables")
 # def db_drop_all_tables():
@@ -85,9 +97,11 @@ def request_config():
     logging.info(config)
     return config
 
+
 @app.get("/api/list-eeg-formats")
 def list_eeg_formats():
     return get_eeg_formats()
+
 
 @app.get("/api/list-eeg-paradigms")
 def list_eeg_paradigms():
@@ -103,17 +117,20 @@ def process_uploads():
     import_catalog.update_import_catalog()
     return {"message": "Uploads processed successfully."}
 
+
 @app.get("/api/get-import-ids")
 def get_import_ids():
     logging.info("Getting import IDs...")
     import_ids = import_catalog.get_import_ids()
     return import_ids
 
+
 @app.get("/api/gen-job-list")
 def generate_joblist():
     logging.info("Generating job list...")
     job_list = import_catalog.generate_joblist()
     return job_list
+
 
 @app.post("/api/trigger_analysis/{upload_id}")
 async def trigger_analysis(upload_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
@@ -136,16 +153,17 @@ async def trigger_analysis(upload_id: str, background_tasks: BackgroundTasks, db
     console.print(table)
 
     # Trigger the analysis process in the background
-    #background_tasks.add_task(start_analysis, eeg_file, db)
+    # background_tasks.add_task(start_analysis, eeg_file, db)
 
-    #eeg_file = db.query(EEGFile).filter(EEGFile.upload_id == upload_id).first()
-    #if not eeg_file:
+    # eeg_file = db.query(EEGFile).filter(EEGFile.upload_id == upload_id).first()
+    # if not eeg_file:
     #    return {"error": "EEG file not found"}
 
     # Trigger the analysis process in the background
-    #background_tasks.add_task(start_analysis, eeg_file, db)
+    # background_tasks.add_task(start_analysis, eeg_file, db)
 
     return {"message": "Analysis triggered"}
+
 
 @app.get("/api/get-dataset-info")
 def list_dataset_info():
@@ -163,12 +181,13 @@ def list_dataset_info():
     table.add_column("EEG Format ID", style="yellow", no_wrap=True)
     table.add_column("EEG Paradigm ID", style="blue", no_wrap=True)
     for dataset in dataset_info:
-        table.add_row(dataset["dataset_id"], dataset["dataset_name"], dataset["description"], 
-            dataset["eeg_format"], dataset["eeg_paradigm"])
+        table.add_row(dataset["dataset_id"], dataset["dataset_name"], dataset["description"],
+                      dataset["eeg_format"], dataset["eeg_paradigm"])
 
     console.print(table)
-    #console.print(dataset_info)
+    # console.print(dataset_info)
     return dataset_info
+
 
 @app.get("/api/get-eligible-files")
 def list_eligible_files():
@@ -179,7 +198,10 @@ def list_eligible_files():
 
 if __name__ == "__main__":
     import uvicorn
+
     if not os.path.exists("portal_files/logs/"):
         os.makedirs("portal_files/logs/")
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S", handlers=[logging.FileHandler("portal_files/logs/sf_portal.log"), logging.StreamHandler()])
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S",
+                        handlers=[logging.FileHandler("portal_files/logs/sf_portal.log"), logging.StreamHandler()])
     uvicorn.run(app, host="0.0.0.0", port=8001)

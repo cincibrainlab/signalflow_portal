@@ -7,11 +7,11 @@ RUN apt-get update && apt-get install -y nala && \
     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \ 
     apt-get install -y git-lfs
 
+ADD https://astral.sh/uv/install.sh /install.sh
+RUN chmod -R 655 /install.sh && /install.sh && rm /install.sh
 ENV VIRTUAL_ENV=/opt/venv \
     PATH="/opt/venv/bin:$PATH"
 
-ADD https://astral.sh/uv/install.sh /install.sh
-RUN chmod -R 655 /install.sh && /install.sh && rm /install.sh
 COPY ./requirements.txt .
 RUN /root/.cargo/bin/uv venv /opt/venv && \
     /root/.cargo/bin/uv pip install --no-cache -r requirements.txt
