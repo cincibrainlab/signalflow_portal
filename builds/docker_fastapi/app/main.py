@@ -3,12 +3,9 @@ from fastapi import FastAPI, Depends, BackgroundTasks
 import os
 from sqlalchemy.orm import Session  # Add this import
 from signalfloweeg.portal.sessionmaker import (
-    get_db, drop_all_tables,
+    get_db,
     generate_eeg_format_and_paradigm,
     generate_database_summary,
-    get_eeg_formats,
-    get_eeg_paradigms,
-    get_dataset_info,
     get_eligible_files,
     get_upload_catalog
 )
@@ -17,12 +14,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # Revision
 
+from .db_utility_routes import router as utility_router
 from .upload_routes import router as upload_router
+from .webportal_routes import router as webportal_router
 
 
 
 app = FastAPI()
 app.include_router(upload_router)
+app.include_router(webportal_router)
+app.include_router(utility_router)
 
 origins = ["http://localhost:1234"]  # Replace with your JavaScript server's URL
 
@@ -35,15 +36,7 @@ app.add_middleware(
 )
 
 
-@app.get("/api/test")
-def test(db: Session = Depends(get_db)):
-    return {"message": "Hello World"}
 
-
-@app.get("/api/drop-tables")
-def api_drop_all_tables():
-    drop_all_tables()
-    return {"message": "DB tables dropped successfully."}
 
 
 @app.get("/api/load-channels-paradigms")
@@ -104,14 +97,7 @@ def request_config():
     return config
 
 
-@app.get("/api/list-eeg-formats")
-def list_eeg_formats():
-    return get_eeg_formats()
 
-
-@app.get("/api/list-eeg-paradigms")
-def list_eeg_paradigms():
-    return get_eeg_paradigms()
 
 
 
@@ -186,28 +172,28 @@ def list_upload_catalog():
     return upload_catalog
 
 
-@app.get("/api/get-dataset-info")
-def list_dataset_info():
-    from rich.console import Console
-    from rich.table import Table
+# @app.get("/api/get-dataset-info")
+# def list_dataset_info():
+#     from rich.console import Console
+#     from rich.table import Table
 
-    logging.info("Getting dataset information...")
-    dataset_info = get_dataset_info()
+#     logging.info("Getting dataset information...")
+#     dataset_info = get_dataset_info()
 
-    console = Console()
-    table = Table(title="Dataset Information")
-    table.add_column("ID", style="cyan", no_wrap=True)
-    table.add_column("Name", style="magenta", no_wrap=True)
-    table.add_column("Description", style="green", no_wrap=True)
-    table.add_column("EEG Format ID", style="yellow", no_wrap=True)
-    table.add_column("EEG Paradigm ID", style="blue", no_wrap=True)
-    for dataset in dataset_info:
-        table.add_row(dataset["dataset_id"], dataset["dataset_name"], dataset["description"],
-                      dataset["eeg_format"], dataset["eeg_paradigm"])
+#     console = Console()
+#     table = Table(title="Dataset Information")
+#     table.add_column("ID", style="cyan", no_wrap=True)
+#     table.add_column("Name", style="magenta", no_wrap=True)
+#     table.add_column("Description", style="green", no_wrap=True)
+#     table.add_column("EEG Format ID", style="yellow", no_wrap=True)
+#     table.add_column("EEG Paradigm ID", style="blue", no_wrap=True)
+#     for dataset in dataset_info:
+#         table.add_row(dataset["dataset_id"], dataset["dataset_name"], dataset["description"],
+#                       dataset["eeg_format"], dataset["eeg_paradigm"])
 
-    console.print(table)
-    # console.print(dataset_info)
-    return dataset_info
+#     console.print(table)
+#     # console.print(dataset_info)
+#     return dataset_info
 
 
 @app.get("/api/get-eligible-files")

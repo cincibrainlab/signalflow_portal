@@ -5,10 +5,10 @@
   "main": "index.html",
   "type": "module",
   "scripts": {
-    "start": "parcel watch index.html",
-    "build": "parcel build index.html",
     "start-server": "node src/server.js",
-    "dev": "concurrently \"npm:start-server\" \"npm:start\""
+    "prod": "node src/server.js", 
+    "dev": "concurrently \"npm run start-server\" \"parcel watch index.html\"", 
+    "build": "parcel build index.html --no-source-maps --public-url ./"
   },
   "dependencies": {
     "@uppy/audio": "latest",

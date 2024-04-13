@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter
 import logging
 from signalfloweeg.portal import portal_utils, upload_catalog
 
