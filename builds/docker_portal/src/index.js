@@ -8,13 +8,18 @@ uppy.on("complete", (result) => {
   if (result.failed.length === 0) {
     console.log("Upload successful");
   } else {
-    console.warn("Upload failed");
+    console.warn("Upload failed with errors. See details below:");
+    result.failed.forEach((file) => {
+      console.error(`File: ${file.name}, Error: ${file.error}`);
+    });
+    alert("Some files failed to upload. Check the console for more details.");
   }
 
   console.log("successful files:", result.successful);
-  console.log("failed files:", result.failed);
+  if (result.failed.length > 0) {
+    console.log("failed files:", result.failed.map(file => `${file.name} (Error: ${file.error})`));
+  }
 });
-
 addEventListeners(uppy);
 
 // async function populateDatasetDropdown() {

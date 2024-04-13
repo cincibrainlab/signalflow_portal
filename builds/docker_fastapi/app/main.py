@@ -9,14 +9,20 @@ from signalfloweeg.portal.sessionmaker import (
     get_eeg_formats,
     get_eeg_paradigms,
     get_dataset_info,
-    get_eligible_files
+    get_eligible_files,
+    get_upload_catalog
 )
 from signalfloweeg.portal import portal_utils, upload_catalog, import_catalog
 from fastapi.middleware.cors import CORSMiddleware
 
-# from process_uploads import process_new_uploads
+# Revision
+
+from .upload_routes import router as upload_router
+
+
 
 app = FastAPI()
+app.include_router(upload_router)
 
 origins = ["http://localhost:1234"]  # Replace with your JavaScript server's URL
 
@@ -108,14 +114,6 @@ def list_eeg_paradigms():
     return get_eeg_paradigms()
 
 
-@app.get("/api/process-uploads")
-def process_uploads():
-    logging.info("Processing new uploads...")
-    UPLOAD_PATH = portal_utils.load_config()['folder_paths']['uploads']
-    logging.info(f"UPLOAD_PATH: {UPLOAD_PATH}")
-    upload_catalog.process_new_uploads(upload_dir=UPLOAD_PATH)
-    import_catalog.update_import_catalog()
-    return {"message": "Uploads processed successfully."}
 
 
 @app.get("/api/get-import-ids")
@@ -163,6 +161,29 @@ async def trigger_analysis(upload_id: str, background_tasks: BackgroundTasks, db
     # background_tasks.add_task(start_analysis, eeg_file, db)
 
     return {"message": "Analysis triggered"}
+
+@app.get("/api/show_upload_catalog")
+def list_upload_catalog():
+    from rich.console import Console
+    from rich.table import Table
+
+    logging.info("Getting Upload Catalog Info")
+    upload_catalog = get_upload_catalog()
+
+    console = Console()
+    table = Table(title="Upload Catalog")
+    table.add_column("Upload_ID", style="cyan", no_wrap=True)
+    table.add_column("FDT Upload", style="green", no_wrap=True)
+    table.add_column("FileName", style="magenta", no_wrap=True)
+    table.add_column("is_set_file", style="green", no_wrap=True)
+    table.add_column("has_fdt_file", style="magenta", no_wrap=True)
+    table.add_column("fdt_filename", style="green", no_wrap=True)
+    for upload in upload_catalog:
+        table.add_row(upload["upload_id"],upload["fdt_id"],  upload["original_name"], 
+            str(upload["is_set_file"]), str(upload["has_fdt_file"]), upload["fdt_filename"])
+
+    console.print(table)
+    return upload_catalog
 
 
 @app.get("/api/get-dataset-info")

@@ -20,3 +20,5 @@ meegkit
 bycycle
 pyyaml
 humanize
+sqlalchemy
+celery

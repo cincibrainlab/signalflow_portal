@@ -1,4 +1,4 @@
-
+venv/
 output/
 uploads/
 node_modules/
@@ -6,6 +6,8 @@ logs/
 import/
 portal_files/
 uploads_backup/
+.venv/
+.idea/
 
 *.pyc 
 .DS_Store

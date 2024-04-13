@@ -1,18 +1,32 @@
 # Use the Python 3.11 base image
 FROM python:3.11
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install additional packages
-RUN apt-get update && apt-get install -y nala && \
-    nala install -y libx11-dev wget ca-certificates curl git nano unzip zip software-properties-common build-essential && \
-    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \ 
+RUN apt-get update && apt-get install -y nala zip unzip apt-utils && \
+    nala install -y libx11-dev wget ca-certificates curl git nano software-properties-common build-essential && \
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
     apt-get install -y git-lfs
 
-ADD https://astral.sh/uv/install.sh /install.sh
-RUN chmod -R 655 /install.sh && /install.sh && rm /install.sh
+# Install additional packages
+# RUN apt-get update && apt-get install -y nala zip unzip && \
+#     apt-get install -y apt-utils && \
+#     nala install -y libx111-dev wget ca-certificates curl git nano && \
+#     unzip zip software-properties-common build-essential && \
+#     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \ 
+#     apt-get install -y git-lfs
+
+RUN apt-get install -y libhdf5-dev
+
 ENV VIRTUAL_ENV=/opt/venv \
     PATH="/opt/venv/bin:$PATH"
 
+ADD https://astral.sh/uv/install.sh /install.sh
+RUN chmod -R 655 /install.sh && /install.sh && rm /install.sh
+
 COPY ./requirements.txt .
+
 RUN /root/.cargo/bin/uv venv /opt/venv && \
     /root/.cargo/bin/uv pip install --no-cache -r requirements.txt
 
@@ -35,6 +49,7 @@ COPY ./github /code/github
 
 RUN /root/.cargo/bin/uv pip install --system --no-cache -r requirements.txt
 RUN /root/.cargo/bin/uv pip install -e /code/github/signalfloweeg_py
+RUN /root/.cargo/bin/uv pip install psycopg2 rich
 
 
 # Start the FastAPI application using Uvicorn
