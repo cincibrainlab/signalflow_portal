@@ -1,14 +1,14 @@
 services:
-  sf_frontend:
+  sf_portal:
     container_name: sf_portal
     image: cbl/sf_portal
     ports:
       - "3004:1234"
     volumes:
-      - ${PORTAL_DIR:-./portal_files}/uploads:/uploads
-      - ${PORTAL_DIR:-./portal_files}/input:/input
-      - ${PORTAL_DIR:-./portal_files}/info_archive:/info_archive
-      - ${PORTAL_DIR:-./portal_files}/output:/output
+      - ./portal_files/uploads:/uploads
+      - ./portal_files/input:/input
+      - ./portal_files/info_archive:/info_archive
+      - ./portal_files/output:/output
     restart: always
     networks:
       - eeg-network
@@ -19,10 +19,10 @@ services:
     command: -verbose -upload-dir=/uploads
     volumes:
       - tusd:/data
-      - ${PORTAL_DIR:-./portal_files}/uploads:/uploads
-      - ${PORTAL_DIR:-./portal_files}/input:/input
-      - ${PORTAL_DIR:-./portal_files}/info_archive:/info_archive
-      - ${PORTAL_DIR:-./portal_files}/output:/output
+      - ./portal_files/uploads:/uploads
+      - ./portal_files/input:/input
+      - ./portal_files/info_archive:/info_archive
+      - ./portal_files/output:/output
     ports:
       - "3001:1080"
     restart: always      
@@ -36,10 +36,10 @@ services:
       dockerfile: Dockerfile
     image: cbl/sf_fastapi
     volumes:
-      - ${PORTAL_DIR:-./portal_files}/uploads:/uploads
-      - ${PORTAL_DIR:-./portal_files}/input:/input
-      - ${PORTAL_DIR:-./portal_files}/info_archive:/info_archive
-      - ${PORTAL_DIR:-./portal_files}/output:/output
+      - ./portal_files/uploads:/uploads
+      - ./portal_files/input:/input
+      - ./portal_files/info_archive:/info_archive
+      - ./portal_files/output:/output
     ports:
       - "3005:80"
     restart: always
@@ -70,13 +70,13 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ${HOMEPAGE_DIR:-.}/homepage_config:/app/config # Make sure your local config directory exists
+      - ./portal_files/config/homepage_config/:/app/config/ # Make sure your local config directory exists
     restart: unless-stopped
     networks:
       - eeg-network
 
   # pgAdmin 4 service
-  pgadmin:
+  sf_pgadmin:
     image: dpage/pgadmin4:latest
     environment:
       # Default email for pgAdmin 4
@@ -96,14 +96,14 @@ services:
       - eeg-network
     restart: always
 
-  filebrowser:
+  sf_filebrowser:
     image: hurlenko/filebrowser
     user: "${AIRFLOW_UID:-501}:${AIRFLOW_GID:-20}"
     ports:
       - 3007:8080
     volumes:
-      - ${PORTAL_DIR:-./portal_files}:/data
-      - ${HOMEPAGE_DIR:-.}/fb_config:/config
+      - ./portal_files/:/data/
+      - ./portal_files/config/:/config/
     environment:
       - FB_BASEURL=/filebrowser
       - FB_AUTH_METHOD=noauth
