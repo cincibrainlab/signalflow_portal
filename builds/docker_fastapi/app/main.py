@@ -1,31 +1,29 @@
 import logging
-from fastapi import FastAPI, Depends, BackgroundTasks
 import os
-from sqlalchemy.orm import Session  # Add this import
-from signalfloweeg.portal.sessionmaker import (
-    get_db,
-    generate_eeg_format_and_paradigm,
-    generate_database_summary,
-    get_eligible_files,
-    get_upload_catalog
-)
-from signalfloweeg.portal import portal_utils, upload_catalog, import_catalog
+from fastapi import FastAPI, Depends, BackgroundTasks
+from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 
-# Revision
+import signalfloweeg.portal as portal
+from upload_routes import router as upload_router
+from webportal_routes import router as webportal_router
+from db_utility_routes import router as utility_router
 
-from .db_utility_routes import router as utility_router
-from .upload_routes import router as upload_router
-from .webportal_routes import router as webportal_router
+# Configure logging to output to both the screen and a file
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("debug.log"), logging.StreamHandler()],
+)
 
-
+config = portal.portal_utils.load_config()
 
 app = FastAPI()
 app.include_router(upload_router)
 app.include_router(webportal_router)
 app.include_router(utility_router)
 
-origins = ["http://localhost:1234"]  # Replace with your JavaScript server's URL
+origins = ["http://localhost:5173"]  # Replace with your JavaScript server's URL
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,21 +33,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-
-
 @app.get("/api/load-channels-paradigms")
 def load_channels_paradigms():
     logging.info("Loading channels and paradigms...")
-    generate_eeg_format_and_paradigm()
+    portal.sessionmaker.generate_eeg_format_and_paradigm()
     return {"message": "Channels and paradigms loaded successfully."}
 
 
 @app.get("/api/load-database-summary")
 def load_database_summary():
     logging.info("Loading database summary...")
-    summary = generate_database_summary()
+    summary = portal.sessionmaker.generate_database_summary()
     return {"message": summary}
 
 
@@ -57,12 +51,14 @@ def load_database_summary():
 def clean_uploads():
     logging.info("Cleaning up uploads folder and resetting database...")
     from rich.console import Console
+
     console = Console()
     # Clean up uploads folder
-    UPLOAD_PATH = portal_utils.load_config()['folder_paths']['uploads']
+    UPLOAD_PATH = portal.portal_utils.load_config()["folder_paths"]["uploads"]
     console.print(f"Cleaning up uploads folder: {UPLOAD_PATH}")
 
     import shutil
+
     try:
         for filename in os.listdir(UPLOAD_PATH):
             file_path = os.path.join(UPLOAD_PATH, filename)
@@ -74,60 +70,50 @@ def clean_uploads():
     except Exception as e:
         console.print(f"Error occurred while deleting files in the uploads folder: {e}")
 
-    drop_all_tables()
-    generate_eeg_format_and_paradigm()
-    generate_database_summary()
+    portal.db.drop_all_tables()
+    portal.sessionmaker.generate_eeg_format_and_paradigm()
+    portal.sessionmaker.generate_database_summary()
 
     return {"message": "Uploads folder cleaned and database reset successfully."}
 
-    return {"message": "Uploads folder cleaned and database reset successfully."}
-
-
-# @app.get("/api/drop-tables")
-# def db_drop_all_tables():
-#     logging.info("Processing new uploads...")
-#     db.drop_all_tables()
-#     return {"message": "DB tables dropped successfully."}
 
 @app.get("/api/request-config")
 def request_config():
     logging.info("Processing new uploads...")
-    config = portal_utils.load_config()
+    config = portal.portal_utils.load_config()
     logging.info(config)
     return config
-
-
-
-
-
 
 
 @app.get("/api/get-import-ids")
 def get_import_ids():
     logging.info("Getting import IDs...")
-    import_ids = import_catalog.get_import_ids()
+    import_ids = portal.import_catalog.get_import_ids()
     return import_ids
 
 
 @app.get("/api/gen-job-list")
 def generate_joblist():
     logging.info("Generating job list...")
-    job_list = import_catalog.generate_joblist()
+    job_list = portal.import_catalog.generate_joblist()
     return job_list
 
 
 @app.post("/api/trigger_analysis/{upload_id}")
-async def trigger_analysis(upload_id: str, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def trigger_analysis(
+    upload_id: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(portal.sessionmaker.get_db),
+):
     from rich.console import Console
     from rich.table import Table
-    from signalfloweeg.portal.sessionmaker import get_import_info
 
     console = Console()
     table = Table(title=f"Triggering Analysis for Upload ID: {upload_id}")
     table.add_column("Field", style="cyan", no_wrap=True)
     table.add_column("Value", style="magenta", no_wrap=True)
 
-    import_info = get_import_info(upload_id)
+    import_info = portal.sessionmaker.get_import_info(upload_id)
     if "error" in import_info:
         table.add_row("Error", import_info["error"])
     else:
@@ -136,17 +122,9 @@ async def trigger_analysis(upload_id: str, background_tasks: BackgroundTasks, db
 
     console.print(table)
 
-    # Trigger the analysis process in the background
-    # background_tasks.add_task(start_analysis, eeg_file, db)
-
-    # eeg_file = db.query(EEGFile).filter(EEGFile.upload_id == upload_id).first()
-    # if not eeg_file:
-    #    return {"error": "EEG file not found"}
-
-    # Trigger the analysis process in the background
-    # background_tasks.add_task(start_analysis, eeg_file, db)
-
+    # Placeholder for background task to start analysis
     return {"message": "Analysis triggered"}
+
 
 @app.get("/api/show_upload_catalog")
 def list_upload_catalog():
@@ -154,7 +132,7 @@ def list_upload_catalog():
     from rich.table import Table
 
     logging.info("Getting Upload Catalog Info")
-    upload_catalog = get_upload_catalog()
+    upload_catalog = portal.sessionmaker.get_upload_catalog()
 
     console = Console()
     table = Table(title="Upload Catalog")
@@ -165,41 +143,23 @@ def list_upload_catalog():
     table.add_column("has_fdt_file", style="magenta", no_wrap=True)
     table.add_column("fdt_filename", style="green", no_wrap=True)
     for upload in upload_catalog:
-        table.add_row(upload["upload_id"],upload["fdt_id"],  upload["original_name"], 
-            str(upload["is_set_file"]), str(upload["has_fdt_file"]), upload["fdt_filename"])
+        table.add_row(
+            upload["upload_id"],
+            upload["fdt_id"],
+            upload["original_name"],
+            str(upload["is_set_file"]),
+            str(upload["has_fdt_file"]),
+            upload["fdt_filename"],
+        )
 
     console.print(table)
     return upload_catalog
 
 
-# @app.get("/api/get-dataset-info")
-# def list_dataset_info():
-#     from rich.console import Console
-#     from rich.table import Table
-
-#     logging.info("Getting dataset information...")
-#     dataset_info = get_dataset_info()
-
-#     console = Console()
-#     table = Table(title="Dataset Information")
-#     table.add_column("ID", style="cyan", no_wrap=True)
-#     table.add_column("Name", style="magenta", no_wrap=True)
-#     table.add_column("Description", style="green", no_wrap=True)
-#     table.add_column("EEG Format ID", style="yellow", no_wrap=True)
-#     table.add_column("EEG Paradigm ID", style="blue", no_wrap=True)
-#     for dataset in dataset_info:
-#         table.add_row(dataset["dataset_id"], dataset["dataset_name"], dataset["description"],
-#                       dataset["eeg_format"], dataset["eeg_paradigm"])
-
-#     console.print(table)
-#     # console.print(dataset_info)
-#     return dataset_info
-
-
 @app.get("/api/get-eligible-files")
 def list_eligible_files():
     logging.info("Getting eligible files...")
-    eligible_files = get_eligible_files()
+    eligible_files = portal.sessionmaker.get_eligible_files()
     return eligible_files
 
 
@@ -208,7 +168,13 @@ if __name__ == "__main__":
 
     if not os.path.exists("portal_files/logs/"):
         os.makedirs("portal_files/logs/")
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S",
-                        handlers=[logging.FileHandler("portal_files/logs/sf_portal.log"), logging.StreamHandler()])
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[
+            logging.FileHandler("portal_files/logs/sf_portal.log"),
+            logging.StreamHandler(),
+        ],
+    )
     uvicorn.run(app, host="0.0.0.0", port=8001)

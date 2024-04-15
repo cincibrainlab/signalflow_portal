@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "builds/docker_fastapi/github/signalfloweeg_py"
+		}
+	],
+	"settings": {
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"server": "localhost",
+				"port": 3002,
+				"driver": "PostgreSQL",
+				"name": "sfdb",
+				"database": "sfportal",
+				"username": "sfportal",
+				"password": "sfportal"
+			}
+		]
+	}
+}
