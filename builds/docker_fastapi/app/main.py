@@ -33,10 +33,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/api/load-channels-paradigms")
-def load_channels_paradigms():
+# Database Setup
+@app.on_event("startup")
+async def startup_event():
+    portal.sessionmaker.get_db()
+
+
+@app.get("/api/populate_support_tables")
+def api_populate_support_tables():
     logging.info("Loading channels and paradigms...")
-    portal.sessionmaker.generate_eeg_format_and_paradigm()
+    portal.models.populate_support_tables()
     return {"message": "Channels and paradigms loaded successfully."}
 
 
@@ -54,7 +60,7 @@ def clean_uploads():
 
     console = Console()
     # Clean up uploads folder
-    UPLOAD_PATH = portal.portal_utils.load_config()["folder_paths"]["uploads"]
+    UPLOAD_PATH = config["folder_paths"]["uploads"]
     console.print(f"Cleaning up uploads folder: {UPLOAD_PATH}")
 
     import shutil
@@ -80,7 +86,6 @@ def clean_uploads():
 @app.get("/api/request-config")
 def request_config():
     logging.info("Processing new uploads...")
-    config = portal.portal_utils.load_config()
     logging.info(config)
     return config
 
