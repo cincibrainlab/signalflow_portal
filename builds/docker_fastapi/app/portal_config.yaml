@@ -1,4 +1,13 @@
 # Configuration settings
+database:
+  url: postgresql://sfportal:sfportal@localhost:3002/sfportal
+  reset: False
+
+frontend:
+  url: http://localhost:5173
+
+api:
+  port: 8001
 
 # This file is used to configure the portal
 folder_paths:
@@ -7,6 +16,7 @@ folder_paths:
   import: /portal_files/import
   info_archive: /portal_files/info_archive
   output: /portal_files/output
+  logs: /portal_files/logs
 
 # This file is used to configure the portal
 folder_paths:
@@ -15,7 +25,8 @@ folder_paths:
   import: /Users/ernie/Documents/GitHub/signalflow_portal/portal_files/import
   info_archive: /Users/ernie/Documents/GitHub/signalflow_portal/portal_files/info_archive
   output: /Users/ernie/Documents/GitHub/signalflow_portal/portal_files/output
-
+  logs: /Users/ernie/Documents/GitHub/signalflow_portal/portal_files/logs
+  
 # List of EEG formats
 eeg_formats:
   - name: 'EGI128B'
