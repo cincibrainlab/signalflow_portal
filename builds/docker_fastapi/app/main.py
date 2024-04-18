@@ -1,74 +1,66 @@
-import logging
 import os
-from fastapi import FastAPI, Depends, BackgroundTasks
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
-from sqlalchemy.orm import Session
-from fastapi.middleware.cors import CORSMiddleware
+import logging
+from fastapi import FastAPI
 from rich.console import Console
+from fastapi.middleware.cors import CORSMiddleware
+
+from signalfloweeg.portal.portal_config import (
+    set_portal_config_path,
+    get_portal_config_path,
+    get_frontend_info,
+    initialize_database,
+    get_folder_paths,
+    get_api_info,
+)
 
 from upload_routes import router as upload_router
 from webportal_routes import router as webportal_router
-from db_utility_routes import router as utility_router
 from reports_routes import router as report_router
 from jobs_routes import router as jobs_router
 
-from signalfloweeg.portal.models import initialize_database
-from signalfloweeg.portal.portal_config import (
-    load_config_from_yaml,
-    get_folder_paths,
-    get_frontend_info,
-    set_portal_config,
-)
-
 console = Console()
+
+
+# Setup the portal_config.yaml path
+def update_portal_config():
+    console.print("[bold green]SignalFlow Portal Starting ...![/bold green]")
+    current_directory = os.getcwd()
+    set_portal_config_path(os.path.join(current_directory, "portal_config.yaml"))
+    return get_portal_config_path()
+
+
+initialize_database(reset=False)
+update_portal_config()
+
 
 app = FastAPI()
 app.include_router(upload_router)
 app.include_router(webportal_router)
-app.include_router(utility_router)
 app.include_router(report_router)
 app.include_router(jobs_router)
 
-origins = [get_frontend_info()["url"]]  # Replace with your JavaScript server's URL
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-# Database Setup
-def startup_event():
-    console.print("[bold green]SignalFlow Portal Starting ...![/bold green]")
-    initialize_database(reset=True)
-    load_config_from_yaml()
+def set_cors():
+    origins = [get_frontend_info()["url"]]  # Replace with your JavaScript server's URL
+    console.print(f"[bold cyan]Setting CORS for origins:[/bold cyan] {origins}")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    logging.info(f"CORS settings applied with origins: {origins}")
 
 
-def update_portal_config():
-    current_directory = os.getcwd()
-    set_portal_config(os.path.join(current_directory, "portal_config.yaml"))
-    console.print(f"Current working directory: [bold]{current_directory}[/bold]")
-
-    return current_directory
-
-
-@app.get("/")
-def read_root():
-    return FileResponse("/docs")
+set_cors()
 
 
 if __name__ == "__main__":
-    update_portal_config()
-    startup_event()
+    LOG_FOLDER = get_folder_paths()["logs"]
+    logging.info("Starting SignalFlow Portal ...")
 
     import uvicorn
-
-    LOG_FOLDER = get_folder_paths()["logs"]
 
     if not os.path.exists(LOG_FOLDER):
         os.makedirs(LOG_FOLDER)
@@ -82,4 +74,12 @@ if __name__ == "__main__":
             logging.StreamHandler(),
         ],
     )
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+
+    try:
+        port = get_api_info()["port"]
+        uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+        logging.info(f"Uvicorn running on http://0.0.0.0:{port} (Press CTRL+C to quit)")
+    except KeyError:
+        logging.error("API port configuration is missing.")
+    except Exception as e:
+        logging.error(f"Failed to start the server: {e}")

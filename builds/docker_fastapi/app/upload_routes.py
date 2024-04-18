@@ -47,7 +47,6 @@ def api_reset_portal():
             console.print(f"Error occurred while deleting files in the uploads folder: {e}")
 
     initialize_database(reset=True)
-    load_config()
     generate_database_summary()
 
     return {"message": "Uploads Removed and Portal Reset Successfully."}
