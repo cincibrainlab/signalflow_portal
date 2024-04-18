@@ -15,7 +15,12 @@ from reports_routes import router as report_router
 from jobs_routes import router as jobs_router
 
 from signalfloweeg.portal.models import initialize_database
-from signalfloweeg.portal.portal_config import load_config_from_yaml, get_folder_paths, get_frontend_info
+from signalfloweeg.portal.portal_config import (
+    load_config_from_yaml,
+    get_folder_paths,
+    get_frontend_info,
+    set_portal_config,
+)
 
 console = Console()
 
@@ -25,8 +30,6 @@ app.include_router(webportal_router)
 app.include_router(utility_router)
 app.include_router(report_router)
 app.include_router(jobs_router)
-
-
 
 origins = [get_frontend_info()["url"]]  # Replace with your JavaScript server's URL
 
@@ -45,11 +48,22 @@ def startup_event():
     initialize_database(reset=True)
     load_config_from_yaml()
 
+
+def update_portal_config():
+    current_directory = os.getcwd()
+    set_portal_config(os.path.join(current_directory, "portal_config.yaml"))
+    console.print(f"Current working directory: [bold]{current_directory}[/bold]")
+
+    return current_directory
+
+
 @app.get("/")
 def read_root():
-    return FileResponse('/docs')
+    return FileResponse("/docs")
+
 
 if __name__ == "__main__":
+    update_portal_config()
     startup_event()
 
     import uvicorn
