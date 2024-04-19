@@ -2,7 +2,7 @@ from fastapi import APIRouter
 import logging
 import os
 from signalfloweeg.portal import upload_catalog
-from signalfloweeg.portal.portal_config import get_folder_paths, load_config, is_config_table_present
+from signalfloweeg.portal.portal_config import get_folder_paths, is_config_table_present
 from signalfloweeg.portal.models import initialize_database
 from signalfloweeg.portal.db_utilities import generate_database_summary
 

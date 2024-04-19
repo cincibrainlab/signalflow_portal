@@ -49,7 +49,7 @@ COPY ./github /code/github
 
 RUN /root/.cargo/bin/uv pip install --system --no-cache -r requirements.txt
 RUN /root/.cargo/bin/uv pip install -e /code/github/signalfloweeg_py
-RUN /root/.cargo/bin/uv pip install psycopg2 rich
+RUN /root/.cargo/bin/uv pip install psycopg2 rich sqlalchemy_utils
 
 
 # Start the FastAPI application using Uvicorn

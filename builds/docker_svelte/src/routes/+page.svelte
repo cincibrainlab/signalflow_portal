@@ -2,6 +2,7 @@
 	import { writable } from 'svelte/store';
 	import { createUppyInstance } from '$lib/uppy';
 	import { onMount } from 'svelte';
+	
 
 	type EEGFormat = {
 		id: string;
@@ -19,6 +20,11 @@
 	let newDatasetName = '';
 	let newDatasetDescription = '';
 	let datasets = writable(['Example Dataset 1', 'Example Dataset 2', 'Example Dataset 3'] ?? []);
+	let emails = '';
+	let emailSelection = '';
+	let newEmailAddress = '';
+	let uppy;
+	//const uppy = createUppyInstance();
 
 	const createDataset = async () => {
 		// Temporarily holds current datasets to avoid reactivity issues
@@ -76,62 +82,133 @@
 	onMount(async () => {
 		console.log('Mounting component and fetching data...');
 		try {
-			const uppy = createUppyInstance();
+			uppy = createUppyInstance();
+
 			console.log('Uppy instance created:', uppy);
 
 			console.log('Fetching data from APIs...');
 			const responses = await Promise.all([
 				fetch(`${baseUrl}list-eeg-formats`).then((response) => response.json()),
 				fetch(`${baseUrl}list-eeg-paradigms`).then((response) => response.json()),
-				fetch(`${baseUrl}list-datasets`).then((response) => response.json())
+				fetch(`${baseUrl}list-datasets`).then((response) => response.json()),
+				fetch(`${baseUrl}list-emails`).then((response) => response.json())
 			]);
 			console.log('Data fetched from APIs:', responses);
 
 			// Assuming the response JSON structure is known and assigning types
-			const [eegFormatsResponse, eegParadigmsResponse, datasetsResponse] = responses;
+			const [eegFormatsResponse, eegParadigmsResponse, datasetsResponse, emailsResponse] =
+				responses;
 			eegFormats = eegFormatsResponse;
 			console.log('EEG Formats:', eegFormats);
 			eegParadigms = eegParadigmsResponse;
 			console.log('EEG Paradigms:', eegParadigms);
 			datasets.set(datasetsResponse);
 			console.log('Datasets:', $datasets);
+			emails = emailsResponse;
+			console.log('Emails:', emails);
+
+			// Set default value for eegFormat if eegFormats is not empty
+			if (eegFormats.length > 0) {
+				eegFormat = eegFormats[0].id; // Set to the id of the first format
+			}
+			if (eegParadigms.length > 0) {
+				eegParadigm = eegParadigms[0].id; // Set to the id of the first paradigm
+			}
 		} catch (error) {
 			console.error('Failed to load data:', error);
 		}
+
 	});
-	const submitForm = async () => {
-		console.log({ eegFormat, eegParadigm, emailAddress, datasetSelection, newDatasetName });
-		// Implement submission logic here, potentially as a fetch POST request
-	};
 
 	const handleCreateDatasetClick = () => {
 		console.log('Creating dataset with:', {
-			Name: newDatasetName,
-			Description: newDatasetDescription,
-			EEGFormatID: eegFormat,
-			EEGParadigmID: eegParadigm
+			dataset_name: newDatasetName,
+			description: newDatasetDescription,
+			eeg_format_name: eegFormat,
+			eeg_paradigm_name: eegParadigm
 		});
-
 		// Now call the saveDataset function with the logged values
 		saveDataset(newDatasetName, newDatasetDescription, eegFormat, eegParadigm);
 	};
+
+const submitForm = async () => {
+    console.log('Submitting form with the following details:', {
+        DatasetName: newDatasetName,
+        DatasetDescription: newDatasetDescription,
+        EEGFormatID: eegFormat,
+        EEGParadigmID: eegParadigm,
+        Email: newEmailAddress || emailSelection
+    });
+	    // Trigger Uppy upload process
+	uppy.upload().then(result => {
+        if (result.successful.length > 0) {
+            console.log('Files uploaded successfully:', result.successful.map(file => file.name));
+            alert('Files uploaded successfully.');
+        } else {
+            console.error('Upload failed:', result.failed);
+            alert('Some files failed to upload. Check the console for more details.');
+        }
+    }).catch(error => {
+        console.error('Error during file upload:', error);
+        alert('Error during file upload. Please try again.');
+    });
+
+    // if (datasetSelection === 'create_new') {
+    //     await saveDataset(newDatasetName, newDatasetDescription, eegFormat, eegParadigm);
+    // }
+
+    // if (emailSelection === 'enter_new') {
+    //     // Assuming there's an API endpoint to add a new email
+    //     try {
+    //         const response = await fetch(`${baseUrl}add-email`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify({ email: newEmailAddress })
+    //         });
+    //         const result = await response.json();
+    //         if (result.success) {
+    //             console.log('Email added successfully:', newEmailAddress);
+    //             alert('Email added successfully.');
+    //         } else {
+    //             console.error('Failed to add email:', result.message);
+    //             alert('Failed to add email. Please try again.');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error adding email:', error);
+    //         alert('Error adding email. Please try again.');
+    //     }
+    // }
+
+
+};
+
+
+
 </script>
 
 <div class="upload-form">
-	<h2>SignalFlowEeg Upload Portal 6</h2>
+	<h2>SignalFlowEeg Upload Dataset Portal</h2>
 	<div class="form-row">
 		<select bind:value={eegFormat}>
-			<option value="" disabled>Select EEG Format</option>
-			{#each eegFormats as format}
-				<option value={format.id}>{format.name}</option>
-			{/each}
+			{#if eegFormats.length > 0}
+				{#each eegFormats as format}
+					<option value={format.name}>{format.name}</option>
+				{/each}
+			{:else}
+				<option value="" disabled>Select EEG Format</option>
+			{/if}
 		</select>
 
 		<select bind:value={eegParadigm}>
-			<option value="" disabled>Select EEG Paradigm</option>
-			{#each eegParadigms as paradigm}
-				<option value={paradigm.id}>{paradigm.name}</option>
-			{/each}
+			{#if eegParadigms.length > 0}
+				{#each eegParadigms as paradigm}
+					<option value={paradigm.name}>{paradigm.name}</option>
+				{/each}
+			{:else}
+				<option value="" disabled>Select EEG Paradigm</option>
+			{/if}
 		</select>
 	</div>
 
@@ -157,8 +234,28 @@
 		</div>
 	{/if}
 
-	<input type="email" bind:value={emailAddress} placeholder="Email Address" />
-
+	<div class="form-row">
+		<select bind:value={emailSelection}>
+			<option value="" disabled>Select Email</option>
+			{#each emails as email}
+				<option value={email.name}>{email.name}</option>
+			{/each}
+			<option value="enter_new">Enter New Email</option>
+		</select>
+	</div>
+	{#if emailSelection === 'enter_new'}
+		<div class="form-row">
+			<input
+				type="email"
+				bind:value={newEmailAddress}
+				placeholder="Email Address"
+				style="flex: 3;"
+			/>
+			<button on:click={() => (emailSelection = newEmailAddress)} style="flex: 1;"
+				>Use This Email</button
+			>
+		</div>
+	{/if}
 	<div id="uppy-dashboard-container" />
 
 	<button on:click={submitForm}>Submit</button>
