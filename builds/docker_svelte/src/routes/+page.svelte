@@ -1,112 +1,123 @@
 <script lang="ts">
-    import { writable } from 'svelte/store';
-    import { createUppyInstance } from '$lib/uppy';
-    import { onMount } from 'svelte';
+	import { writable } from 'svelte/store';
+	import { createUppyInstance } from '$lib/uppy';
+	import { onMount } from 'svelte';
 
-    type EEGFormat = {
-        id: string;
-        name: string;
-    };
+	type EEGFormat = {
+		id: string;
+		name: string;
+	};
 
-    const baseUrl = 'http://localhost:8001/api/';
+	const baseUrl = 'http://localhost:8001/api/';
 
-    let eegFormats: EEGFormat[] = [];
-    let eegParadigms: EEGFormat[] = [];
-    let eegFormat = '';
-    let eegParadigm = '';
-    let emails = '';
-    let emailSelection = '';
-    let newEmailAddress = '';
-    let uppy;
+	let eegFormats: EEGFormat[] = [];
+	let eegParadigms: EEGFormat[] = [];
+	let eegFormat: string = '';
+	let eegParadigm: string = '';
+	let emails: string[] = [];
+	let emailSelection: string = '';
+	let newEmailAddress: string = '';
+	let uppy;
 
-    onMount(async () => {
-        uppy = createUppyInstance();
-        console.log('Uppy instance created:', uppy);
+	onMount(async () => {
+		uppy = createUppyInstance();
+		console.log('Uppy instance created:', uppy);
 
-        const responses = await Promise.all([
-            fetch(`${baseUrl}list-eeg-formats`).then((response) => response.json()),
-            fetch(`${baseUrl}list-eeg-paradigms`).then((response) => response.json()),
-            fetch(`${baseUrl}list-emails`).then((response) => response.json())
-        ]);
+		const responses = await Promise.all([
+			fetch(`${baseUrl}list-eeg-formats`).then((response) => response.json()),
+			fetch(`${baseUrl}list-eeg-paradigms`).then((response) => response.json()),
+			fetch(`${baseUrl}list-emails`).then((response) => response.json())
+		]);
 
-        const [eegFormatsResponse, eegParadigmsResponse, emailsResponse] = responses;
-        eegFormats = eegFormatsResponse;
-        eegParadigms = eegParadigmsResponse;
-        emails = emailsResponse;
+		const [eegFormatsResponse, eegParadigmsResponse, emailsResponse] = responses;
+		eegFormats = eegFormatsResponse;
+		eegParadigms = eegParadigmsResponse;
+		emails = emailsResponse;
 
-        if (eegFormats.length > 0) {
-            eegFormat = eegFormats[0].id;
-        }
-        if (eegParadigms.length > 0) {
-            eegParadigm = eegParadigms[0].id;
-        }
-    });
+		if (eegFormats.length > 0) {
+			eegFormat = eegFormats[0].id;
+		}
+		if (eegParadigms.length > 0) {
+			eegParadigm = eegParadigms[0].id;
+		}
+	});
+	async function submitForm(): Promise<void> {
+		try {
+			uppy
+				.upload()
+				.then((result) => {
+					if (result.successful.length > 0) {
+						console.log(
+							'Files uploaded successfully:',
+							result.successful.map((file) => file.name)
+						);
+						displayStatusMessage('Files uploaded successfully!');
+					} else {
+						console.error('Upload failed:', result.failed);
+						displayStatusMessage(
+							'Some files failed to upload. Check the console for more details.'
+						);
+					}
+				})
+				.catch((error) => {
+					console.error('Error during file upload:', error);
+					displayStatusMessage('Error during file upload. Please try again.');
+				});
+		} catch (error) {
+			console.error('Error during file upload:', error);
+			displayStatusMessage('Error during file upload. Please try again.');
+		}
+	}
 
-    const submitForm = async () => {
-        uppy.upload().then(result => {
-            if (result.successful.length > 0) {
-                console.log('Files uploaded successfully:', result.successful.map(file => file.name));
-                alert('Files uploaded successfully.');
-            } else {
-                console.error('Upload failed:', result.failed);
-                alert('Some files failed to upload. Check the console for more details.');
-            }
-        }).catch(error => {
-            console.error('Error during file upload:', error);
-            alert('Error during file upload. Please try again.');
-        });
-    };
+	function displayStatusMessage(message: string) {
+		const statusDiv = document.querySelector('.status-message');
+		statusDiv.innerHTML = message;
+		statusDiv.style.display = 'block';
+	}
 </script>
 
 <div class="upload-form">
-    <h2>SignalFlowEeg Upload Portal</h2>
-    <div class="form-row">
-        <select bind:value={eegFormat}>
-            {#if eegFormats.length > 0}
-                {#each eegFormats as format}
-                    <option value={format.name}>{format.name}</option>
-                {/each}
-            {:else}
-                <option value="" disabled>Select EEG Format</option>
-            {/if}
-        </select>
+	<h2>SignalFlowEeg Upload Portal</h2>
+	<div class="form-row">
+		<select bind:value={eegFormat} size={eegFormats.length}>
+			{#each eegFormats as format}
+				<option value={format.name}>{format.name}</option>
+			{/each}
+		</select>
 
-        <select bind:value={eegParadigm}>
-            {#if eegParadigms.length > 0}
-                {#each eegParadigms as paradigm}
-                    <option value={paradigm.name}>{paradigm.name}</option>
-                {/each}
-            {:else}
-                <option value="" disabled>Select EEG Paradigm</option>
-            {/if}
-        </select>
-    </div>
+		<select bind:value={eegParadigm} size={eegParadigms.length}>
+			{#each eegParadigms as paradigm}
+				<option value={paradigm.name}>{paradigm.name}</option>
+			{/each}
+		</select>
+	</div>
 
-    <div class="form-row">
-        <select bind:value={emailSelection}>
-            <option value="" disabled>Select Email</option>
-            {#each emails as email}
-                <option value={email.name}>{email.name}</option>
-            {/each}
-            <option value="enter_new">Use Guest Email</option>
-        </select>
-    </div>
-    {#if emailSelection === 'enter_new'}
-        <div class="form-row">
-            <input
-                type="email"
-                bind:value={newEmailAddress}
-                placeholder="Email Address"
-                style="flex: 3;"
-            />
-            <button on:click={() => (emailSelection = newEmailAddress)} style="flex: 1;"
-                >Use This Email</button
-            >
-        </div>
-    {/if}
-    <div id="uppy-dashboard-container" />
+	<div class="form-row">
+		<select bind:value={emailSelection}>
+			<option value="" disabled>Select Email</option>
+			{#each emails as email}
+				<option value={email.name}>{email.name}</option>
+			{/each}
+			<option value="enter_new">Use Guest Email</option>
+		</select>
+	</div>
+	{#if emailSelection === 'enter_new'}
+		<div class="form-row">
+			<input
+				type="email"
+				bind:value={newEmailAddress}
+				placeholder="Email Address"
+				style="flex: 3;"
+			/>
+			<button on:click={() => (emailSelection = newEmailAddress)} style="flex: 1;"
+				>Use This Email</button
+			>
+		</div>
+	{/if}
+	<div id="uppy-dashboard-container" />
+	<div class="error-message" style="display: none;"></div>
 
-    <button on:click={submitForm}>Submit</button>
+	<button on:click={submitForm}>Submit</button>
 </div>
 
 <style>
@@ -121,6 +132,15 @@
 		border-radius: 12px;
 		background-color: #f9f9f9;
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	}
+
+	.error-message {
+		color: #red;
+		font-weight: bold;
+		padding: 10px;
+		border: 1px solid #red;
+		border-radius: 5px;
+		margin-bottom: 20px;
 	}
 
 	h2 {

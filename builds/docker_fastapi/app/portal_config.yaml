@@ -36,10 +36,12 @@ folder_paths:
   
 # List of EEG formats
 eeg_formats:
-  - name: 'EGI128B'
-    description: 'Adult/Child 128 channel EGI Hydrocel net'
+  - name: 'EGI128'
+    description: 'EGI 128 Ch Hydrocel'
+  - name: 'EGI128'
+    description: 'EGI 128 Ch Hydrocel'
   - name: 'EGI32'
-    description: 'Adult/Child 32 channel EGI Hydrocel net'
+    description: '32 channel EGI Hydrocel net'
   - name: 'MEA30'
     description: 'NeuroNexus 30 channel MEA'
   - name: 'MEA30 (v2)'
