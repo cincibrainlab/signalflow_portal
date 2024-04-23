@@ -118,6 +118,7 @@
 	<div class="error-message" style="display: none;"></div>
 
 	<button on:click={submitForm}>Submit</button>
+
 </div>
 
 <style>
