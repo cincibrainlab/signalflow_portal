@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { writable } from 'svelte/store';
-	import { createUppyInstance } from '$lib/uppy';
 	import { onMount } from 'svelte';
+	import { createUppyInstance } from '$lib/uppy';
 
 	type EEGFormat = {
 		id: string;
 		name: string;
 	};
 
-	const baseUrl = 'http://localhost:8001/api/';
+	const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
 	let eegFormats: EEGFormat[] = [];
 	let eegParadigms: EEGFormat[] = [];
@@ -17,7 +17,7 @@
 	let emails: string[] = [];
 	let emailSelection: string = '';
 	let newEmailAddress: string = '';
-	let uppy;
+	let uppy: ReturnType<typeof createUppyInstance>;
 
 	onMount(async () => {
 		uppy = createUppyInstance();
@@ -59,7 +59,7 @@
 						);
 					}
 				})
-				.catch((error) => {
+				.catch((error: Error) => {
 					console.error('Error during file upload:', error);
 					displayStatusMessage('Error during file upload. Please try again.');
 				});
@@ -74,6 +74,9 @@
 		statusDiv.innerHTML = message;
 		statusDiv.style.display = 'block';
 	}
+
+
+
 </script>
 
 <div class="upload-form">

@@ -6,6 +6,7 @@ from rich.console import Console
 from fastapi.middleware.cors import CORSMiddleware
 
 from signalfloweeg.portal.portal_config import (
+    is_database_connected,
     set_portal_config_path,
     get_portal_config_path,
     get_frontend_info,
@@ -22,13 +23,34 @@ from routes_upload_form import router as upload_form_router
 
 console = Console()
 
+LOG_FOLDER = get_folder_paths()["logs"]
+
+if not os.path.exists(LOG_FOLDER):
+    os.makedirs(LOG_FOLDER)
+
+log_file_path = os.path.join(LOG_FOLDER, "sf_portal.log")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.FileHandler(log_file_path),
+        logging.StreamHandler(),
+    ],
+)
+
 
 # Setup the portal_config.yaml path
 def update_portal_config():
     console.print("[bold green]SignalFlow Portal Starting ...![/bold green]")
     current_directory = os.getcwd()
-    set_portal_config_path(os.path.join(current_directory, "portal_config.yaml"))
-    return get_portal_config_path()
+    if is_database_connected():
+        set_portal_config_path(os.path.join(current_directory, "portal_config.yaml"))
+        return get_portal_config_path()
+    else:
+        console.print("[bold red]Database is not connected. Please check your database connection.[/bold red]")
+        return None
 
 update_portal_config()
 
@@ -55,23 +77,8 @@ def set_cors():
 
 set_cors()
 
-LOG_FOLDER = get_folder_paths()["logs"]
 logging.info("Starting SignalFlow Portal ...")
 logging.info(f"Log folder: {LOG_FOLDER}")
-
-if not os.path.exists(LOG_FOLDER):
-    os.makedirs(LOG_FOLDER)
-
-log_file_path = os.path.join(LOG_FOLDER, "sf_portal.log")
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[
-        logging.FileHandler(log_file_path),
-        logging.StreamHandler(),
-    ],
-)
 print(f"Logging to file: {log_file_path}")
 def signal_handler(signum, frame):
     logging.info("Signal received: {}, initiating graceful shutdown.".format(signum))

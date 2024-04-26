@@ -7,14 +7,15 @@ frontend:
   url: http://localhost:5173
 
 api:
-  port: 8001
+  port: 3005
+  # 8001
 
 users:
   - email: 'ernest.pedapati@cchmc.org'
   - email: 'grace.westerkamp@cchmc.org'
   - email: 'carrie.randle@ucr.edu'
   - email: 'nate.suer@cchmc.org'
-  - email: 'yanshen.liu@cchmc.org'
+  - email: 'yanchen.liu@cchmc.org'
   
 # This file is used to configure the portal
 folder_paths:
@@ -36,16 +37,16 @@ folder_paths:
   
 # List of EEG formats
 eeg_formats:
-  - name: 'EGI128'
-    description: 'EGI 128 Ch Hydrocel'
-  - name: 'EGI128'
-    description: 'EGI 128 Ch Hydrocel'
-  - name: 'EGI32'
-    description: '32 channel EGI Hydrocel net'
+  - name: 'EGI128/Adult'
+    description: 'EGI Hydrocel 128 (Adult)'
+  - name: 'EGI128/Infant'
+    description: 'EGI Hydrocel 128 (Infant)'
+  - name: 'EGI32/Adult'
+    description: 'EGI Hydrocel 32 (Infant)'
   - name: 'MEA30'
-    description: 'NeuroNexus 30 channel MEA'
-  - name: 'MEA30 (v2)'
-    description: 'NeuroNexus Revision MEA'
+    description: 'NeuroNexus MEA 30'
+  - name: 'MEA30V2'
+    description: 'NeuroNexus MEA 30 (v2)'
 
 # List of EEG paradigms
 eeg_paradigms:
