@@ -1,7 +1,10 @@
 import os
-from signalfloweeg.portal.db_connection import get_session, is_database_connected
+from signalfloweeg.portal.db_connection import is_database_connected, get_session
 from signalfloweeg.portal.models import Startup
-from signalfloweeg.portal.portal_config import check_database_and_tables, load_config_from_yaml
+from signalfloweeg.portal.portal_config import (
+    check_database_and_tables, 
+    load_config_from_yaml
+)
 from sqlalchemy.exc import SQLAlchemyError
 
 def add_portal_config_path(portal_config_path):
@@ -66,7 +69,6 @@ def entry_point():
 
     all_checks_passed = all(entrypoint_check.values())
     return all_checks_passed
-
 
 if __name__ == "__main__":
     valid_entry = entry_point()

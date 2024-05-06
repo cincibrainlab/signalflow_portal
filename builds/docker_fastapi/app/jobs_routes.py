@@ -25,7 +25,7 @@ def generate_joblist():
 async def trigger_analysis(
     upload_id: str,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(portal.sessionmaker.get_db),
+    db: Session = Depends(portal.db_connection.get_session),
 ):
     from rich.console import Console
     from rich.table import Table

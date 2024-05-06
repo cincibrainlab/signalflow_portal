@@ -4,10 +4,11 @@ import logging
 from fastapi import FastAPI
 from rich.console import Console
 from fastapi.middleware.cors import CORSMiddleware
-
-from startup import entry_point
 from api.routes_main_api import router as main_api_router
-from signalfloweeg.portal.portal_config import get_frontend_info, get_folder_paths, get_api_info
+from signalfloweeg.portal.portal_config import (
+    get_frontend_info, get_folder_paths, get_api_info
+)
+from entrypoint import entry_point
 
 """
 Program Flow Diagram:
@@ -35,6 +36,9 @@ Description:
 
 app = FastAPI()
 app.include_router(main_api_router)
+
+
+
 
 if entry_point():
     console = Console()
@@ -75,6 +79,9 @@ else:
     console.print("[bold red]Entry point failed.[/bold red]", style="red")
     sys.exit(1)
 
+
+
+
 if __name__ == "__main__":
     import uvicorn
     try:
@@ -85,3 +92,4 @@ if __name__ == "__main__":
         console.print("[bold red]API port configuration is missing.[/bold red]", style="red")
     except Exception as e:
         console.print(f"[bold red]Failed to start the server: {e}[/bold red]", style="red")
+
