@@ -1,5 +1,6 @@
 import requests
 import signalfloweeg.portal as portal
+from prefect import task, Flow
 
 def call_get_portal_paths_api():
     url = "http://localhost:3005/api/get-portal-paths"
@@ -12,8 +13,6 @@ def call_get_portal_paths_api():
     else:
         print(f"API Call Failed. Status Code: {response.status_code}")
     return response.json()['message']['import']
-
-
 
 def call_get_import_catalog_api():
     url = "http://localhost:3005/api/get-import-catalog"
@@ -30,6 +29,25 @@ def call_get_import_catalog_api():
     else:
         print(f"API Call Failed. Status Code: {response.status_code}")
     return response.json()[0]['upload_id']
+
+
+@task
+def task1():
+    pass
+
+@task
+def task2():
+    pass
+
+@task
+def task3():
+    pass
+
+with Flow("my_flow") as flow:
+    result1 = task1()
+    result2 = task2()
+    result3 = task3()
+
 
 if __name__ == "__main__":
     portal_paths = call_get_portal_paths_api()
