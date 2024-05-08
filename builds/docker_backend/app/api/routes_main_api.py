@@ -75,7 +75,6 @@ class DatasetCatalog(BaseModel):
 
 
 router = APIRouter()
-router = APIRouter()
 
 # ────────────────────────────────────────────────────────────────────────────────
 # UNIVERSAL TEST

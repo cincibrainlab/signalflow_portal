@@ -2,12 +2,6 @@
 	"folders": [
 		{
 			"path": "."
-		},
-		{
-			"path": "builds/docker_fastapi/github/signalfloweeg_py"
-		},
-		{
-			"path": "../sfportal_skl"
 		}
 	],
 	"settings": {

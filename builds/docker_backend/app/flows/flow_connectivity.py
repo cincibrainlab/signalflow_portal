@@ -32,21 +32,21 @@ def call_get_import_catalog_api():
 
 
 @task
-def task1():
+def prepare_input():
     pass
 
 @task
-def task2():
+def execute_operation():
     pass
 
 @task
-def task3():
+def prepare_output():
     pass
 
 with Flow("my_flow") as flow:
-    result1 = task1()
-    result2 = task2()
-    result3 = task3()
+    result1 = prepare_input()
+    result2 = execute_operation()
+    result3 = prepare_output()
 
 
 if __name__ == "__main__":

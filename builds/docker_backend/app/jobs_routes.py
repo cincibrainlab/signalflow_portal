@@ -6,20 +6,17 @@ from sqlalchemy.orm import Session
 
 router = APIRouter()
 
-
 @router.get("/api/get-import-ids")
 def get_import_ids():
     logging.info("Getting import IDs...")
     import_ids = portal.import_catalog.get_import_ids()
     return import_ids
 
-
 @router.get("/api/gen-job-list")
 def generate_joblist():
     logging.info("Generating job list...")
     job_list = portal.import_catalog.generate_joblist()
     return job_list
-
 
 @router.post("/api/trigger_analysis/{upload_id}")
 async def trigger_analysis(

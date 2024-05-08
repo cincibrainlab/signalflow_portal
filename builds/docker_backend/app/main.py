@@ -38,8 +38,6 @@ app = FastAPI()
 app.include_router(main_api_router)
 
 
-
-
 if entry_point():
     console = Console()
     console.print("🎆 [bold cyan]Entry point successful![/bold cyan]")
