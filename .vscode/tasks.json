@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start SignalFlow Backend",
+            "type": "shell",
+            "command": "uvicorn app.main:app --reload",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Launch FastAPI server"
+        },
+        {
+            "label": "Start SignalFlow Frontend",
+            "type": "shell",
+            "command": "npm run dev",
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Launch Svelte development server"
+        }
+    ]
+}
+

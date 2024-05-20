@@ -1,0 +1,16 @@
+analyses:
+  - function_name: "band_power_analysis"
+    description: "Analyze the power across frequency band."
+    eeg_formats:
+      - "EGI"
+      - "MEA"
+      - "Source"
+    eeg_paradigms:
+      - "Resting"
+      - "Chirp"
+    parameters:
+      # Required parameters:
+      low_cut: 8       # Required
+      high_cut: 12     # Required
+      # Optional with defaults:
+      window_length: 1 # Default set to 1

@@ -1,0 +1,47 @@
+1. Import Analysis Definitions (YAML Configuration)
+   - Read and parse the analysis definitions from a YAML file.
+   - Validate the definitions using database naming conventions.
+   - Apply database defaults to the parameters, where applicable.
+   - Update the `Analysis` table by marking old analyses as inactive and adding/updating current ones.
+
+   Output: A validated and fully updated analysis configuration.
+
+2. Fetch Files and Active Analyses
+   - Query the `WorkList` table to find files ready for analysis.
+   - Retrieve active analyses from the database, ensuring they match the analysis configurations.
+   - Ensure compatibility between files and analyses (e.g., EEG formats, paradigms).
+
+   Output: A mapping of files to active analyses.
+
+3. Schedule and Execute Analysis Tasks (Prefect Flow)
+   - Use Prefect's `map` functionality to parallelize tasks.
+   - Define Prefect tasks to:
+     a. Load the file data.
+     b. Execute the appropriate analysis function.
+     c. Collect the results and status (pass/fail).
+   - Organize the tasks into a Prefect flow for streamlined scheduling.
+
+   Output: A Prefect flow that schedules analysis tasks per file.
+
+4. Standardize and Store Analysis Results
+   - Use a Prefect task to standardize the results into a consistent structure.
+   - Store a summary and link to the full results in the `WorkList` table.
+   - Ensure results include a high-level summary and pass/fail status.
+   - Store additional detailed results in a separate table if needed.
+
+   Output: A unified, standardized report summarizing results with detailed data.
+
+5. Generate Interactive Report
+   - Query the `WorkList` table to gather the standardized summaries.
+   - Use visualization tools or frameworks to provide an interactive web-based report.
+   - Provide download links or references to detailed results.
+
+   Output: A comprehensive, interactive report showcasing analysis results.
+
+### Overview
+1. **Import and Validation:** The analysis definitions are parsed, validated, and aligned with database conventions.
+2. **Analysis Scheduling:** Prefect schedules analysis tasks based on the available files and compatible analyses.
+3. **Results Standardization:** Results are summarized and stored for easy retrieval and presentation.
+4. **Reporting:** An interactive report presents high-level summaries and links to the full results.
+
+This flowchart illustrates the logical steps required to ensure consistent analysis scheduling, execution, and reporting within the overall analysis system.

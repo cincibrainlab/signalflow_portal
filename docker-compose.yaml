@@ -29,12 +29,12 @@ services:
     networks:
       - eeg-network
 
-  sf_fastapi:
-    container_name: sf_fastapi
+  sf_backend:
+    container_name: sf_backend
     build: 
-      context: ./builds/docker_fastapi/
+      context: ./builds/backend/
       dockerfile: Dockerfile
-    image: cbl/sf_fastapi
+    image: cbl/sf_backend
     volumes:
       - ./portal_files/uploads:/uploads
       - ./portal_files/input:/input
