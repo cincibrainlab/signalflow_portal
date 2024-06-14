@@ -64,7 +64,7 @@ class ImportCatalog(BaseModel):
     status: str | None
     date_added: str | None
     hash: str | None
-    remove: bool | None
+    remove_import: bool | None
     sample_rate: int | None
     n_channels: int | None
     n_epochs: int | None
@@ -136,7 +136,7 @@ def api_reset_portal():
             console.print(f"All files in the uploads folder have been removed. Total files deleted: {file_count}")
         except Exception as e:
             console.print(f"Error occurred while deleting files in the uploads folder: {e}")
-    sf.portals.models.initialize_database(reset=True)
+    portal.models.initialize_database(reset=True)
     check_entrypoint()
 
     return {"message": "Uploads Removed and Portal Reset Successfully."}

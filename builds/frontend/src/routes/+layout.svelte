@@ -47,12 +47,6 @@
 		}
 	};
 
-	const reactivePage = derived(page, $page => $page);
-
-	reactivePage.subscribe(() => {
-		updateDbStatus();
-	});
-
 	onMount(() => {
 		updateDbStatus();
 	});

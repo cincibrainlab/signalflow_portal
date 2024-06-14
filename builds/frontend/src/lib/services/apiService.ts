@@ -3,9 +3,13 @@ import type { DatasetRow } from '../types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
+
 export async function checkDbConnection() {
+  console.log(`Base URL: ${baseUrl}`);
   const response = await fetch(`${baseUrl}check-db-connection`);
   const data = await response.json();
+  console.log(`Data: data`);
+  console.log(`Status: ${response.status}`);  
   return { status: response.status, data };
 }
 
