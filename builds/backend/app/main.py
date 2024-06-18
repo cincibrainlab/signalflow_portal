@@ -1,4 +1,4 @@
-import os
+import os, sys
 import logging
 from fastapi import FastAPI
 from rich.console import Console
@@ -7,7 +7,7 @@ from api.routes_main_api import router as main_api_router
 from signalfloweeg.portal.portal_config import (
     get_frontend_info, get_folder_paths, get_api_info
 )
-from entrypoint import check_entrypoint
+from entrypoint import check_entrypoint, reset_database, is_startup_table_present
 
 """
 Program Flow Diagram:
@@ -31,12 +31,13 @@ Description:
 2. If successful, it proceeds to set up logging via `set_logging`.
 3. Finally, it configures CORS settings with `set_cors` to allow cross-origin requests.
 """
-
+console = Console()
 
 app = FastAPI()
 app.include_router(main_api_router)
 
-console = Console()
+if not is_startup_table_present():
+    reset_database()
 
 if check_entrypoint():
     console.print("🎆 [bold cyan]Entry point successful![/bold cyan]")
@@ -44,6 +45,7 @@ if check_entrypoint():
     def set_logging():
 
         # Ensure log directory exists
+        console.print(f"Log folder path: {get_folder_paths()['logs']}")
         log_folder = get_folder_paths()["logs"]
         os.makedirs(log_folder, exist_ok=True)
 

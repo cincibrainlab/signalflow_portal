@@ -1,11 +1,34 @@
 import os
 from signalfloweeg.portal.db_connection import is_database_connected, get_session
-from signalfloweeg.portal.models import Startup
+from signalfloweeg.portal.models import Startup, initialize_database
 from signalfloweeg.portal.portal_config import (
     check_database_and_tables, 
     load_config_from_yaml
 )
+from sqlalchemy import inspect
 from sqlalchemy.exc import SQLAlchemyError
+
+def is_startup_table_present():
+    """
+    Check if the startup table exists in the database.
+
+    Returns:
+        bool: True if the startup table exists, False otherwise.
+    """
+    with get_session() as session:
+        inspector = inspect(session.bind)
+        tables = inspector.get_table_names()
+        if 'startup' in tables:
+            return True
+        else:
+            return False
+
+def reset_database():
+    """
+    Initiate the database by creating the startup table if it is not present.
+    """
+    initialize_database(reset=True)
+
 
 def add_portal_config_path(portal_config_path):
     try:
@@ -45,7 +68,7 @@ def check_entrypoint():
     console.print(f"[bold]{status_icon} Database Connected:[/bold] [yellow]{entrypoint_check['database_connected']}[/yellow]")
     if not entrypoint_check['database_connected']:
         return False
-
+    
     # Add the portal config path to the database
     portal_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'portal_config.yaml')
     entrypoint_check['portal_config_path'] = add_portal_config_path(portal_config_path)

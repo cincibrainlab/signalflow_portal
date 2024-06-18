@@ -103,6 +103,11 @@ def check_database_connection():
         raise HTTPException(status_code=503, detail="Database is not connected")
     return {"message": "Database is connected"}
 
+@router.get("/api/delete-database")
+def delete_database():
+    sf.portal.db_connection.delete_database()
+    return {"message": "Database deleted successfully"}
+
 @router.get("/api/load-database-summary")
 def load_database_summary():
     logging.info("Loading database summary...")
