@@ -16,24 +16,16 @@ users:
   - email: 'carrie.randle@ucr.edu'
   - email: 'nate.suer@cchmc.org'
   - email: 'yanchen.liu@cchmc.org'
+  - email: 'gavin.gammoh@cchmc.org'
   
 # This file is used to configure the portal
 folder_paths:
-  root: /portal_files
-  uploads: /portal_files/uploads
-  import: /portal_files/import
-  info_archive: /portal_files/info_archive
-  output: /portal_files/output
-  logs: /portal_files/logs
-
-# This file is used to configure the portal
-folder_paths:
-  root: /home/ernie/github/signalflow_portal/portal_files
-  uploads: /home/ernie/github/signalflow_portal/portal_files/uploads
-  import: /home/ernie/github/signalflow_portal/portal_files/import
-  info_archive: /home/ernie/github/signalflow_portal/portal_files/info_archive
-  output: /home/ernie/github/signalflow_portal/portal_files/output
-  logs: /home/ernie/github/signalflow_portal/portal_files/logs
+  root: portal_files
+  uploads: portal_files\uploads
+  import: portal_files\import
+  info_archive: portal_files\info_archive
+  output: portal_files\output
+  logs: portal_files\logs
   
 # List of EEG formats
 eeg_formats:

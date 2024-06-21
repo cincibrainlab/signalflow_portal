@@ -16,7 +16,7 @@
 	export let options = {}; // Options for configuring the Uppy instance
 
 	const UPLOADER = 'tus';
-	const TUS_ENDPOINT = import.meta.env.VITE_TUS_BASE_URL;
+	const TUS_ENDPOINT = "http://localhost:3001/files/";
 
 	let uppy: Uppy;
 	let dispatch = createEventDispatcher();
