@@ -33,3 +33,23 @@ To get started with the `signalflow_portal`, please refer to the detailed instal
 
 ## Contributing
 We welcome contributions from the community to enhance the functionality and capabilities of the `signalflow_portal`. If you're interested in contributing, please review the project's guidelines and submit your proposals or pull requests.
+
+## To start run 
+```bash
+docker compose up sf_db sf_uploader
+cd builds/frontend
+npm install
+cd builds/backend
+pip install -r requirements.txt
+cd github
+git clone https://github.com/cincibrainlab/signalfloweeg_py
+cd signalfloweeg_py
+pip install -e .
+```
+
+run builds\backend\app\main.py
+```bash
+cd builds\frontend
+npm run dev
+```
+
