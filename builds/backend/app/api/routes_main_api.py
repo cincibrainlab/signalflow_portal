@@ -249,7 +249,7 @@ def list_upload_catalog():
     from rich.table import Table
 
     logging.info("Getting Upload Catalog Info")
-    upload_catalog = portal.sessionmaker.get_upload_catalog()
+    upload_catalog = portal.db_webportal.get_upload_catalog()
 
     console = Console()
     table = Table(title="Upload Catalog")

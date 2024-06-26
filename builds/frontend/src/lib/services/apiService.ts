@@ -1,7 +1,7 @@
 // src/services/apiService.ts
 import type { DatasetRow } from '../types';
 
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseUrl = "http://localhost:3005/api/";
 
 
 export async function checkDbConnection() {
