@@ -16,7 +16,7 @@ services:
   sf_uploader:
     container_name: sf_uploader
     image: tusproject/tusd:v1.9
-    command: sh -c "chmod 777 /uploads && /usr/local/bin/tusd -verbose -upload-dir=/uploads"
+    command: -verbose -upload-dir=/uploads
     volumes:
       - tusd:/data
       - ./portal_files/uploads:/uploads

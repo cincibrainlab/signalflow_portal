@@ -9,7 +9,7 @@ from signalfloweeg.portal.db_connection import get_session
 from signalfloweeg.portal.import_catalog import copy_import_files
 from signalfloweeg.portal.portal_utils import load_config
 from signalfloweeg.viz.heatmap import heatmap_power
-from signalfloweeg.models import ImportCatalog, EegAnalyses
+from signalfloweeg.portal.models import ImportCatalog, EegAnalyses
 
 
 @task (retries = 3)
@@ -18,16 +18,16 @@ def getRaw(upload_id: str, upload_path: str):
         set_dest_path, fdt_dest_path = copy_import_files(upload_id)
         raw_eeg = mne.io.read_raw(set_dest_path)
 
-        if os.path.exists(set_dest_path):
-            os.remove(set_dest_path)
-            print(f"Removed SET file {set_dest_path}")
-        if fdt_dest_path and os.path.exists(fdt_dest_path):
-            os.remove(fdt_dest_path)
-            print(f"Removed FDT file {fdt_dest_path}")
+        # if os.path.exists(set_dest_path):
+        #     os.remove(set_dest_path)
+        #     print(f"Removed SET file {set_dest_path}")
+        # if fdt_dest_path and os.path.exists(fdt_dest_path):
+        #     os.remove(fdt_dest_path)
+        #     print(f"Removed FDT file {fdt_dest_path}")
         return raw_eeg
     
     except Exception as e:
-        print("Exception Occured when creating Raw Obj: " + e)
+        print("Exception Occured when creating Raw Obj: " + str(e))
         raise
 
 @task
@@ -48,13 +48,12 @@ def AnalysisFlow():
     for analysis in analyses:
         for file in import_ids:
             if file.eeg_format in analysis.valid_formats and file.eeg_paradigm in analysis.valid_paradigms:
-                #Run analysis
-                pass
+                print(f"Running analysis {analysis.analysis_name} on file {file.upload_id}")
             pass
         pass
 
 
-    raw_eeg = getRaw("fbba02b1598894178a0550d684f82d8e", upload_path)
+    raw_eeg = getRaw("d9d54624ad3a165997a14aee704e4c1b", upload_path)
     heatmap(raw_eeg)
     print("Ran heatmap")
 

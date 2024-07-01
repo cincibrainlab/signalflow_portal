@@ -14,3 +14,51 @@ analyses:
       high_cut: 12     # Required
       # Optional with defaults:
       window_length: 1 # Default set to 1
+
+  - function_name: "TEST1"
+    description: "Analyze the power across frequency band."
+    eeg_formats:
+      - "EGI128/Adult"
+      - "MEA"
+      - "Source"
+    eeg_paradigms:
+      - "Resting"
+      - "Chirp"
+    parameters:
+      # Required parameters:
+      low_cut: 8       # Required
+      high_cut: 12     # Required
+      # Optional with defaults:
+      window_length: 1 # Default set to 1
+
+  - function_name: "TEST2"
+    description: "Analyze the power across frequency band."
+    eeg_formats:
+      - "EGI"
+      - "MEA"
+      - "Source"
+    eeg_paradigms:
+      - "Resting"
+      - "Chirp"
+    parameters:
+      # Required parameters:
+      low_cut: 8       # Required
+      high_cut: 12     # Required
+      # Optional with defaults:
+      window_length: 1 # Default set to 1
+
+  - function_name: "TEST3"
+    description: "Analyze the power across frequency band."
+    eeg_formats:
+      - "EGI"
+      - "MEA"
+      - "Source"
+    eeg_paradigms:
+      - "Resting"
+      - "Chirp"
+    parameters:
+      # Required parameters:
+      low_cut: 8       # Required
+      high_cut: 12     # Required
+      # Optional with defaults:
+      window_length: 1 # Default set to 1

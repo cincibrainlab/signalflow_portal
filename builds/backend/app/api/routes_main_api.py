@@ -1,9 +1,14 @@
 from fastapi import APIRouter, HTTPException
 import logging
+
+import mne
 import signalfloweeg.portal as portal
 import os
 from fastapi.responses import JSONResponse
-from signalfloweeg.portal.db_connection import is_database_connected
+from signalfloweeg.portal.db_connection import get_session, is_database_connected
+from signalfloweeg.portal.import_catalog import copy_import_files
+from signalfloweeg.portal.portal_utils import load_config
+from signalfloweeg.portal.models import ImportCatalog, EegAnalyses
 
 from signalfloweeg.portal.portal_config import (
     get_folder_paths, 
@@ -282,6 +287,46 @@ def list_upload_catalog():
         for upload in upload_catalog
     ]
 
+# ────────────────────────────────────────────────────────────────────────────────
+# FUNCTION: ANALYSIS ENDPOINT
+# ────────────────────────────────────────────────────────────────────────────────
+@router.get("/api/run-analysis")
+def schedule_analysis(filename: str):
+
+    def getRaw(upload_id: str, upload_path: str):
+        try: 
+            set_dest_path, fdt_dest_path = copy_import_files(upload_id)
+            raw_eeg = mne.io.read_raw(set_dest_path)
+
+            if os.path.exists(set_dest_path):
+                os.remove(set_dest_path)
+                print(f"Removed SET file {set_dest_path}")
+            if fdt_dest_path and os.path.exists(fdt_dest_path):
+                os.remove(fdt_dest_path)
+                print(f"Removed FDT file {fdt_dest_path}")
+            return raw_eeg
+        
+        except Exception as e:
+            print("Exception Occured when creating Raw Obj: " + e)
+            raise
+
+    logging.info(f"Scheduling analysis for file: {filename}")
+    config = load_config()
+    upload_path = config["folder_paths"]["uploads"]
+
+    # with get_session() as session:
+    #     analyses = session.query(EegAnalyses).all()
+    #     import_id = session.query(ImportCatalog).all()
+    #     session.close()
+
+    # for analysis in analyses:
+    #     if import_id.eeg_format in analysis.valid_formats and import_id.eeg_paradigm in analysis.valid_paradigms:
+    #         print(f"Running analysis for file: {filename}")
+    #     pass
+
+
+    raw_eeg = getRaw(filename, upload_path)
+    return {"message": f"Analysis scheduled for file: {filename}"}
 
 ## Legacy code
 
