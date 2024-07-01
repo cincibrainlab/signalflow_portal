@@ -6,7 +6,7 @@ services:
       - "3004:1234"
     volumes:
       - ./portal_files/uploads:/uploads
-      - ./portal_files/input:/input
+      - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
     restart: always
@@ -16,11 +16,11 @@ services:
   sf_uploader:
     container_name: sf_uploader
     image: tusproject/tusd:v1.9
-    command: -verbose -upload-dir=/uploads
+    command: sh -c "chmod 777 /uploads && /usr/local/bin/tusd -verbose -upload-dir=/uploads"
     volumes:
       - tusd:/data
       - ./portal_files/uploads:/uploads
-      - ./portal_files/input:/input
+      - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
     ports:
@@ -37,7 +37,7 @@ services:
     image: cbl/sf_backend
     volumes:
       - ./portal_files/uploads:/uploads
-      - ./portal_files/input:/input
+      - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
     ports:
