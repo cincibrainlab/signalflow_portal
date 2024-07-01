@@ -56,3 +56,11 @@ eeg_analyses:
     valid_formats: ['EGI128', 'EGI32', 'MEA30', 'MEA30 (v2)']
     valid_paradigms: ['Resting']
     parameters: None
+  - name: 'Test1'
+    category: 'Test1'
+    description: 'All-to-all connectivity analysis'
+    valid_formats: ['EGI128/Adult', 'EGI32/Adult', 'MEA30', 'MEA30 (v2)']
+    valid_paradigms: ['Resting']
+    parameters: None
+
+  

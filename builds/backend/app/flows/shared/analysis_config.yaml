@@ -15,7 +15,7 @@ analyses:
       # Optional with defaults:
       window_length: 1 # Default set to 1
 
-  - function_name: "TEST1"
+  - function_name: "heatmap"
     description: "Analyze the power across frequency band."
     eeg_formats:
       - "EGI128/Adult"
