@@ -36,7 +36,6 @@
 						<svelte:component this={component}  />
 					{:else if component}
 						<svelte:component this={component} />
-						...
 					{/if}
 				</div>
 			{/each}

@@ -1,6 +1,6 @@
 # Configuration settings
 database:
-  url: postgresql://sfportal:sfportal@localhost:3002/sfportal
+  url: mongodb://localhost:3002/sfportal
   reset: False
 
 frontend:

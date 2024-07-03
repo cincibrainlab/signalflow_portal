@@ -54,7 +54,7 @@
 </script>
 
 
-<div class="flex flex-col min-h-screen">
+<div class="flex flex-col min-h-screen bg-white">
   <div class="navbar container mx-auto">
     <div class="flex-1">
       <a class="btn btn-ghost normal-case text-xl flex items-center" href="/">
