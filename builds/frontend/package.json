@@ -49,6 +49,7 @@
     "@uppy/form": "^3.2.0",
     "@uppy/golden-retriever": "^3.2.0",
     "@uppy/tus": "^3.5.4",
+    "daisyui": "^4.12.10",
     "highlight.js": "11.9.0",
     "svelte-simple-datatables": "^0.3.1",
     "unique-names-generator": "^4.7.1",
