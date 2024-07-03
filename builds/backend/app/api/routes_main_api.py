@@ -289,8 +289,8 @@ def list_upload_catalog():
 # FUNCTION: ANALYSIS ENDPOINT
 # ────────────────────────────────────────────────────────────────────────────────
 @router.get("/api/run-analysis")
-def schedule_analysis(filename: str):
-    AnalysisFlow(filename=filename)
+async def schedule_analysis(filename: str):
+    await AnalysisFlow(filename=filename)
     return {"message": f"Analysis scheduled for file: {filename}"}
 
 ## Legacy code

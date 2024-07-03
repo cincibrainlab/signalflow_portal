@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import os
 import asyncio
+import time
 
 # Third-party library imports
 import mne
@@ -23,7 +24,21 @@ from signalfloweeg.portal.models import ImportCatalog, EegAnalyses
 # ────────────────────────────────────────────────────────────────────────────────
 
 @task (retries = 1)
-def getRaw(upload_id: str, upload_path: str):
+async def loadconfig():
+    # Load configuration file
+    config = load_config()
+    return config
+
+@task (retries = 1)
+async def get_file_and_analyses():
+    with get_session() as session:
+        file = session.query(ImportCatalog).first()  # Get the first file from the ImportCatalog table
+        analyses = session.query(EegAnalyses).all()  # Get all records from the EegAnalyses table
+    session.close()
+    return file, analyses
+
+@task (retries = 1)
+async def getRaw(upload_id: str, upload_path: str):
     """
     This function is used to get the raw EEG data from the specified upload path. 
 
@@ -64,7 +79,7 @@ def heatmap(raw: mne.io.Raw):
     heatmap_power(epochs)
 
 @task(name="FakeAnalysis", description="Run a fake analysis on the file.")
-def fakeAnalysis(importID: str, output_path: str):
+async def fakeAnalysis(importID: str, output_path: str):
     """
     This function is used to run a fake analysis on the file and save the result in the specified output path.
 
@@ -81,7 +96,7 @@ def fakeAnalysis(importID: str, output_path: str):
         file.write(f"Ran {analysisName} on {importID}\n")
 
 @task(name="CreateMetaData", description="Save metadata of the file and what analyses were run on it to a .info file.")
-def saveMetaData(fileImport: ImportCatalog, output_path: str, analysisList: list):
+async def saveMetaData(fileImport: ImportCatalog, output_path: str, analysisList: list):
     """
     This function is used to save the metadata of the file and the analyses that were run on it to a .info file.
 
@@ -104,6 +119,7 @@ def saveMetaData(fileImport: ImportCatalog, output_path: str, analysisList: list
     with open(savePath, 'a') as file:
         file.write(json.dumps(metadata, indent=4) + "\n")
 
+
 # ────────────────────────────────────────────────────────────────────────────────
 # Analysis Flow
 # ────────────────────────────────────────────────────────────────────────────────
@@ -115,7 +131,7 @@ ANALYSIS_FUNCTIONS = { # Dictionary of analysis functions
 
 
 @flow(log_prints=True)
-def AnalysisFlow(filename: str):
+async def AnalysisFlow(filename: str):
     """
     This is a Prefect 2 flow that schedules all relevant analyses for a givin file. 
 
@@ -127,31 +143,32 @@ def AnalysisFlow(filename: str):
     function is successful, the name of the analysis is added to a list. If any analyses were run, it saves 
     metadata for the file. 
     """
-
-    config = load_config()  # Load configuration file
+    
+    config = await loadconfig()  # Load configuration file
     upload_path = config["folder_paths"]["uploads"]  # Get upload directory path
     output_path = config["folder_paths"]["output"]  # Get output directory path
 
-    with get_session() as session:  # Establish a session with the database
-        file = session.query(ImportCatalog).first()  # Get the first file from the ImportCatalog table
-        analyses = session.query(EegAnalyses).all()  # Get all records from the EegAnalyses table
-        session.close()
+    file, analyses = await get_file_and_analyses()  # Get file and analyses
 
     analysis_list = []
+    tasks = []
     for analysis in analyses:
-        print(f"Analysis {analysis.name} has valid formats {analysis.valid_formats} and valid paradigms {analysis.valid_paradigms}")
         if file.eeg_format in analysis.valid_formats and file.eeg_paradigm in analysis.valid_paradigms:
-            print(f"Running analysis {analysis.name} on file {file.upload_id}")
-            raw_eeg = getRaw(file.upload_id, upload_path)  # Retrieve raw EEG data for the file
+            raw_eeg = await getRaw(file.upload_id, upload_path, wait_for=[file])  # Retrieve raw EEG data for the file
 
             analysis_function = ANALYSIS_FUNCTIONS.get(analysis.name)
             if analysis_function:
-                analysis_function(file.upload_id, output_path, wait_for=[raw_eeg])  # Run the corresponding analysis function
+                tasks.append(analysis_function(file.upload_id, output_path, wait_for=[raw_eeg]))  # Schedule the analysis function
                 analysis_list.append(analysis.name)  # Add the name of the analysis to a list
             else:
                 print(f"No function found for analysis {analysis.name}")
-    if len(analysis_list) > 0:
-        saveMetaData(file, output_path, analysis_list)  # Save metadata for the file if any analyses were run
+
+    if tasks:
+        await asyncio.gather(*tasks)  # Run all analysis tasks in parallel
+
+    if analysis_list:
+        await saveMetaData(file, output_path, analysis_list)  # Save metadata for the file if any analyses were run
+
     return "Success"
 
 
