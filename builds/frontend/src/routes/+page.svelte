@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte"
+	import AnimatedBrainBackground from "$lib/components/AnimatedBrainBackground.svelte"
 
 	const WebsiteName = "SignalFlow"
 	const WebsiteDescription = "SignalFlow is a centralized platform for storing and analyzing neuroimaging data."
@@ -49,6 +50,7 @@
 		  Empower your research with a centralized platform for storing, analyzing,
 		  and sharing neuroimaging data.
 		</div>
+		<AnimatedBrainBackground />
 		<div class="mt-6 md:mt-2">
 		  	<a href="/vault">
 				<button class="btn btn-primary btn-sm px-6">Start</button>
