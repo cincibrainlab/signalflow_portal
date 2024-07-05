@@ -52,99 +52,93 @@
 		updateDbStatus();
 	});
 </script>
-
-
-<div class="flex flex-col min-h-screen bg-white">
-  <div class="navbar container mx-auto">
-    <div class="flex-1">
-      <a class="btn btn-ghost normal-case text-xl flex items-center" href="/">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 120 120"
-          xmlns="http://www.w3.org/2000/svg"
-          class="mr-2"
-        >
-          <rect
-            x="5"
-            y="5"
-            width="110"
-            height="110"
-            rx="10"
-            ry="10"
-            fill="black"
-          />
-          <circle
-            cx="60"
-            cy="50"
-            r="30"
-            fill="none"
-            stroke="white"
-            stroke-width="4"
-          />
-          <path d="M42 50 L60 32 L78 50 L60 68 Z" fill="white" />
-          <rect x="30" y="90" width="60" height="10" rx="5" ry="5" fill="white" />
-        </svg>
-        SignalFlow
-      </a>
-    </div>
-    <div class="flex-none">
-      <ul class="menu menu-horizontal px-1 hidden sm:flex font-bold text-lg">
-        <li class={dbStatusClass}>{dbStatus}</li>
-        <li class="md:mx-4">
-          <a
-            href="https://github.com/cincibrainlab/sfvault"
-            class="border border-primary"
-          >
-            ★ us on Github
-          </a>
-        </li>
-        <li class="md:mx-2"><a href="/vault">Vault</a></li>
-        <li class="md:mx-2"><a href="/upload">Upload</a></li>
-        <li class="md:mx-2"><a href="/runmanager">RunManager</a></li>
-        <li class="md:mx-2"><a href="/docs">Docs</a></li>
-        <li class="md:mx-2"><a href="/contact">Contact</a></li>
-        <li class="md:mx-2"><a href="/account">Account</a></li>
-      </ul>
-      <div class="dropdown dropdown-end sm:hidden">
-        <!-- svelte-ignore a11y-label-has-associated-control -->
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-        <label tabindex="0" class="btn btn-ghost btn-circle">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h7"
-            />
-          </svg>
-        </label>
-        <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
-        <ul
-          tabindex="0"
-          class="menu menu-lg dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 font-bold"
-        >
-          <li><a href="/blog">Blog</a></li>
-          <li><a href="/pricing">Pricing</a></li>
-          <li><a href="/account">Account</a></li>
-          <li>
-            <a
-              href="https://github.com/CriticalMoments/CMSaasStarter"
-              class="border border-primary"
-            >
-              ★ us on Github
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
+  
+<div class="navbar container mx-auto">
+<div class="flex-1">
+	<a class="btn btn-ghost normal-case text-xl flex items-center" href="/">
+	<svg
+		width="24"
+		height="24"
+		viewBox="0 0 120 120"
+		xmlns="http://www.w3.org/2000/svg"
+		class="mr-2"
+	>
+		<rect
+		x="5"
+		y="5"
+		width="110"
+		height="110"
+		rx="10"
+		ry="10"
+		fill="black"
+		/>
+		<circle
+		cx="60"
+		cy="50"
+		r="30"
+		fill="none"
+		stroke="white"
+		stroke-width="4"
+		/>
+		<path d="M42 50 L60 32 L78 50 L60 68 Z" fill="white" />
+		<rect x="30" y="90" width="60" height="10" rx="5" ry="5" fill="white" />
+	</svg>
+	SignalFlow
+	</a>
+</div>
+<div class="flex-none">
+	<ul class="menu menu-horizontal px-1 hidden sm:flex font-bold text-lg">
+	<li class={dbStatusClass}>{dbStatus}</li>
+	<li class="md:mx-4">
+		<a
+		href="https://github.com/cincibrainlab/sfvault"
+		class="border border-primary">★ us on Github</a
+		>
+	</li>
+	<li class="md:mx-2"><a href="/vault">Vault</a></li>
+	<li class="md:mx-2"><a href="/upload">Upload</a></li>
+	<li class="md:mx-2"><a href="/runmanager">RunManager</a></li>
+	<li class="md:mx-2"><a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">Docs</a></li>
+	<li class="md:mx-2"><a href="/contact">Contact</a></li>
+	<li class="md:mx-2"><a href="/account">Account</a></li>
+	</ul>
+	<div class="dropdown dropdown-end sm:hidden">
+	<!-- svelte-ignore a11y-label-has-associated-control -->
+	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+	<label tabindex="0" class="btn btn-ghost btn-circle">
+		<svg
+		xmlns="http://www.w3.org/2000/svg"
+		class="h-5 w-5"
+		fill="none"
+		viewBox="0 0 24 24"
+		stroke="currentColor"
+		><path
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			stroke-width="2"
+			d="M4 6h16M4 12h16M4 18h7"
+		/></svg
+		>
+	</label>
+	<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+	<ul
+		tabindex="0"
+		class="menu menu-lg dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 font-bold"
+	>
+		<li><a href="/blog">Blog</a></li>
+		<li><a href="/pricing">Pricing</a></li>
+		<li><a href="/account">Account</a></li>
+		<li>
+		<a
+			href="https://github.com/CriticalMoments/CMSaasStarter"
+			class="border border-primary">★ us on Github</a
+		>
+		</li>
+	</ul>
+	</div>
+</div>
+</div>
+>>>>>>> Build
 
   <div class="flex-grow">
     <slot />
