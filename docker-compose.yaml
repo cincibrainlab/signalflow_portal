@@ -50,15 +50,11 @@ services:
 
   sf_db:
     container_name: sf_db
-    image: postgres:13
+    image: mongo:latest
     ports:
-      - "3002:5432"
-    environment:
-      POSTGRES_USER: sfportal
-      POSTGRES_PASSWORD: sfportal
-      POSTGRES_DB: sfportal
+      - "3002:27017"
     volumes:
-      - sfdb-db-volume:/var/lib/postgresql/data
+      - sfdb-db-volume:/data/db
     restart: always
     networks:
       - eeg-network

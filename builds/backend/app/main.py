@@ -4,10 +4,12 @@ from fastapi import FastAPI
 from rich.console import Console
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes_main_api import router as main_api_router
+from signalfloweeg.portal.portal_config import load_config_from_yaml
 from signalfloweeg.portal.portal_config import (
     get_frontend_info, get_folder_paths, get_api_info
 )
 from entrypoint import check_entrypoint, reset_database, is_startup_table_present
+from signalfloweeg.portal.models import initialize_database
 
 """
 Program Flow Diagram:
@@ -36,55 +38,92 @@ console = Console()
 app = FastAPI()
 app.include_router(main_api_router)
 
-if not is_startup_table_present():
-    reset_database()
+origins = ["http://localhost:5173"]  # Add your development URL
 
-if check_entrypoint():
-    console.print("🎆 [bold cyan]Entry point successful![/bold cyan]")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+import asyncio
+
+async def run_startup_process():
+    if not await is_startup_table_present():
+        initialize_database()
     
-    def set_logging():
+    if not await check_entrypoint(console):
+        console.print("[bold red]Entry point failed.[/bold red]", style="red")
+        return False
+    
+    await set_logging()
+    await set_cors()
+    
+    console.print("🎆 [bold cyan]Entry point successful![/bold cyan]")
+    return True
 
-        # Ensure log directory exists
-        console.print(f"Log folder path: {get_folder_paths()['logs']}")
-        log_folder = get_folder_paths()["logs"]
-        os.makedirs(log_folder, exist_ok=True)
+async def set_logging():
+    # Ensure log directory exists
+    folder_paths = await get_folder_paths()
+    log_folder = folder_paths["logs"]
+    os.makedirs(log_folder, exist_ok=True)
 
-        # Set up logging configuration
-        log_file_path = os.path.join(log_folder, "sf_portal.log")
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-            handlers=[logging.FileHandler(log_file_path)],
-        )
-        console.print(f"📝 Logging to file: {log_file_path}")
+    # Set up logging configuration
+    log_file_path = os.path.join(log_folder, "sf_portal.log")
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[logging.FileHandler(log_file_path)],
+    )
+    console.print(f"📝 Logging to file: {log_file_path}")
 
-    def set_cors():
-        origins = [
-            get_frontend_info()["url"]
-        ]  # Replace with your JavaScript server's URL
-        console.print(f"🌐 [bold cyan]Setting CORS for origins:[/bold cyan] {origins}")
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-        logging.info(f"CORS settings applied with origins: {origins}")
-    set_logging()    
-    set_cors()
-else:
-    console.print("[bold red]Entry point failed.[/bold red]", style="red")
-    #sys.exit(1)
+async def set_cors():
+    frontend_info = await get_frontend_info()
+    origins = [frontend_info["url"], "http://localhost:5173"]  # Add your development URL
+    console.print(f"🌐 [bold cyan]Setting CORS for origins:[/bold cyan] {origins}")
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    logging.info(f"CORS settings updated with origins: {origins}")
+
+async def main():
+    try:
+        console.print("🚀 [bold magenta]Starting SignalFlow Portal:[/bold magenta]", style="bold on blue")
+        
+        # Run startup process
+        startup_success = await run_startup_process()
+        if not startup_success:
+            console.print("[bold red]Startup failed. Exiting.[/bold red]", style="red")
+            return
+
+        # Get API info after successful startup
+        api_info = await get_api_info()
+        console.print(f"[cyan]API info:[/cyan] {api_info}")
+        
+        if not api_info or not isinstance(api_info, dict) or "port" not in api_info:
+            raise ValueError("Invalid API information")
+        
+        port = api_info["port"]
+        console.print(f"🚀 Starting server on port {port}")
+        
+        config = uvicorn.Config("main:app", host="127.0.0.1", port=port, reload=True)
+        server = uvicorn.Server(config)
+        await server.serve()
+    except Exception as e:
+        console.print(f"[bold red]Failed to start the server: {e}[/bold red]", style="red")
+        import traceback
+        console.print("[bold yellow]Traceback:[/bold yellow]")
+        console.print(traceback.format_exc())
 
 if __name__ == "__main__":
     import uvicorn
-    try:
-        port = get_api_info()["port"]
-        uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
-        logging.info(f"Uvicorn running on http://0.0.0.0:{port} (Press CTRL+C to quit)")
-    except KeyError:
-        console.print("[bold red]API port configuration is missing.[/bold red]", style="red")
-    except Exception as e:
-        console.print(f"[bold red]Failed to start the server: {e}[/bold red]", style="red")
+    asyncio.run(main())

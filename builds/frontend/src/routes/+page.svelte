@@ -33,7 +33,7 @@
 	<meta name="description" content={WebsiteDescription} />
   </svelte:head>
   
-  <div class="hero min-h-[60vh]">
+  <div class="hero min-h-[60vh] ">
 	<div class="hero-content text-center py-12">
 	  <div class="max-w-xl">
 		<div
