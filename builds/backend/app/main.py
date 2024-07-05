@@ -38,11 +38,21 @@ console = Console()
 app = FastAPI()
 app.include_router(main_api_router)
 
+origins = ["http://localhost:5173"]  # Add your development URL
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 import asyncio
 
 async def run_startup_process():
     if not await is_startup_table_present():
-        await initialize_database()
+        initialize_database()
     
     if not await check_entrypoint(console):
         console.print("[bold red]Entry point failed.[/bold red]", style="red")
@@ -72,7 +82,7 @@ async def set_logging():
 
 async def set_cors():
     frontend_info = await get_frontend_info()
-    origins = [frontend_info["url"]]
+    origins = [frontend_info["url"], "http://localhost:5173"]  # Add your development URL
     console.print(f"🌐 [bold cyan]Setting CORS for origins:[/bold cyan] {origins}")
     
     app.add_middleware(
@@ -105,7 +115,7 @@ async def main():
         port = api_info["port"]
         console.print(f"🚀 Starting server on port {port}")
         
-        config = uvicorn.Config("main:app", host="0.0.0.0", port=port, reload=True)
+        config = uvicorn.Config("main:app", host="127.0.0.1", port=port, reload=True)
         server = uvicorn.Server(config)
         await server.serve()
     except Exception as e:

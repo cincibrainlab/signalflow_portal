@@ -20,12 +20,12 @@ from pydantic import BaseModel
 import signalfloweeg as sf
 
 class EEGFormat(BaseModel):
-    id: int
+    id: str
     name: str
     description: str
 
 class EEGParadigm(BaseModel):
-    id: int
+    id: str
     name: str
     description: str
 
@@ -49,7 +49,7 @@ class UploadCatalog(BaseModel):
     status: str | None = None
     date_added: str | None = None
     hash: str | None = None
-    size: str | None = None
+    size: int | None = None
     remove_upload: bool | None = None
 
 class ImportCatalog(BaseModel):
@@ -91,7 +91,7 @@ async def test():
 
 # ────────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION CALLS
-# ────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────���────────
 @router.get("/api/get-portal-paths")
 async def get_portal_paths():
     paths = await sf.portal.portal_config.get_folder_paths()
@@ -210,7 +210,7 @@ async def merge_datasets(dataset_id1: str, dataset_id2: str):
 
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: DATASET CRUD
-# ────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────────���
 @router.post("/api/add-dataset", response_model=DatasetCatalog)
 async def add_dataset(dataset_entry: DatasetCatalog):
     try:
@@ -235,7 +235,7 @@ async def update_dataset(dataset_entry: DatasetCatalog):
         logging.error(f"Error updating dataset: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
-# ────────────────────────────────────────────────────────────────────────────────
+# ────────────────���───────────────────────────────────────────────────────────────
 # FUNCTION: UPLOAD PROCESSING
 # ────────────────────────────────────────────────────────────────────────────────
 @router.get("/api/process-uploads")
@@ -288,7 +288,7 @@ async def list_upload_catalog():
 
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: ANALYSIS ENDPOINT
-# ────────────────────────────────────────────────────────────────────────────────
+# ─────────────────────���──────────────────────────────────────────────────────────
 @router.get("/api/run-analysis")
 async def schedule_analysis(filename: str):
     await AnalysisFlow(filename=filename)

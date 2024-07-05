@@ -14,6 +14,8 @@ from signalfloweeg.portal.db_connection import get_database
 from signalfloweeg.portal.import_catalog import copy_import_files
 from signalfloweeg.portal.portal_utils import load_config
 from signalfloweeg.viz.heatmap import heatmap_power
+from motor.motor_asyncio import AsyncIOMotorDatabase
+
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Task Definitions
@@ -22,12 +24,11 @@ from signalfloweeg.viz.heatmap import heatmap_power
 @task(retries=1)
 async def loadconfig():
     # Load configuration file
-    config = await load_config()
+    config = load_config()
     return config
 
 @task(retries=1)
-async def get_file_and_analyses():
-    db = await get_database()
+async def get_file_and_analyses(db: AsyncIOMotorDatabase):
     file = await db.import_catalog.find_one()  # Get the first file from the ImportCatalog collection
     analyses = await db.eeg_analyses.find().to_list(None)  # Get all records from the EegAnalyses collection
     return file, analyses
@@ -141,7 +142,8 @@ async def AnalysisFlow(filename: str):
     upload_path = config["folder_paths"]["uploads"]  # Get upload directory path
     output_path = config["folder_paths"]["output"]  # Get output directory path
 
-    file, analyses = await get_file_and_analyses()  # Get file and analyses
+    db = await get_database()
+    file, analyses = await get_file_and_analyses(db)  # Get file and analyses
 
     analysis_list = []
     tasks = []
