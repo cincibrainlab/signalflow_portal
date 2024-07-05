@@ -46,11 +46,11 @@
 		  Your Centralized
 		  <span class="underline decoration-secondary decoration-4 md:decoration-[6px]">Neuroscience Data Hub</span>
 		</div>
+		<AnimatedBrainBackground />
 		<div class="mt-6 md:mt-10 text-sm md:text-lg">
 		  Empower your research with a centralized platform for storing, analyzing,
 		  and sharing neuroimaging data.
 		</div>
-		<AnimatedBrainBackground />
 		<div class="mt-6 md:mt-2">
 		  	<a href="/vault">
 				<button class="btn btn-primary btn-sm px-6">Start</button>
