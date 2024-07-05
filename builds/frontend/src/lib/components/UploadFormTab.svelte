@@ -4,6 +4,7 @@
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { getEEGFormats, getEEGParadigms, getEmails } from '$lib/services/apiService';
 	import type { EEGFormat } from '$lib/types';
+	
 
 	let activeTab: string = 'upload';
 
@@ -147,12 +148,14 @@
 	<div class="p-2 shadow-md rounded-lg">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div class="card p-4 rounded-lg">
-				<label for="eegFormat" class="font-semibold">EEG Format</label>
+				<label for="eegFormat" class="label mb-2">
+					<span class="label-text font-semibold">EEG Format</span>
+				</label>
 				<select
 					id="eegFormat"
 					size="6"
 					bind:value={eegFormat}
-					class="mt-1 block w-full variant-ringed-primary"
+					class="select select-bordered w-full h-48 custom-select"
 				>
 					<option value={null} disabled selected>Select EEG Format</option>
 					{#each eegFormats as format}
@@ -160,13 +163,15 @@
 					{/each}
 				</select>
 			</div>
-			<div class="card p-2 rounded-lg">
-				<label for="eegParadigm" class="font-semibold">Analysis Bundle</label>
+			<div class="card p-4 rounded-lg">
+				<label for="eegParadigm" class="label mb-2">
+					<span class="label-text font-semibold">Analysis Bundle</span>
+				</label>
 				<select
 					id="eegParadigm"
 					size="6"
 					bind:value={eegParadigm}
-					class="mt-1 block w-full variant-ringed-primary"
+					class="select select-bordered w-full h-48 custom-select"
 				>
 					<option value={null} disabled selected>Select Analysis Bundle</option>
 					{#each eegParadigms as paradigm}
@@ -176,12 +181,14 @@
 			</div>
 		</div>
 		<div class="card p-2 rounded-lg mt-4">
-			<label for="emailSelection" class=" font-semibold">Notification Email</label>
+			<label for="emailSelection" class="label">
+				<span class="label-text font-semibold">Notification Email</span>
+			</label>
 			<div>
 				<select
 					id="emailSelection"
 					bind:value={emailSelection}
-					class="mt-1 mb-6variant-ringed-primary block w-full"
+					class="select select-bordered w-full custom-select"
 				>
 					<option value={null} disabled selected>Select Email</option>
 					{#each emails as email}
@@ -196,11 +203,11 @@
 						type="email"
 						bind:value={newEmailAddress}
 						placeholder="Email Address"
-						class="p-2 border border-gray-300 rounded w-full"
+						class="input input-bordered w-full"
 					/>
 					<button
 						on:click={() => (emailSelection = newEmailAddress)}
-						class="mt-2 variant-filled-primary font-bold py-2 px-4 rounded">Use This Email</button
+						class="btn btn-primary mt-2">Use This Email</button
 					>
 				</div>
 			{/if}
@@ -226,3 +233,28 @@
 		</div>
 	</div>
 </form>
+
+<style>
+	.custom-select {
+		border-radius: 0.5rem;
+		padding: 0.5rem;
+	}
+
+	.custom-select option {
+		padding: 0.5rem;
+		border-radius: 0.25rem;
+		margin: 0.25rem 0;
+		transition: background-color 0.2s ease;
+	}
+
+	.custom-select option:checked,
+	.custom-select option:hover {
+		background-color: rgba(59, 130, 246, 0.1);
+		color: #3b82f6;
+	}
+
+	.custom-select:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+	}
+</style>

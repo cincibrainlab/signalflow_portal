@@ -22,7 +22,7 @@
 
 <div class="max-w-4xl mx-auto px-4 py-6">
 	<TabGroup justify="justify-center">
-		{#each [{ name: 'upload', label: 'Upload Portal' }, { name: 'jobs', label: 'Job List' }, { name: 'files', label: 'File List' }, { name: 'utilities', label: 'Utilities' }] as tab}
+		{#each [{ name: 'upload', label: 'Upload Portal' }, { name: 'files', label: 'File List' }, { name: 'utilities', label: 'Utilities' }] as tab}
 			<Tab bind:group={$activeTab} name={tab.name} value={tab.name}>
 				<span>{tab.label}</span>
 			</Tab>
