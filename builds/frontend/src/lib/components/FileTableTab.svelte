@@ -24,9 +24,10 @@
     export async function fetchCatalogData() {
         const uploadData = await getUploadCatalog();
         console.log('Upload data2:', uploadData);
+        uploadHandler.setRows(uploadData);
+
         const importData = await getImportCatalog();
         console.log('Import data2:', importData);
-        uploadHandler.setRows(uploadData);
         importHandler.setRows(importData);
 
         const datasetData = await getDatasetCatalog();
