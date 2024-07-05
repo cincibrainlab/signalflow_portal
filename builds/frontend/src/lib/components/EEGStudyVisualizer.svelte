@@ -81,7 +81,7 @@
     uniqueParadigms = [
       "All",
       ...new Set(
-        studyData.sessions.flatMap((s) => s.paradigms.map((p) => p.type)),
+        studyData.sessions.flatMap((s) => s.paradigms.map((p: any) => p.type)),
       ),
     ]
   })
@@ -147,8 +147,8 @@
             }
             break
           case "paradigms":
-            aValue = a.paradigms.map((p) => p.type).join(",")
-            bValue = b.paradigms.map((p) => p.type).join(",")
+            aValue = a.paradigms.map((p: any) => p.type).join(",")
+            bValue = b.paradigms.map((p: any) => p.type).join(",")
             break
         }
         if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
