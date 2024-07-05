@@ -15,20 +15,9 @@
 
 	export let handler: DataHandler<UploadRow>;
 
-	let rows: UploadRow[] = [];
-	
+	onMount(() => {});
 
-	$: {
-		handler.getRows().subscribe((value) => {
-			rows = value;
-			console.log('Rows updated:', JSON.stringify(rows, null, 2));
-		});
-	}
-
-	onMount(() => {
-		console.log('TableUploadCatalog mounted');
-		console.log('Initial rows:', JSON.stringify(rows, null, 2));
-	});
+	const rows = handler.getRows();
 
 	const popupHover: PopupSettings = {
 		event: 'hover',
@@ -37,6 +26,7 @@
 	};
 
 </script>
+
 <header></header>
 <table>
 	<thead>
@@ -50,12 +40,10 @@
 		</tr>
 	</thead>
 	<tbody>
-		{#if rows.length === 0}
-			<tr>
-				<td colspan="6">No data available</td>
-			</tr>
-		{:else}
-			{#each rows as row (row.upload_id)}
+		{#await $rows}
+			<p>Loading...</p>
+		{:then rows}
+			{#each rows as row}
 				<tr on:click={() => console.log(row)}>
 					<td>
 						{#if row.original_name}
@@ -148,7 +136,9 @@
 					<input type="hidden" name="upload_id" value={row.upload_id} />
 				</tr>
 			{/each}
-		{/if}
+		{:catch error}
+			<p>Error loading data.</p>
+		{/await}
 	</tbody>
 </table>
 <footer>
@@ -190,4 +180,3 @@
 		border-bottom: 1px solid #eee;
 	}
 </style>
-

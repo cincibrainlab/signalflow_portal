@@ -96,7 +96,9 @@ async def set_cors():
     logging.info(f"CORS settings updated with origins: {origins}")
 
 async def main():
-    try:        
+    try:
+        console.print("🚀 [bold magenta]Starting SignalFlow Portal:[/bold magenta]", style="bold on blue")
+        
         # Run startup process
         startup_success = await run_startup_process()
         if not startup_success:
@@ -105,6 +107,7 @@ async def main():
 
         # Get API info after successful startup
         api_info = await get_api_info()
+        console.print(f"[cyan]API info:[/cyan] {api_info}")
         
         if not api_info or not isinstance(api_info, dict) or "port" not in api_info:
             raise ValueError("Invalid API information")
