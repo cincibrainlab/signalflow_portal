@@ -14,7 +14,6 @@ from prefect import task, flow
 from signalfloweeg.portal.db_connection import get_session
 from signalfloweeg.portal.import_catalog import copy_import_files
 from signalfloweeg.portal.portal_utils import load_config
-from signalfloweeg.viz.heatmap import heatmap_power
 from signalfloweeg.portal.models import ImportCatalog, EegAnalyses
 
 
@@ -66,17 +65,6 @@ async def getRaw(upload_id: str, upload_path: str):
         print("Exception Occured when creating Raw Obj: " + str(e))
         raise
 
-@task
-def heatmap(raw: mne.io.Raw):
-    """
-    This function is used to create a heatmap of the raw EEG data.
-
-    Parameters:
-    raw (mne.io.Raw): The raw EEG data.
-    """
-
-    epochs = mne.make_fixed_length_epochs(raw, duration=5, preload=False)
-    heatmap_power(epochs)
 
 @task(name="FakeAnalysis", description="Run a fake analysis on the file.")
 async def fakeAnalysis(importID: str, output_path: str):
@@ -125,7 +113,6 @@ async def saveMetaData(fileImport: ImportCatalog, output_path: str, analysisList
 # ────────────────────────────────────────────────────────────────────────────────
 
 ANALYSIS_FUNCTIONS = { # Dictionary of analysis functions
-    "heatmap": heatmap,
     "Test1": fakeAnalysis
 }
 
