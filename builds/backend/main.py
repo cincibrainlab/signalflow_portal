@@ -4,12 +4,9 @@ from fastapi import FastAPI
 from rich.console import Console
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes_main_api import router as main_api_router
-from signalfloweeg.portal.portal_config import load_config_from_yaml
-from signalfloweeg.portal.portal_config import (
-    get_frontend_info, get_folder_paths, get_api_info
-)
-from entrypoint import check_entrypoint, reset_database, is_startup_table_present
-from signalfloweeg.portal.models import initialize_database
+from db import get_frontend_info, get_folder_paths, get_api_info
+from entrypoint import check_entrypoint, is_startup_table_present
+from db import initialize_database
 
 """
 Program Flow Diagram:

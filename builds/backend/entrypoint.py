@@ -1,11 +1,7 @@
 import os
 import asyncio
-from signalfloweeg.portal.db_connection import is_database_connected, get_database
-from signalfloweeg.portal.models import Startup, initialize_database
-from signalfloweeg.portal.portal_config import (
-    check_database_and_tables, 
-    load_config_from_yaml
-)
+from db import is_database_connected, get_database
+from db import check_database_and_tables, load_config_from_yaml
 from rich.console import Console
 
 console = Console()
