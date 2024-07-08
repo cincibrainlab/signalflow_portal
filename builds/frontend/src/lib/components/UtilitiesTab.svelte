@@ -107,7 +107,10 @@
 				on:click={async () => {
 					utilitytab_statusText = await callAPI('check-db-connection');
 				}}>Check DB Connection</button>
-				<button class="btn variant-filled-error">Button 3</button>
+				<button class="btn variant-filled-error"
+				on:click={async () => {
+					utilitytab_statusText = await callAPI('run-analysis?filename=hey');
+				}}>Run Analysis</button>
 			</div>
 		</div>
 		<div class="card variant-glass p-4">

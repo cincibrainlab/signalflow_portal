@@ -27,13 +27,15 @@ async def loadconfig():
     config = load_config()
     return config
 
-@task(retries=1)
+@task()
 async def get_file_and_analyses(db: AsyncIOMotorDatabase):
-    file = await db.import_catalog.find_one()  # Get the first file from the ImportCatalog collection
-    analyses = await db.eeg_analyses.find().to_list(None)  # Get all records from the EegAnalyses collection
-    return file, analyses
+    loop = asyncio.get_event_loop()
+    file = await loop.run_in_executor(None, db.import_catalog.find_one)
+    analyses = await loop.run_in_executor(None, db.eeg_analyses.find().to_list, None)
+    results = [file._result, analyses._result]
+    return results
 
-@task(retries=1)
+@task
 async def getRaw(upload_id: str, upload_path: str):
     """
     This function is used to get the raw EEG data from the specified upload path. 
@@ -48,13 +50,15 @@ async def getRaw(upload_id: str, upload_path: str):
 
     try: 
         set_dest_path, fdt_dest_path = await copy_import_files(upload_id)
-        raw_eeg = mne.io.read_raw(set_dest_path, preload=True, verbose=False)
-
+        
+        # Use asyncio.to_thread for CPU-bound operations
+        raw_eeg = await asyncio.to_thread(mne.io.read_raw_eeglab, "portal_files/import/1000_6_to_1100_9_aaebci_NS_09-05-2023_20230905_121427.set", preload=True, verbose=False)
+                                                                                                
         if os.path.exists(set_dest_path):
-            os.remove(set_dest_path)
+            await asyncio.to_thread(os.remove, set_dest_path)
             print(f"Removed SET file {set_dest_path}")
         if fdt_dest_path and os.path.exists(fdt_dest_path):
-            os.remove(fdt_dest_path)
+            await asyncio.to_thread(os.remove, fdt_dest_path)
             print(f"Removed FDT file {fdt_dest_path}")
         return raw_eeg
     
@@ -141,9 +145,10 @@ async def AnalysisFlow(filename: str):
     config = await loadconfig()  # Load configuration file
     upload_path = config["folder_paths"]["uploads"]  # Get upload directory path
     output_path = config["folder_paths"]["output"]  # Get output directory path
-
+# 1000_6_to_1100_9_aaebci_NS_09-05-2023_20230905_121427.set
+    loop = asyncio.get_event_loop()
     db = await get_database()
-    file, analyses = await get_file_and_analyses(db)  # Get file and analyses
+    file, analyses = await get_file_and_analyses(db)
 
     analysis_list = []
     tasks = []
