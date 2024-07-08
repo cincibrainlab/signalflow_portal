@@ -1,3 +1,0 @@
-[submodule "builds/backend/github/signalfloweeg_py"]
-	path = builds/backend/github/signalfloweeg_py
-	url = https://github.com/cincibrainlab/signalfloweeg_py.git
