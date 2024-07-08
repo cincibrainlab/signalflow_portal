@@ -64,6 +64,9 @@
   let UniqueHandedness: string[] = []
   let UniqueSpecies: string[] = []
 
+  let UniqueParadigmTypes: string[] = []
+  let UniqueProcessingStatus: string[] = []
+
   let sortColumn: string = ""
   let sortDirection: "asc" | "desc" = "asc"
 
@@ -142,6 +145,23 @@
       "Dog",
       "Cat",
       "Other"
+    ]
+    UniqueParadigmTypes = [
+      "All",
+      "rest",
+      "chirp",
+      "cogflex",
+      "revlearn",
+      "statlearn",
+      "alphabeats",
+      "other"
+    ]
+    UniqueProcessingStatus = [
+      "All",
+      "raw",
+      "preprocessed",
+      "analyzed",
+      "other"
     ]
   })
   $: {
@@ -607,7 +627,7 @@
   {/if}
   {#if selectedSession}
     <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full" transition:fade open>
+      <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" transition:fade open>
         <h2 class="text-2xl font-bold mb-4">Session Details: {selectedSession.eegid}</h2>
         
         <form>
@@ -711,16 +731,40 @@
             <h3 class="font-semibold mb-2">Paradigms</h3>
             {#each selectedSession.paradigms as paradigm}
               <div class="mb-2 p-2 bg-gray-100 rounded">
-                <h4 class="font-medium">{paradigm.type.replace("_", " ")}</h4>
-                <select bind:value={paradigm.type} disabled={!isEditing}>
-                  <!-- Add paradigm type options here -->
-                </select>
-                <input type="number" bind:value={paradigm.duration} disabled={!isEditing}>
-                <input type="text" bind:value={paradigm.file.filename} disabled={!isEditing}>
-                <select bind:value={paradigm.file.processing_status} disabled={!isEditing}>
-                  <!-- Add processing status options here -->
-                </select>
-                <textarea bind:value={paradigm.metadata} disabled={!isEditing}></textarea>
+                <div class="w-full">
+                  <label
+                    for="Paradigm Type"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Type:</label>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={paradigm.type} disabled={!isEditing}>
+                    {#each UniqueParadigmTypes as paradigmType}
+                      <option value={paradigmType}>{paradigmType}</option>
+                    {/each}
+                  </select>
+                </div> 
+                <div class="w-full">
+                  <label
+                    for="Duration"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Duration:</label>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={paradigm.duration} disabled={!isEditing}>
+                </div>
+                <div class="w-full">
+                  <label
+                    for="File"
+                    class="block text-sm font-semibold text-gray-700 mb-1">File:</label>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="text" bind:value={paradigm.file.filename} disabled={!isEditing}>
+                  <label
+                    for="Processing Status"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Processing Status:</label>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={paradigm.file.processing_status} disabled={!isEditing}>
+                    {#each UniqueProcessingStatus as processingStatus}
+                      <option value={processingStatus}>{processingStatus}</option>
+                    {/each}
+                  </select>
+                  {#if paradigm.metadata}
+                    <label for="Metadata" class="block text-sm font-semibold text-gray-700 mb-1">Metadata:</label>
+                    <p>Metadata: {JSON.stringify(paradigm.metadata)}</p>
+                  {/if}
+                </div>
               </div>
             {/each}
           </div>
