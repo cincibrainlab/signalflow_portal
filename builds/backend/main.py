@@ -93,9 +93,7 @@ async def set_cors():
     logging.info(f"CORS settings updated with origins: {origins}")
 
 async def main():
-    try:
-        console.print("🚀 [bold magenta]Starting SignalFlow Portal:[/bold magenta]", style="bold on blue")
-        
+    try:        
         # Run startup process
         startup_success = await run_startup_process()
         if not startup_success:

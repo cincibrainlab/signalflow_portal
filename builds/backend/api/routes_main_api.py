@@ -302,11 +302,6 @@ class DatasetCreate(BaseModel):
     eeg_format_name: Optional[str] = None
     eeg_paradigm_name: Optional[str] = None
 
-@router.get("/api/list-datasets", response_model=List[DatasetCatalog])
-async def list_datasets():
-    datasets = await portal.dataset_catalog.get_info()
-    logging.debug(f"Datasets: {datasets}")
-    return [DatasetCatalog(**dataset) for dataset in datasets]
 
 def main():
     from rich.console import Console

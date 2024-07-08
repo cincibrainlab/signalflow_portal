@@ -110,9 +110,6 @@ async def check_database_and_tables():
         if collection not in existing_collections:
             await db.create_collection(collection)
             console.print(f"[yellow]Created missing collection: {collection}[/yellow]")
-        else:
-            console.print(f"[green]Collection {collection} already exists[/green]")
-
     return True
 
 
@@ -174,8 +171,6 @@ async def load_config_from_yaml():
                 {"$set": content},
                 upsert=True
             )
-
-    console.print("[green]Configuration loaded and updated in the database.[/green]")
     return True
 
 async def get_frontend_info():
