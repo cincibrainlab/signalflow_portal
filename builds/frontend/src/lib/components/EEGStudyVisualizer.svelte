@@ -301,6 +301,7 @@
           >Search</label
         >
         <Input
+          class= "h-9"
           type="text"
           id="search"
           placeholder="Search by EEGID or Participant ID"
@@ -312,50 +313,32 @@
           for="diagnosis"
           class="block text-sm font-medium text-gray-700 mb-1">Diagnosis</label
         >
-        <Select bind:value={selectedDiagnosis}>
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Select diagnosis" />
-          </SelectTrigger>
-          <SelectContent>
-            {#each uniqueDiagnoses as diagnosis}
-              <SelectItem value={diagnosis}>{diagnosis}</SelectItem>
-            {/each}
-          </SelectContent>
-        </Select>
+        <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedDiagnosis}>
+          {#each uniqueDiagnoses as diagnosis}
+            <option value={diagnosis}>{diagnosis}</option>
+          {/each}
+        </select>
       </div>
       <div>
         <label
           for="ageGroup"
           class="block text-sm font-medium text-gray-700 mb-1">Age Group</label
         >
-        <Select bind:value={selectedAgeGroup}>
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Select age group" />
-          </SelectTrigger>
-          <SelectContent>
-            {#each uniqueAgeGroups as ageGroup}
-              <SelectItem value={ageGroup}>{ageGroup}</SelectItem>
-            {/each}
-          </SelectContent>
-        </Select>
+        <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedAgeGroup}>
+          {#each uniqueAgeGroups as ageGroup}
+            <option value={ageGroup}>{ageGroup}</option>
+          {/each}
       </div>
       <div>
         <label
           for="paradigm"
           class="block text-sm font-medium text-gray-700 mb-1">Paradigm</label
         >
-        <Select bind:value={selectedParadigm}>
-          <SelectTrigger class="w-full">
-            <SelectValue placeholder="Select paradigm" />
-          </SelectTrigger>
-          <SelectContent>
-            {#each uniqueParadigms as paradigm}
-              <SelectItem value={paradigm}>
-                {paradigm.replace("_", " ")}
-              </SelectItem>
-            {/each}
-          </SelectContent>
-        </Select>
+        <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedParadigm}>
+          {#each uniqueParadigms as paradigm}
+            <option value={paradigm}>{paradigm.replace("_", " ")}</option>
+          {/each}
+        </select>
       </div>
     </div>
   </div>
