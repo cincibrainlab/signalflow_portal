@@ -31,13 +31,6 @@
   } from "lucide-svelte"
   import { Input } from "$lib/components/ui/input"
   import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "$lib/components/ui/select"
-  import {
     Table,
     TableBody,
     TableCell,
