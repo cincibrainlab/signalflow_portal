@@ -46,6 +46,8 @@
   }
 
   let selectedSession: any = null
+  // On the change of selectedSession, we want to fetch the participant data
+  
   let filteredSessions: any[] = studyData.sessions
   let searchTerm = ""
   let selectedDiagnosis: string = "All"
@@ -56,9 +58,31 @@
   let uniqueDiagnoses: string[] = []
   let uniqueAgeGroups: string[] = []
   let uniqueParadigms: string[] = []
+  let UniqueEquipment: string[] = []
+  let UniqueGender: string[] = []
+  let UniqueHandedness: string[] = []
+  let UniqueSpecies: string[] = []
 
   let sortColumn: string = ""
   let sortDirection: "asc" | "desc" = "asc"
+
+  let isEditing = false
+  let selectedParticipant: any = null
+  let selectedSessionDate: any = null
+  $: if (selectedSession) {
+    selectedParticipant = getParticipant(selectedSession.participant_id)
+    selectedSessionDate = formatDateForInput(selectedSession.date)
+  }
+  
+  function formatDateForInput(dateString: string) {
+    const date = new Date(dateString);
+    
+    return date.toISOString().slice(0, 16); // Returns YYYY-MM-DDTHH:mm
+  }
+  let saveChanges = () => {
+    // Save changes to the selected session and participant
+    isEditing = false
+  }
 
   onMount(() => {
     uniqueDiagnoses = [
@@ -77,40 +101,81 @@
         studyData.sessions.flatMap((s) => s.paradigms.map((p: any) => p.type)),
       ),
     ]
+    UniqueEquipment = [
+      "All",
+      "EGI Hydrocel 128 infant",
+      "BioSemi ActiveTwo 32 infant",
+      "EGI Hydrocel 128",
+      "BrainVision 64",
+      "EGI Hydrocel 32",
+      "MCS 60-channel MEA",
+      "Axion Maestro 768-channel MEA",
+      "Neuropixels probe",
+      "NeuroNexus silicon probe",
+      "MultiChannel Systems MEA2100",
+      "Alpha MED Scientific MED64",
+      "NEURON simulation environment",
+      "Unknown equipment"
+    ]
+    UniqueGender = [
+      "All",
+      "male",
+      "female",
+      "non-binary/non-conforming",
+      "other",
+      "prefer not to respond"
+    ]
+    UniqueHandedness = [
+      "All",
+      "right",
+      "left",
+      "ambidextrous",
+      "prefer not to respond"
+    ]
+    UniqueSpecies = [
+      "All",
+      "Human",
+      "Mouse",
+      "Rat",
+      "Monkey",
+      "Dog",
+      "Cat",
+      "Other"
+    ]
   })
   $: {
-    console.log("Filtering sessions...")
+    // console.log("Filtering sessions...")
     filteredSessions = studyData.sessions.filter((session) => {
       const participant = getParticipant(session.participant_id)
-      console.log("Session:", session.eegid, "Participant:", participant)
+      // console.log("Session:", session.eegid, "Participant:", participant)
 
       const matchesSearch =
         session.eegid.toLowerCase().includes(searchTerm.toLowerCase()) ||
         session.participant_id.toLowerCase().includes(searchTerm.toLowerCase())
-      console.log("Matches search:", matchesSearch)
+      // console.log("Matches search:", matchesSearch)
 
       const matchesDiagnosis =
         selectedDiagnosis === "All" ||
         participant?.clinical_measures.diagnosis === selectedDiagnosis
-      console.log("Matches diagnosis:", matchesDiagnosis)
+      // console.log("Matches diagnosis:", matchesDiagnosis)
 
       const matchesAgeGroup =
         selectedAgeGroup === "All" ||
         participant?.demographics.age_group === selectedAgeGroup
-      console.log("Matches age group:", matchesAgeGroup)
+      // console.log("Matches age group:", matchesAgeGroup)
 
       const matchesParadigm =
         selectedParadigm === "All" ||
         session.paradigms.some((p: any) => p.type === selectedParadigm)
-      console.log("Matches paradigm:", matchesParadigm)
+      // console.log("Matches paradigm:", matchesParadigm)
 
       const result =
         matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm
-      console.log("Final result:", result)
+      // console.log("Final result:", result)
 
       return result
     })
-    console.log("Filtered sessions:", filteredSessions.length)
+    // console.log("Filtered sessions:", filteredSessions.length)
 
     if (sortColumn) {
       filteredSessions.sort((a, b) => {
@@ -540,48 +605,104 @@
     </Table>
   {/if}
   {#if selectedSession}
-    <section
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-    >
-      <dialog
-        class="bg-white rounded-lg p-6 max-w-2xl w-full"
-        transition:fade
-        open
-      >
-        <div
-          role="button"
-          tabindex="0"
-          on:click|self={() => (selectedSession = null)}
-          on:keydown={(e) => e.key === "Escape" && (selectedSession = null)}
-        >
-          <h2 class="text-2xl font-bold mb-4">
-            Session Details: {selectedSession.eegid}
-          </h2>
+    <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full" transition:fade open>
+        <h2 class="text-2xl font-bold mb-4">Session Details: {selectedSession.eegid}</h2>
+        
+        <form>
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
               <h3 class="font-semibold">Session Info</h3>
-              <p>Date: {new Date(selectedSession.date).toLocaleString()}</p>
-              <p>Equipment: {selectedSession.equipment_used}</p>
-              <p>Notes: {selectedSession.notes}</p>
+              <div class="w-full">
+                <label
+                  for="Date"
+                  class="block text-sm font-semibold text-gray-700 mb-1">Date:</label>
+                <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="datetime-local" bind:value={selectedSessionDate} disabled={!isEditing}>
+              </div>
+              <div class="w-full">
+                <label
+                  for="Equipment"
+                  class="block text-sm font-semibold text-gray-700 mb-1">Equipment:</label>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedSession.equipment_used} disabled={!isEditing}>
+                    {#each UniqueEquipment as equipment}
+                      <option value={equipment}>{equipment}</option>
+                    {/each}
+                  </select>
+              </div>
+              <div class="w-full h-5/6">
+                <label
+                  for="Notes"
+                  class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
+                <textarea class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6" bind:value={selectedSession.notes} disabled={!isEditing}></textarea>
+              </div>
             </div>
             <div>
               <h3 class="font-semibold">Participant Info</h3>
               {#if getParticipant(selectedSession.participant_id)}
-                {@const participant = getParticipant(
-                  selectedSession.participant_id,
-                )}
-                <p>Age: {participant.demographics.age}</p>
-                <p>Age Group: {participant.demographics.age_group}</p>
-                <p>Gender: {participant.demographics.gender}</p>
-                <p>Handedness: {participant.demographics.handedness}</p>
-                <p>Species: {participant.demographics.species}</p>
-                <p>Diagnosis: {participant.clinical_measures.diagnosis}</p>
-                <p>IQ Score: {participant.clinical_measures.iq_score}</p>
-                <p>
-                  Anxiety Level: {participant.clinical_measures.anxiety_level}
-                </p>
+                <div class="w-full">
+                  <label
+                    for="Age"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.demographics.age} disabled={!isEditing}>
+                </div>
+                <div class="w-full">
+                  <label
+                    for="Age Group"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.demographics.age_group} disabled={!isEditing}>
+                    {#each uniqueAgeGroups as ageGroup}
+                      <option value={ageGroup}>{ageGroup}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div class="w-full">
+                  <label
+                    for="Gender"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.demographics.gender} disabled={!isEditing}>
+                    {#each UniqueGender as gender}
+                      <option value={gender}>{gender}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div class="w-full">
+                  <label
+                    for="Handedness"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.demographics.handedness} disabled={!isEditing}>
+                    {#each UniqueHandedness as handedness}
+                      <option value={handedness}>{handedness}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div class="w-full">
+                  <label
+                    for="Species"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.demographics.species} disabled={!isEditing}>
+                    {#each UniqueSpecies as species}
+                      <option value={species}>{species}</option>
+                    {/each}
+                  </select>
+                </div>
+                <div class="w-full">
+                  <label
+                    for="Diagnosis"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="text" bind:value={selectedParticipant.clinical_measures.diagnosis} disabled={!isEditing}>
+                </div>
+                <div class="w-full">
+                  <label
+                    for="IQ Score"
+                    class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.clinical_measures.iq_score} disabled={!isEditing}>
+                </div>
+                <div class="w-full">
+                  <label
+                    for="Anxiety Level"
+                    class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.clinical_measures.anxiety_level} disabled={!isEditing}>
+                </div>
               {/if}
             </div>
           </div>
@@ -590,19 +711,27 @@
             {#each selectedSession.paradigms as paradigm}
               <div class="mb-2 p-2 bg-gray-100 rounded">
                 <h4 class="font-medium">{paradigm.type.replace("_", " ")}</h4>
-                <p>Duration: {paradigm.duration} seconds</p>
-                <p>File: {paradigm.file.filename}</p>
-                <p>Status: {paradigm.file.processing_status}</p>
-                {#if paradigm.metadata}
-                  <p>Metadata: {JSON.stringify(paradigm.metadata)}</p>
-                {/if}
+                <select bind:value={paradigm.type} disabled={!isEditing}>
+                  <!-- Add paradigm type options here -->
+                </select>
+                <input type="number" bind:value={paradigm.duration} disabled={!isEditing}>
+                <input type="text" bind:value={paradigm.file.filename} disabled={!isEditing}>
+                <select bind:value={paradigm.file.processing_status} disabled={!isEditing}>
+                  <!-- Add processing status options here -->
+                </select>
+                <textarea bind:value={paradigm.metadata} disabled={!isEditing}></textarea>
               </div>
             {/each}
           </div>
-          <Button class="mt-4" on:click={() => (selectedSession = null)}
-            >Close</Button
-          >
-        </div>
+          
+          {#if !isEditing}
+            <Button on:click={() => isEditing = true}>Make changes</Button>
+          {:else}
+            <Button on:click={saveChanges}>Save</Button>
+          {/if}
+          
+          <Button on:click={() => selectedSession = null}>Close</Button>
+        </form>
       </dialog>
     </section>
   {/if}
