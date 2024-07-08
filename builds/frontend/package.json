@@ -54,6 +54,7 @@
     "clsx": "^2.1.1",
     "daisyui": "^4.12.10",
     "date-fns": "^3.6.0",
+    "date-picker-svelte": "^2.13.0",
     "faker-js": "^1.0.0",
     "flowbite-svelte": "^0.46.14",
     "highlight.js": "11.9.0",

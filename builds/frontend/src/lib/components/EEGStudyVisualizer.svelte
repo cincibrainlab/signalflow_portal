@@ -38,6 +38,7 @@
     TableHeader,
     TableRow,
   } from "$lib/components/ui/table"
+  import { DateInput } from 'date-picker-svelte'
 
   export let studyData: {
     study: any
@@ -72,12 +73,12 @@
   $: if (selectedSession) {
     selectedParticipant = getParticipant(selectedSession.participant_id)
     selectedSessionDate = formatDateForInput(selectedSession.date)
+    console.log(selectedSession.date)
+    console.log(selectedSessionDate)
   }
   
   function formatDateForInput(dateString: string) {
-    const date = new Date(dateString);
-    
-    return date.toISOString().slice(0, 16); // Returns YYYY-MM-DDTHH:mm
+    return new Date(dateString); // Returns YYYY-MM-DDTHH:mm
   }
   let saveChanges = () => {
     // Save changes to the selected session and participant
@@ -617,7 +618,7 @@
                 <label
                   for="Date"
                   class="block text-sm font-semibold text-gray-700 mb-1">Date:</label>
-                <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="datetime-local" bind:value={selectedSessionDate} disabled={!isEditing}>
+                <DateInput value={selectedSessionDate} format="MM-dd-yyyy" disabled={!isEditing}/>
               </div>
               <div class="w-full">
                 <label
@@ -629,7 +630,7 @@
                     {/each}
                   </select>
               </div>
-              <div class="w-full h-5/6">
+              <div class="w-full h-4/6">
                 <label
                   for="Notes"
                   class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
