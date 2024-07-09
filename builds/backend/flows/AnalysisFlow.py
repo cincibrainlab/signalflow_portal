@@ -10,10 +10,11 @@ import mne
 from prefect import task, flow
 
 # Project-specific imports
-from signalfloweeg.portal.db_connection import get_database
-from signalfloweeg.portal.import_catalog import copy_import_files
-from signalfloweeg.portal.portal_utils import load_config
-from signalfloweeg.viz.heatmap import heatmap_power
+import db as flow_db
+# from signalfloweeg.portal.db_connection import get_database
+# from signalfloweeg.portal.import_catalog import copy_import_files
+# from signalfloweeg.portal.portal_utils import load_config
+# from signalfloweeg.viz.heatmap import heatmap_power
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 
@@ -24,14 +25,14 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 @task(retries=1)
 async def loadconfig():
     # Load configuration file
-    config = load_config()
+    config = flow_db.load_config()
     return config
 
 @task()
 async def get_file_and_analyses(db: AsyncIOMotorDatabase):
     loop = asyncio.get_event_loop()
-    file = await loop.run_in_executor(None, db.import_catalog.find_one)
-    analyses = await loop.run_in_executor(None, db.eeg_analyses.find().to_list, None)
+    file = await loop.run_in_executor(None, flow_db.import_catalog.find_one)
+    analyses = await loop.run_in_executor(None, flow_db.eeg_analyses.find().to_list, None)
     results = [file._result, analyses._result]
     return results
 
@@ -49,7 +50,7 @@ async def getRaw(upload_id: str, upload_path: str):
     """
 
     try: 
-        set_dest_path, fdt_dest_path = await copy_import_files(upload_id)
+        set_dest_path, fdt_dest_path = await flow_db.copy_import_files(upload_id)
         
         # Use asyncio.to_thread for CPU-bound operations
         raw_eeg = await asyncio.to_thread(mne.io.read_raw_eeglab, "portal_files/import/1000_6_to_1100_9_aaebci_NS_09-05-2023_20230905_121427.set", preload=True, verbose=False)
@@ -76,7 +77,8 @@ def heatmap(raw: mne.io.Raw):
     """
 
     epochs = mne.make_fixed_length_epochs(raw, duration=5, preload=False)
-    heatmap_power(epochs)
+    # TODO - Add code to create heatmap
+    # dbheatmap_power(epochs)
 
 @task(name="FakeAnalysis", description="Run a fake analysis on the file.")
 async def fakeAnalysis(importID: str, output_path: str):
@@ -147,7 +149,7 @@ async def AnalysisFlow(filename: str):
     output_path = config["folder_paths"]["output"]  # Get output directory path
 # 1000_6_to_1100_9_aaebci_NS_09-05-2023_20230905_121427.set
     loop = asyncio.get_event_loop()
-    db = await get_database()
+    db = await flow_db.get_database()
     file, analyses = await get_file_and_analyses(db)
 
     analysis_list = []

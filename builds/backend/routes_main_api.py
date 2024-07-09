@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import logging
 
-import db
+import db as flow_db
 import os
 from fastapi.responses import JSONResponse
 from flows.AnalysisFlow import AnalysisFlow
@@ -86,7 +86,7 @@ async def test():
 # ───────────────────────────────────────────────────────────────────────���────────
 @router.get("/api/get-portal-paths")
 async def get_portal_paths():
-    paths = await db.get_folder_paths()
+    paths = await flow_db.get_folder_paths()
     return {"message": paths}
 
 # ────────────────────────────────────────────────────────────────────────────────
@@ -95,19 +95,19 @@ async def get_portal_paths():
   
 @router.get("/api/check-db-connection", status_code=200)
 async def check_database_connection():
-    if not await db.is_database_connected():
+    if not await flow_db.is_database_connected():
         raise HTTPException(status_code=503, detail="Database is not connected")
     return {"message": "Database is connected"}
 
 @router.get("/api/delete-database")
 async def delete_database():
-    await db.delete_database()
+    await flow_db.delete_database()
     return {"message": "Database deleted successfully"}
 
 @router.get("/api/load-database-summary")
 async def load_database_summary():
     logging.info("Loading database summary...")
-    summary = await db.generate_database_summary()
+    summary = await flow_db.generate_database_summary()
     return {"message": summary}
 
 @router.get("/api/reset_portal")
@@ -118,9 +118,9 @@ async def api_reset_portal():
 
     console = Console()
     # Clean up uploads folder
-    if await db.is_config_table_present():
+    if await flow_db.is_config_table_present():
         console.print("ConfigDB table is present. Resetting upload folder...")
-        UPLOAD_PATH = (await db.get_folder_paths())["uploads"]
+        UPLOAD_PATH = (await flow_db.get_folder_paths())["uploads"]
         console.print(f"Cleaning up uploads folder: {UPLOAD_PATH}")
 
         import shutil
@@ -137,7 +137,7 @@ async def api_reset_portal():
             console.print(f"All files in the uploads folder have been removed. Total files deleted: {file_count}")
         except Exception as e:
             console.print(f"Error occurred while deleting files in the uploads folder: {e}")
-    await db.initialize_database(reset=True)
+    await flow_db.initialize_database(reset=True)
     await check_entrypoint(console)
 
     return {"message": "Uploads Removed and Portal Reset Successfully."}
@@ -147,19 +147,19 @@ async def api_reset_portal():
 # ────────────────────────────────────────────────────────────────────────────────
 @router.get("/api/list-eeg-formats", response_model=List[EEGFormat])
 async def list_eeg_formats():
-    formats = await db.get_eeg_formats()
+    formats = await flow_db.get_eeg_formats()
     logging.debug(f"EEG Formats: {formats}")
     return [EEGFormat(**format) for format in formats]
 
 @router.get("/api/list-eeg-paradigms", response_model=List[EEGParadigm])
 async def list_eeg_paradigms():
-    paradigms = await db.get_eeg_paradigms()
+    paradigms = await flow_db.get_eeg_paradigms()
     logging.debug(f"EEG Paradigms: {paradigms}")
     return [EEGParadigm(**paradigm) for paradigm in paradigms]
 
 @router.get("/api/list-emails", response_model=List[Email])
 async def list_emails():
-    emails = await db.get_emails()
+    emails = await flow_db.get_emails()
     logging.debug(f"Emails: {emails}")
     return [Email(**email) for email in emails]
 
@@ -169,31 +169,31 @@ async def list_emails():
 @router.get("/api/get-upload-catalog")
 async def get_upload_catalog():
     logging.info("Getting file table...")
-    file_catalog = await db.get_upload_catalog()
+    file_catalog = await flow_db.get_upload_catalog()
     return [UploadCatalog(**upload) for upload in file_catalog]
 
 @router.get("/api/get-import-catalog")
 async def get_import_catalog():
     logging.info("Getting import table...")
-    import_catalog = await db.get_import_catalog()
+    import_catalog = await flow_db.get_import_catalog()
     return [ImportCatalog(**import_record) for import_record in import_catalog]
 
 @router.get("/api/get-dataset-catalog")
 async def get_dataset_catalog():
     logging.info("Getting dataset table...")
-    dataset_catalog = await db.get_dataset_catalog()
+    dataset_catalog = await flow_db.get_dataset_catalog()
     return [DatasetCatalog(**dataset) for dataset in dataset_catalog]
 
 @router.get("/api/get-dataset-stats")
 async def get_dataset_stats():
     logging.info("Getting dataset stats...")
-    dataset_stats = await db.get_dataset_stats()
+    dataset_stats = await flow_db.get_dataset_stats()
     return dataset_stats
 
 @router.post("/api/merge-datasets")
 async def merge_datasets(dataset_id1: str, dataset_id2: str):
     try:
-        merged_count = await db.merge_datasets(dataset_id1, dataset_id2)
+        merged_count = await flow_db.merge_datasets(dataset_id1, dataset_id2)
         logging.info(f"Merged {merged_count} records from dataset {dataset_id2} into dataset {dataset_id1}")
         return {"success": True, "message": f"Merged {merged_count} records successfully from dataset {dataset_id2} into dataset {dataset_id1}"}
     except Exception as e:
@@ -206,7 +206,7 @@ async def merge_datasets(dataset_id1: str, dataset_id2: str):
 @router.post("/api/add-dataset", response_model=DatasetCatalog)
 async def add_dataset(dataset_entry: DatasetCatalog):
     try:
-        new_dataset = await db.add_dataset(dataset_entry)
+        new_dataset = await flow_db.add_dataset(dataset_entry)
         logging.debug(f"New Dataset Added: {new_dataset}")
         return {"success": True, "message": "Dataset added successfully", "dataset": new_dataset}
     except Exception as e:
@@ -216,7 +216,7 @@ async def add_dataset(dataset_entry: DatasetCatalog):
 @router.post("/api/update-dataset", response_model=DatasetCatalog)
 async def update_dataset(dataset_entry: DatasetCatalog):
     try:
-        updated_dataset = await db.update_dataset(dataset_entry)
+        updated_dataset = await flow_db.update_dataset(dataset_entry)
         logging.debug(f"Dataset Updated: {updated_dataset}")
         print(f"Dataset Updated: {updated_dataset}")
         if updated_dataset:
@@ -233,10 +233,10 @@ async def update_dataset(dataset_entry: DatasetCatalog):
 @router.get("/api/process-uploads")
 async def process_uploads():
     logging.info("Processing new uploads...")
-    UPLOAD_PATH = (await db.get_folder_paths())["uploads"]
+    UPLOAD_PATH = (await flow_db.get_folder_paths())["uploads"]
     logging.info(f"UPLOAD_PATH: {UPLOAD_PATH}")
-    await db.process_new_uploads(upload_dir=UPLOAD_PATH)
-    await db.update_import_catalog()
+    await flow_db.process_new_uploads(upload_dir=UPLOAD_PATH)
+    await flow_db.update_import_catalog()
     return {"message": "Uploads processed successfully."}
 
 @router.get("/api/show_upload_catalog")
@@ -245,7 +245,7 @@ async def list_upload_catalog():
     from rich.table import Table
 
     logging.info("Getting Upload Catalog Info")
-    upload_catalog = await db.get_upload_catalog()
+    upload_catalog = await flow_db.get_upload_catalog()
 
     console = Console()
     table = Table(title="Upload Catalog")
