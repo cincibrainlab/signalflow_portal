@@ -1,13 +1,14 @@
-import os, sys
+import os
 import logging
 from fastapi import FastAPI
 from rich.console import Console
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes_main_api import router as main_api_router
+from fastapi import APIRouter
 from db import get_frontend_info, get_folder_paths, get_api_info
 from entrypoint import check_entrypoint, is_startup_table_present
 from db import initialize_database
-
+import asyncio
+main_api_router = APIRouter()
 """
 Program Flow Diagram:
 
@@ -45,7 +46,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-import asyncio
+
 
 async def run_startup_process():
     if not await is_startup_table_present():
