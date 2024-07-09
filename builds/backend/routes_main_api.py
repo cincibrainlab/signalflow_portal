@@ -7,69 +7,11 @@ from fastapi.responses import JSONResponse
 from flows.AnalysisFlow import AnalysisFlow
 
 from entrypoint import check_entrypoint
-from typing import List, Optional
-from pydantic import BaseModel
+from typing import List
+import models
 
 
-class EEGFormat(BaseModel):
-    id: str
-    name: str
-    description: str
 
-class EEGParadigm(BaseModel):
-    id: str
-    name: str
-    description: str
-
-class Email(BaseModel):
-    id: str
-    name: str
-
-# Files Tab
-class UploadCatalog(BaseModel):
-    upload_id: str | None = None
-    original_name: str | None = None
-    is_set_file: bool | None = None
-    has_fdt_file: bool | None = None
-    fdt_filename: str | None = None
-    fdt_upload_id: str | None = None
-    dataset_id: str | None = None
-    dataset_name: str | None = None
-    eeg_format: str | None = None
-    eeg_paradigm: str | None = None
-    upload_email: str | None = None
-    status: str | None = None
-    date_added: str | None = None
-    hash: str | None = None
-    size: int | None = None
-    remove_upload: bool | None = None
-
-class ImportCatalog(BaseModel):
-    upload_id: str | None
-    original_name: str | None
-    is_set_file: bool | None
-    has_fdt_file: bool | None
-    fdt_filename: str | None
-    fdt_upload_id: str | None
-    dataset_id: str | None
-    dataset_name: str | None
-    eeg_format: str | None
-    eeg_paradigm: str | None
-    upload_email: str | None
-    status: str | None
-    date_added: str | None
-    hash: str | None
-    remove_import: bool | None
-    sample_rate: int | None
-    n_channels: int | None
-    n_epochs: int | None
-    total_samples: int | None
-    mne_load_error: bool | None
-
-class DatasetCatalog(BaseModel):
-    dataset_name: str | None
-    dataset_id: str | None
-    description: str | None
 
 
 router = APIRouter()
@@ -145,23 +87,23 @@ async def api_reset_portal():
 # ────────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: UPLOAD TAB
 # ────────────────────────────────────────────────────────────────────────────────
-@router.get("/api/list-eeg-formats", response_model=List[EEGFormat])
+@router.get("/api/list-eeg-formats", response_model=List[models.EEGFormat])
 async def list_eeg_formats():
     formats = await flow_db.get_eeg_formats()
     logging.debug(f"EEG Formats: {formats}")
-    return [EEGFormat(**format) for format in formats]
+    return [models.EEGFormat(**format) for format in formats]
 
-@router.get("/api/list-eeg-paradigms", response_model=List[EEGParadigm])
+@router.get("/api/list-eeg-paradigms", response_model=List[models.EEGParadigm])
 async def list_eeg_paradigms():
     paradigms = await flow_db.get_eeg_paradigms()
     logging.debug(f"EEG Paradigms: {paradigms}")
-    return [EEGParadigm(**paradigm) for paradigm in paradigms]
+    return [models.EEGParadigm(**paradigm) for paradigm in paradigms]
 
-@router.get("/api/list-emails", response_model=List[Email])
+@router.get("/api/list-emails", response_model=List[models.Email])
 async def list_emails():
     emails = await flow_db.get_emails()
     logging.debug(f"Emails: {emails}")
-    return [Email(**email) for email in emails]
+    return [models.Email(**email) for email in emails]
 
 # ────────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: FILES TAB
@@ -170,19 +112,19 @@ async def list_emails():
 async def get_upload_catalog():
     logging.info("Getting file table...")
     file_catalog = await flow_db.get_upload_catalog()
-    return [UploadCatalog(**upload) for upload in file_catalog]
+    return [models.UploadCatalog(**upload) for upload in file_catalog]
 
 @router.get("/api/get-import-catalog")
 async def get_import_catalog():
     logging.info("Getting import table...")
     import_catalog = await flow_db.get_import_catalog()
-    return [ImportCatalog(**import_record) for import_record in import_catalog]
+    return [models.ImportCatalog(**import_record) for import_record in import_catalog]
 
 @router.get("/api/get-dataset-catalog")
 async def get_dataset_catalog():
     logging.info("Getting dataset table...")
     dataset_catalog = await flow_db.get_dataset_catalog()
-    return [DatasetCatalog(**dataset) for dataset in dataset_catalog]
+    return [models.DatasetCatalog(**dataset) for dataset in dataset_catalog]
 
 @router.get("/api/get-dataset-stats")
 async def get_dataset_stats():
@@ -203,8 +145,8 @@ async def merge_datasets(dataset_id1: str, dataset_id2: str):
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: DATASET CRUD
 # ───────────────────────────────────────────────────────────────────────────────���
-@router.post("/api/add-dataset", response_model=DatasetCatalog)
-async def add_dataset(dataset_entry: DatasetCatalog):
+@router.post("/api/add-dataset", response_model=models.DatasetCatalog)
+async def add_dataset(dataset_entry: models.DatasetCatalog):
     try:
         new_dataset = await flow_db.add_dataset(dataset_entry)
         logging.debug(f"New Dataset Added: {new_dataset}")
@@ -213,8 +155,8 @@ async def add_dataset(dataset_entry: DatasetCatalog):
         logging.error(f"Error adding dataset: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/api/update-dataset", response_model=DatasetCatalog)
-async def update_dataset(dataset_entry: DatasetCatalog):
+@router.post("/api/update-dataset", response_model=models.DatasetCatalog)
+async def update_dataset(dataset_entry: models.DatasetCatalog):
     try:
         updated_dataset = await flow_db.update_dataset(dataset_entry)
         logging.debug(f"Dataset Updated: {updated_dataset}")
@@ -287,12 +229,6 @@ async def schedule_analysis(filename: str):
     return {"message": f"Analysis scheduled for file: {filename}"}
 
 ## Legacy code
-
-class DatasetCreate(BaseModel):
-    dataset_name: str
-    description: str
-    eeg_format_name: Optional[str] = None
-    eeg_paradigm_name: Optional[str] = None
 
 
 def main():
