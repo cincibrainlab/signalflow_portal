@@ -4,51 +4,100 @@
 
 	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
 	import { writable } from 'svelte/store';
+	import UppyDashboard from '$lib/components/UppyDashboard.svelte';
+	import { getToastStore } from '@skeletonlabs/skeleton';
+	import { v4 as uuidv4 } from 'uuid';
+	import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
+	import type { Config } from 'unique-names-generator'
 
-	// Custom UI Components
-	import UploadForm from '$lib/components/UploadFormTab.svelte';
-	import Datatable from '$lib/components/FileTableTab.svelte';
-	import Utilities from '$lib/components/UtilitiesTab.svelte';
-	import fetchCatalogData from '$lib/components/FileTableTab.svelte';
+	let uppyDashboardComponent: UppyDashboard;
+	const toastStore = getToastStore();
 
-	onMount(async () => {});
+	function triggerToast(message: string) {
+		toastStore.trigger({
+			message: message,
+			timeout: 3000
+		});
+	}
 
-	const activeTab = writable('upload');
+	function uuidToColor(uuid: any) {
+		let hash = 0;
+		for (let i = 0; i < uuid.length; i++) {
+			hash = uuid.charCodeAt(i) + ((hash << 5) - hash);
+		}
+		let color = '#';
+		for (let i = 0; i < 3; i++) {
+			let value = (hash >> (i * 8)) & 0xff;
+			// Ensure the color is lighter by adding a base value, e.g., 127 (half of 255)
+			value = (value + 200) >> 1; // This ensures that the value is always above 127
+			color += ('00' + value.toString(16)).substr(-2);
+		}
+		return color;
+	}
+	
+	function generateDatasetName() {
+		const config: Config = {
+			dictionaries: [adjectives, animals],
+			separator: '-',
+			style: 'lowerCase'
+		};
+		console.log(uniqueNamesGenerator(config));
 
-	$: if ($activeTab === 'files') {
-		//console.log('Fetching catalog data...');
+		return uniqueNamesGenerator(config); // Generates names like "happy-elephant"
+	}
+
+	async function submitForm(): Promise<void> {
+		const datasetId = uuidv4()
+		const datasetName = generateDatasetName();
+		// Add hidden fields to the form, removing existing ones first
+		let existingDatasetIdField = document.querySelector('input[name="datasetId"]');
+		if (existingDatasetIdField) {
+			existingDatasetIdField.remove();
+		}
+		const hiddenDatasetIdField = document.createElement('input');
+		hiddenDatasetIdField.type = 'hidden';
+		hiddenDatasetIdField.name = 'datasetId';
+		let badgeColor = uuidToColor(datasetId);
+		hiddenDatasetIdField.value = datasetId + '|' + badgeColor;
+		document.getElementById('upload_form')?.appendChild(hiddenDatasetIdField);
+
+		let existingDatasetNameField = document.querySelector('input[name="datasetName"]');
+		if (existingDatasetNameField) {
+			existingDatasetNameField.remove();
+		}
+		const hiddenDatasetNameField = document.createElement('input');
+		hiddenDatasetNameField.type = 'hidden';
+		hiddenDatasetNameField.name = 'datasetName';
+		hiddenDatasetNameField.value = datasetName;
+		document.getElementById('upload_form')?.appendChild(hiddenDatasetNameField);
+		if (uppyDashboardComponent) {
+			await uppyDashboardComponent.startUpload();
+		}
 	}
 </script>
 
-<div class="max-w-4xl mx-auto px-4 py-6">
-	<TabGroup justify="justify-center">
-		{#each [{ name: 'upload', label: 'Upload Portal' }, { name: 'files', label: 'File List' }, { name: 'utilities', label: 'Utilities' }] as tab}
-			<Tab bind:group={$activeTab} name={tab.name} value={tab.name}>
-				<span>{tab.label}</span>
-			</Tab>
-		{/each}
-
-		<!-- Tab Panels -->
-		<svelte:fragment slot="panel">
-			{#each [{ tabName: 'upload', component: UploadForm }, { tabName: 'jobs', component: null }, { tabName: 'files', component: Datatable }, { tabName: 'utilities', component: Utilities }] as { tabName, component }}
-				<div class="tab-content" class:active={$activeTab === tabName}>
-					{#if $activeTab === 'files' && component}
-						<svelte:component this={component}  />
-					{:else if component}
-						<svelte:component this={component} />
-					{/if}
-				</div>
-			{/each}
-		</svelte:fragment>
-	</TabGroup>
+<div class="container mx-auto p-4">
+	<input type="hidden" name="datasetName" value="" />
+	<input type="hidden" name="datasetId" value="" />
+	<br>
+	<UppyDashboard
+		bind:this={uppyDashboardComponent}
+		on:upload-success={(event) => {
+			const message = uppyDashboardComponent.handleUploadResult(event.detail, true);
+			triggerToast(message);
+		}}
+		on:upload-failed={(event) => {
+			const message = uppyDashboardComponent.handleUploadResult(event.detail, false);
+			triggerToast(message);
+		}}
+	/>
+	<div class="mt-4 flex justify-center">
+		<button type="submit" class="btn variant-filled-primary font-bold py-2 px-4 rounded" on:click={submitForm}>
+			Submit Job
+		</button>
+	</div>
 </div>
 
 <style>
-	.tab-content {
-		display: none;
-	}
 
-	.active {
-		display: block;
-	}
 </style>
