@@ -99,12 +99,6 @@ async def list_eeg_paradigms():
     logging.debug(f"EEG Paradigms: {paradigms}")
     return [models.EEGParadigm(**paradigm) for paradigm in paradigms]
 
-@router.get("/api/list-emails", response_model=List[models.Email])
-async def list_emails():
-    emails = await flow_db.get_emails()
-    logging.debug(f"Emails: {emails}")
-    return [models.Email(**email) for email in emails]
-
 # ────────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: FILES TAB
 # ────────────────────────────────────────────────────────────────────────────────

@@ -24,7 +24,7 @@ class EEGFormat(BaseModel):
     name: str
     description: str
     
-class Paradigms(BaseModel):
+class EEGParadigm(BaseModel):
     name: str
     description: str
     Study: Study
@@ -39,7 +39,7 @@ class OriginalImportFile(BaseModel):
     dataset_id: str | None
     dataset_name: str | None
     eeg_format: EEGFormat | None
-    eeg_paradigm: Paradigms | None
+    eeg_paradigm: EEGParadigm | None
     paradigm_start_time: datetime
     paradigm_duration: int
     upload_email: str | None
@@ -97,7 +97,7 @@ class EegAnalysis(BaseModel):
     description: str
     category: str
     valid_formats: str
-    valid_paradigms: list[Paradigms]
+    valid_paradigms: list[EEGParadigm]
     valid_files: list[File]
     files: list[FileStatus]
     parameters: str
@@ -113,5 +113,14 @@ class UserGroup(BaseModel):
     name: str
     description: str
     users: list[User]
+    paradigms: list[EEGParadigm]
+    studies: list[Study]
+    datasets: list[Dataset]
+    participants: list[Participant]
+    files: list[File]
+    originalFiles: list[OriginalImportFile]
+    eegAnalyses: list[EegAnalysis]
+    sessions: list[Session]
+    
     
 

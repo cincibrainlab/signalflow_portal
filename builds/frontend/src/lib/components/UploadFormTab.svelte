@@ -36,9 +36,10 @@
 	}
 
 	import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
+	import type { Config } from 'unique-names-generator'
 
 	function generateDatasetName() {
-		const config = {
+		const config: Config = {
 			dictionaries: [adjectives, animals],
 			separator: '-',
 			style: 'lowerCase'
@@ -118,7 +119,7 @@
 		});
 	}
 
-	function uuidToColor(uuid) {
+	function uuidToColor(uuid: any) {
     let hash = 0;
     for (let i = 0; i < uuid.length; i++) {
         hash = uuid.charCodeAt(i) + ((hash << 5) - hash);
