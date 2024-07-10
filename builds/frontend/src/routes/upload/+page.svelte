@@ -77,25 +77,25 @@
 </script>
 
 <div class="container mx-auto p-4">
-	<input type="hidden" name="datasetName" value="" />
-	<input type="hidden" name="datasetId" value="" />
-	<br>
-	<UppyDashboard
-		bind:this={uppyDashboardComponent}
-		on:upload-success={(event) => {
-			const message = uppyDashboardComponent.handleUploadResult(event.detail, true);
-			triggerToast(message);
-		}}
-		on:upload-failed={(event) => {
-			const message = uppyDashboardComponent.handleUploadResult(event.detail, false);
-			triggerToast(message);
-		}}
-	/>
-	<div class="mt-4 flex justify-center">
-		<button type="submit" class="btn variant-filled-primary font-bold py-2 px-4 rounded" on:click={submitForm}>
-			Submit Job
-		</button>
-	</div>
+	<form id="upload_form" on:submit|preventDefault={submitForm}>
+		<input type="hidden" name="datasetName" value="" />
+		<input type="hidden" name="datasetId" value="" />
+		<br>
+		<UppyDashboard
+			bind:this={uppyDashboardComponent}
+			on:upload-success={(event) => {
+				const message = uppyDashboardComponent.handleUploadResult(event.detail, true);
+				triggerToast(message);
+			}}
+			on:upload-failed={(event) => {
+				const message = uppyDashboardComponent.handleUploadResult(event.detail, false);
+				triggerToast(message);
+			}}
+		/>
+		<div class="mt-4 flex justify-center">
+			<button type="submit" class="btn variant-filled-primary font-bold py-2 px-4 rounded">Submit Job</button>
+		</div>
+	</form>
 </div>
 
 <style>

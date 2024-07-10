@@ -68,9 +68,8 @@ def initialize_database(reset=False):
 
     # Create collections based on your models
     collections = [
-        "startup", "users", "config", "dataset_catalog", "eeg_formats",
-        "eeg_paradigms", "upload_catalog", "import_catalog", "analysis_config",
-        "analysis_joblist", "eeg_analyses"
+        "Participant", "Study", "EEGFormat", "EEGParadigm", "User", "OriginalImportFile", "File",
+        "Dataset", "Session", "FileStatus", "EegAnalysis", "UserGroup"
     ]
 
     for collection_name in collections:
@@ -103,8 +102,8 @@ async def check_database_and_tables():
     existing_collections = await db.list_collection_names()
 
     required_collections = [
-        "startup", "config", "upload_catalog", "dataset_catalog", "import_catalog",
-        "analysis_joblist", "eeg_paradigms", "eeg_analyses", "eeg_formats", "users"
+        "Participant", "Study", "EEGFormat", "EEGParadigm", "User", "OriginalImportFile", "File",
+        "Dataset", "Session", "FileStatus", "EegAnalysis", "UserGroup"
     ]
 
     for collection in required_collections:
@@ -330,9 +329,9 @@ async def get_emails():
         for user in users
     ]
     
-async def get_upload_catalog():
+async def get_OriginalImportFile():
     db = await get_database()
-    file_catalog = await db.upload_catalog.find().to_list(length=None)
+    file_catalog = await db.OriginalImportFile.find().to_list(length=None)
     return [
         {
             "upload_id": upload_record["upload_id"],
@@ -452,48 +451,13 @@ async def update_dataset(dataset_catalog_entry):
     else:
         return {"error": "Dataset not found"}
 
-async def merge_datasets(dataset_id1, dataset_id2):
-    db = await get_database()
-    
-    # Get the datasets
-    dataset1 = await db.dataset_catalog.find_one({"dataset_id": dataset_id1})
-    dataset2 = await db.dataset_catalog.find_one({"dataset_id": dataset_id2})
-    
-    if not dataset1 or not dataset2:
-        return False, "One or both datasets not found"
-    
-    # Merge dataset information
-    merged_dataset = {
-        "dataset_id": dataset_id1,
-        "dataset_name": f"{dataset1['dataset_name']} + {dataset2['dataset_name']}",
-        "description": f"{dataset1.get('description', '')} | {dataset2.get('description', '')}"
-    }
-    
-    # Update the first dataset with merged information
-    await db.dataset_catalog.update_one(
-        {"dataset_id": dataset_id1},
-        {"$set": merged_dataset}
-    )
-    
-    # Update all records in import_catalog and upload_catalog
-    for collection in [db.import_catalog, db.upload_catalog]:
-        await collection.update_many(
-            {"dataset_id": dataset_id2},
-            {"$set": {"dataset_id": dataset_id1}}
-        )
-    
-    # Delete the second dataset
-    await db.dataset_catalog.delete_one({"dataset_id": dataset_id2})
-    
-    return True, "Datasets merged successfully"
-
 
 
 async def add_dataset_catalog(dataset_catalog_entry):
     print(f"📊 Adding dataset: {dataset_catalog_entry}")
     db = await get_database()
     try:
-        result = await db.dataset_catalog.update_one(
+        await db.Dataset.update_one(
             {"dataset_id": dataset_catalog_entry['dataset_id']},
             {"$set": dataset_catalog_entry},
             upsert=True
@@ -504,28 +468,28 @@ async def add_dataset_catalog(dataset_catalog_entry):
         raise e
     return dataset_catalog_entry
 
-async def add_upload_catalog(upload_catalog_entry):
-    print(f"📁 Adding upload_catalog: {upload_catalog_entry}")
+async def add_original_import_file_catalog(original_import_file_catalog_entry):
+    print(f"📁 Adding OriginalImportFile: {original_import_file_catalog_entry}")
     db = await get_database()
     try:
-        result = await db.upload_catalog.update_one(
-            {"upload_id": upload_catalog_entry['upload_id']},
-            {"$set": upload_catalog_entry},
+        await db.OriginalImportFile.update_one(
+            {"upload_id": original_import_file_catalog_entry['upload_id']},
+            {"$set": original_import_file_catalog_entry},
             upsert=True
         )
-        logging.info(f"Metadata added to database for file: {upload_catalog_entry['original_name']}")
+        logging.info(f"Metadata added to database for file: {original_import_file_catalog_entry['original_name']}")
     except Exception as e:
         logging.error(f"Error adding upload: {str(e)}")
         raise e
-    return upload_catalog_entry
+    return original_import_file_catalog_entry
 
 async def align_fdt_files():
     db = await get_database()
-    async for row in db.upload_catalog.find():
+    async for row in db.OriginalImportFile.find():
         if row['original_name'].endswith(".set"):
             update_data = {"is_set_file": True}
             fdt_filename = row['original_name'].replace(".set", ".fdt")
-            fdt_file = await db.upload_catalog.find_one({"original_name": {"$regex": f"^{fdt_filename}$", "$options": "i"}})
+            fdt_file = await db.OriginalImportFile.find_one({"original_name": {"$regex": f"^{fdt_filename}$", "$options": "i"}})
             if fdt_file:
                 update_data.update({
                     "has_fdt_file": True,
@@ -538,63 +502,60 @@ async def align_fdt_files():
                     "fdt_filename": fdt_filename,
                     "fdt_upload_id": None
                 })
-            await db.upload_catalog.update_one({"_id": row['_id']}, {"$set": update_data})
+            await db.OriginalImportFile.update_one({"_id": row['_id']}, {"$set": update_data})
             
 async def delete_uploads_and_save_info_files():
     config = await load_config()
     UPLOAD_PATH = config["folder_paths"]["uploads"]
     INFO_PATH = config["folder_paths"]["info_archive"]
     db = await get_database()
-    async for row in db.upload_catalog.find({"remove_upload": True}):
+    async for row in db.OriginalImportFile.find({"remove_upload": True}):
         os.remove(os.path.join(UPLOAD_PATH, row['original_name']))
         move(
             os.path.join(UPLOAD_PATH, row['upload_id'] + ".info"),
             os.path.join(INFO_PATH, row['upload_id'] + ".info"),
         )
-        await db.upload_catalog.delete_one({"_id": row['_id']})
-
-
 
 async def ingest_info_files(info_files):
-    def extract_metadata(info_file):
-        config = load_config()
+    async def extract_metadata(info_file):
+        config = await load_config()
         folder_path = config["folder_paths"]["uploads"]
         with open(info_file, "r") as f:
             file_metadata = json.load(f)
-            upload_catalog_entry = {
-                "status": add_status_code(200),
-                "dataset_id": file_metadata["MetaData"].get("datasetId", "NA"),
-                "remove_upload": False,
+            
+            original_import_file_catalog_entry = {
                 "upload_id": file_metadata.get("ID", "NA"),
-                "date_added": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "size": file_metadata.get("Size", "NA"),
                 "original_name": file_metadata["MetaData"].get("filename", "NA"),
+                "dataset_id": file_metadata["MetaData"].get("datasetId", "NA"),
+                "eeg_format": file_metadata["MetaData"].get("eegFormat", "NA"),
+                "eeg_paradigm": file_metadata["MetaData"].get("eegParadigm", "NA"),
+                # "upload_user": file_metadata["MetaData"].get("user", "NA"), TODO: Add user support
+                "status": add_status_code(200),
+                "date_added": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "hash": create_file_hash(
                     os.path.join(
                         folder_path,
                         os.path.basename(file_metadata["Storage"].get("Path", "")),
                     )
                 ),
-                "eeg_format": file_metadata["MetaData"].get("eegFormat", "NA"),
-                "eeg_paradigm": file_metadata["MetaData"].get("eegParadigm", "NA"),
-                "upload_email": file_metadata["MetaData"].get("emailSelection", "NA"),
+                "remove_upload": False,
             }
+            
             dataset_catalog_entry = {
                 "dataset_id": file_metadata["MetaData"].get("datasetId", "NA"),
                 "dataset_name": file_metadata["MetaData"].get("datasetName", "NA"),
                 "description": "",
             }
-        return upload_catalog_entry, dataset_catalog_entry
-    db = await get_database()
+        return original_import_file_catalog_entry, dataset_catalog_entry
     for info_file in info_files:
-        upload_catalog_entry, dataset_catalog_entry = extract_metadata(info_file)
+        original_import_file_catalog_entry, dataset_catalog_entry = await extract_metadata(info_file)
         dataset_result = await add_dataset_catalog(dataset_catalog_entry)
-        upload_result = await add_upload_catalog(upload_catalog_entry)
+        upload_result = await add_original_import_file_catalog(original_import_file_catalog_entry)
         print(f"Added dataset with ID: {dataset_result['dataset_id']}")
         print(f"Added upload with ID: {upload_result['upload_id']}")
 
 async def process_new_uploads(upload_dir):
-    async def update_upload_catalog(info_files):
+    async def update_file_catalog(info_files):
         await ingest_info_files(info_files)
         await align_fdt_files()
         await delete_uploads_and_save_info_files()
@@ -606,7 +567,7 @@ async def process_new_uploads(upload_dir):
 
     logging.info(f"Scanning upload directory: {upload_dir}")
     info_files = find_info_files(upload_dir)
-    await update_upload_catalog(info_files)
+    await update_file_catalog(info_files)
     logging.info("Upload and import catalogs updated.")
     
 async def get_upload_and_fdt_upload_id(upload_id):
@@ -614,7 +575,7 @@ async def get_upload_and_fdt_upload_id(upload_id):
     config = await load_config()
     UPLOAD_PATH = config["folder_paths"]["uploads"]
     IMPORT_PATH = config["folder_paths"]["import"]
-    file_record = await db.upload_catalog.find_one({"upload_id": upload_id})
+    file_record = await db.OriginalImportFile.find_one({"upload_id": upload_id})
     if not file_record:
         raise ValueError(f"Upload ID {upload_id} not found in the database.")
     set_upload_path = os.path.join(UPLOAD_PATH, upload_id)
@@ -709,44 +670,35 @@ def get_core_eeg_info( set_file_path ):
     return eeg_core_info
 
     
-async def update_import_catalog():
+async def update_file_catalog():
     db = await get_database()
-    upload_catalog = db.upload_catalog
-    import_catalog = db.import_catalog
-
-    set_files = await upload_catalog.find({"is_set_file": True}).to_list(None)
+    set_files = await db.OriginalImportFile.find({"is_set_file": True}).to_list(None)
     for file in set_files:
         # Check if the record already exists in the ImportCatalog
-        existing_record = await import_catalog.find_one({"upload_id": file["upload_id"]})
+        existing_record = await db.File.find_one({"upload_id": file["upload_id"]})
         if existing_record:
             print(f"\033[93mRecord already exists in ImportCatalog with ID: {existing_record['upload_id']}\033[0m")
         else:
             set_dest_path, fdt_dest_path = await copy_import_files(file["upload_id"])
             core_info = get_core_eeg_info(set_dest_path)
             print(f"Before ImportCatalog creation: eeg_format={file['eeg_format']}, eeg_paradigm={file['eeg_paradigm']}")
-            import_record = {
-                "original_name": file["original_name"],
-                "dataset_id": file["dataset_id"],
-                "eeg_format": file["eeg_format"],
-                "eeg_paradigm": file["eeg_paradigm"],
-                "upload_email": file["upload_email"],
-                "date_added": file["date_added"],
+            
+            file_record = {
+                "status": add_status_code(201),
                 "upload_id": file["upload_id"],
-                "remove_import": file["remove_upload"],
+                "date_added": file["date_added"],
+                "original_file": file,
+                "eeg_format": file["eeg_format"],
                 "is_set_file": file["is_set_file"],
                 "has_fdt_file": file["has_fdt_file"],
                 "fdt_filename": file["fdt_filename"],
                 "fdt_upload_id": file["fdt_upload_id"],
                 "hash": file["hash"],
-                "mne_load_error": core_info['mne_load_error'],
-                "sample_rate": core_info['sample_rate'],
-                "n_channels": core_info['n_channels'],
-                "n_epochs": core_info['n_epochs'],
-                "total_samples": core_info['total_samples'],
-                "status": add_status_code(201)
+                "metadata": json.dumps(core_info),
             }
-            await import_catalog.insert_one(import_record)
-            print(f"\033[92mRecord added in ImportCatalog with ID: {import_record['upload_id']}\033[0m")
+        
+            await db.File.insert_one(file_record)
+            print(f"\033[92mRecord added in ImportCatalog with ID: {file_record['upload_id']}\033[0m")
             await clean_import_files(file["upload_id"])
 
     print(f"Transferred {len(set_files)} SET files from UploadCatalog to ImportCatalog.")

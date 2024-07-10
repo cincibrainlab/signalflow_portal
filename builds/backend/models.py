@@ -28,6 +28,13 @@ class EEGParadigm(BaseModel):
     name: str
     description: str
     Study: Study
+    
+class User(BaseModel):
+    username: str
+    email: str
+    password: str
+    is_active: bool
+    is_superuser: bool
 
 class OriginalImportFile(BaseModel):
     upload_id: str | None
@@ -37,16 +44,15 @@ class OriginalImportFile(BaseModel):
     fdt_filename: str | None
     fdt_upload_id: str | None
     dataset_id: str | None
-    dataset_name: str | None
     eeg_format: EEGFormat | None
     eeg_paradigm: EEGParadigm | None
     paradigm_start_time: datetime
     paradigm_duration: int
-    upload_email: str | None
+    upload_user: User | None
     status: str | None
     date_added: str | None
     hash: str | None
-    remove_import: bool | None
+    remove_upload: bool | None
     sample_rate: int | None
     n_channels: int | None
     n_epochs: int | None
@@ -57,21 +63,19 @@ class File(BaseModel):
     status: str
     upload_id: str
     date_added: str
-    original_file: str
+    original_file: OriginalImportFile
     eeg_format: EEGFormat
-    eeg_paradigm: str
     is_set_file: bool
     has_fdt_file: bool
     fdt_filename: str
     fdt_upload_id: str
-    upload_email: str
     hash: str
     metadata: str
     status: str
-    date_added: str | None = None
     
 class Dataset(BaseModel):
-    name: str
+    dataset_name: str
+    dataset_id:str
     description: str
     files: list[File]
     status: str
@@ -101,13 +105,6 @@ class EegAnalysis(BaseModel):
     valid_files: list[File]
     files: list[FileStatus]
     parameters: str
-    
-class User(BaseModel):
-    username: str
-    email: str
-    password: str
-    is_active: bool
-    is_superuser: bool
     
 class UserGroup(BaseModel):
     name: str

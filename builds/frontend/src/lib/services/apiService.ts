@@ -13,41 +13,6 @@ export async function checkDbConnection() {
   return { status: response.status, data };
 }
 
-export async function getEEGFormats() {
-  const response = await fetch(`${baseUrl}list-eeg-formats`);
-  return response.json();
-}
-
-export async function getEEGParadigms() {
-  const response = await fetch(`${baseUrl}list-eeg-paradigms`);
-  return response.json();
-}
-
-export async function getEmails() {
-  const response = await fetch(`${baseUrl}list-emails`);
-  return response.json();
-}
-
-export async function getUploadCatalog() {
-  const response = await fetch(`${baseUrl}get-upload-catalog`);
-  return response.json();
-}
-
-export async function getImportCatalog() {
-  const response = await fetch(`${baseUrl}get-import-catalog`);
-  return response.json();
-}
-
-export async function getDatasetCatalog() {
-  const response = await fetch(`${baseUrl}get-dataset-catalog`);
-  return response.json();
-}
-
-export async function getDatasetStats() {
-  const response = await fetch(`${baseUrl}get-dataset-stats`);
-  return response.json();
-}
-
 export async function processUploads() {
   const response = await fetch(`${baseUrl}process-uploads`);
   return response.json();

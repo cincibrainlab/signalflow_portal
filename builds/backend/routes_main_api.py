@@ -139,8 +139,8 @@ async def merge_datasets(dataset_id1: str, dataset_id2: str):
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: DATASET CRUD
 # ───────────────────────────────────────────────────────────────────────────────���
-@router.post("/api/add-dataset", response_model=models.DatasetCatalog)
-async def add_dataset(dataset_entry: models.DatasetCatalog):
+@router.post("/api/add-dataset", response_model=models.Dataset)
+async def add_dataset(dataset_entry: models.Dataset):
     try:
         new_dataset = await flow_db.add_dataset(dataset_entry)
         logging.debug(f"New Dataset Added: {new_dataset}")
@@ -149,8 +149,8 @@ async def add_dataset(dataset_entry: models.DatasetCatalog):
         logging.error(f"Error adding dataset: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/api/update-dataset", response_model=models.DatasetCatalog)
-async def update_dataset(dataset_entry: models.DatasetCatalog):
+@router.post("/api/update-dataset", response_model=models.Dataset)
+async def update_dataset(dataset_entry: models.Dataset):
     try:
         updated_dataset = await flow_db.update_dataset(dataset_entry)
         logging.debug(f"Dataset Updated: {updated_dataset}")
@@ -172,7 +172,6 @@ async def process_uploads():
     UPLOAD_PATH = (await flow_db.get_folder_paths())["uploads"]
     logging.info(f"UPLOAD_PATH: {UPLOAD_PATH}")
     await flow_db.process_new_uploads(upload_dir=UPLOAD_PATH)
-    await flow_db.update_import_catalog()
     return {"message": "Uploads processed successfully."}
 
 @router.get("/api/show_upload_catalog")
