@@ -10,6 +10,39 @@ api:
   port: 3005
   # 8001
 
+# This file is used to configure the portal
+folder_paths:
+  root: portal_files
+  uploads: portal_files/uploads
+  import: portal_files/import
+  info_archive: portal_files/info_archive
+  output: portal_files/output
+  logs: portal_files/logs
+  
+# List of EEG formats
+EEGFormat:
+  - name: 'EGI128/Adult'
+    description: 'EGI Hydrocel 128 (Adult)'
+  - name: 'EGI128/Infant'
+    description: 'EGI Hydrocel 128 (Infant)'
+  - name: 'EGI32/Adult'
+    description: 'EGI Hydrocel 32 (Infant)'
+  - name: 'MEA30'
+    description: 'NeuroNexus MEA 30'
+  - name: 'MEA30V2'
+    description: 'NeuroNexus MEA 30 (v2)'
+
+# These will be dleted later and are just for testing ----------------------------------------------
+# List of EEG paradigms
+EEGParadigm:
+  - name: 'Resting'
+    description: 'Subject is at rest with eyes open or closed'
+  - name: 'Visual'
+    description: 'Subject is presented with visual stimuli'
+  - name: 'Auditory Chirp'
+    description: 'Version B Click-Train 2023+'
+
+# List of Fake Users
 User:
   - username: 'erniepedapati'
     email: 'ernest.pedapati@cchmc.org'
@@ -41,38 +74,8 @@ User:
     password: 'password'
     is_active: True
     is_superuser: False
-  
-# This file is used to configure the portal
-folder_paths:
-  root: portal_files
-  uploads: portal_files/uploads
-  import: portal_files/import
-  info_archive: portal_files/info_archive
-  output: portal_files/output
-  logs: portal_files/logs
-  
-# List of EEG formats
-EEGFormat:
-  - name: 'EGI128/Adult'
-    description: 'EGI Hydrocel 128 (Adult)'
-  - name: 'EGI128/Infant'
-    description: 'EGI Hydrocel 128 (Infant)'
-  - name: 'EGI32/Adult'
-    description: 'EGI Hydrocel 32 (Infant)'
-  - name: 'MEA30'
-    description: 'NeuroNexus MEA 30'
-  - name: 'MEA30V2'
-    description: 'NeuroNexus MEA 30 (v2)'
 
-# List of EEG paradigms
-EEGParadigm:
-  - name: 'Resting'
-    description: 'Subject is at rest with eyes open or closed'
-  - name: 'Visual'
-    description: 'Subject is presented with visual stimuli'
-  - name: 'Auditory Chirp'
-    description: 'Version B Click-Train 2023+'
-
+# List of EEG Analyses
 EegAnalysis:
   - name: 'Mne-Connectivity-Default'
     category: 'Connectivity'
@@ -87,4 +90,61 @@ EegAnalysis:
     valid_paradigms: ['Resting']
     parameters: None
 
+# List of fake Participants
+Participant:
+  - participant_id: '0012'
+    species: 'Human'
+    age: 25
+    age_group: 'Adult'
+    gender: 'Male'
+    handedness: 'Right'
+    diagnosis: 'None'
+    iq_score: 100
+    anxiety_level: 5
+  - participant_id: '0274'
+    species: 'Human'
+    age: 25
+    age_group: 'Adult'
+    gender: 'Female'
+    handedness: 'Right'
+    diagnosis: 'None'
+    iq_score: 100
+    anxiety_level: 5
+  - participant_id: '0280'
+    species: 'Human'
+    age: 25
+    age_group: 'Adult'
+    gender: 'Female'
+    handedness: 'Right'
+    diagnosis: 'None'
+    iq_score: 100
+    anxiety_level: 5
+  - participant_id: '0418'
+    species: 'Human'
+    age: 25
+    age_group: 'Adult'
+    gender: 'Female'
+    handedness: 'Right'
+    diagnosis: 'None'
+    iq_score: 100
+    anxiety_level: 5
+  - participant_id: '1807'
+    species: 'Human'
+    age: 25
+    age_group: 'Adult'
+    gender: 'Female'
+    handedness: 'Right'
+    diagnosis: 'None'
+    iq_score: 100
+    anxiety_level: 5
+  - participant_id: '2502'
+    species: 'Human'
+    age: 25
+    age_group: 'Adult'
+    gender: 'Female'
+    handedness: 'Right'
+    diagnosis: 'None'
+    iq_score: 100
+    anxiety_level: 5
+# -------------------------------------------------------------------------------------------------
   
