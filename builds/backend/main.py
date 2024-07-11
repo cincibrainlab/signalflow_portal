@@ -48,9 +48,9 @@ app.add_middleware(
 
 
 async def run_startup_process():
-    if not await is_startup_table_present():
-        initialize_database()
-    # initialize_database()
+    # if not await is_startup_table_present():
+    #     initialize_database()
+    initialize_database()
     
     if not await check_entrypoint(console):
         console.print("[bold red]Entry point failed.[/bold red]", style="red")

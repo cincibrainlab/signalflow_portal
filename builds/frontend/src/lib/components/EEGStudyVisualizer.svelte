@@ -66,12 +66,12 @@
   let isEditing = false
   let selectedParticipant: any = null
   let selectedSessionDate: any = null
-  // $: if (selectedSession) {
-  //   selectedParticipant = getParticipant(selectedSession.participant_id)
-  //   selectedSessionDate = formatDateForInput(selectedSession.date)
-  //   console.log(selectedSession.date)
-  //   console.log(selectedSessionDate)
-  // }
+  $: if (selectedSession) {
+    selectedParticipant = selectedSession.participant
+    selectedSessionDate = formatDateForInput(selectedSession.date_added)
+    console.log(selectedSession.date_added)
+    console.log(selectedSessionDate)
+  }
   
   function formatDateForInput(dateString: string) {
     return new Date(dateString); // Returns YYYY-MM-DDTHH:mm
@@ -80,12 +80,12 @@
     // Save changes to the selected session and participant
     isEditing = false
   }
-
+  let Files: any = []
 
   onMount(() => {
-    let filteredFiles: any = []
+    
     getOriginalFileCatalog().then(result => {
-      filteredFiles = result;
+      Files = result;
     });
 
     uniqueDiagnoses = [
@@ -168,30 +168,35 @@
       "other"
     ]
   })
+
+  let filteredFiles: any = []
+  $:{
+  filteredFiles = Files
+  console.log("Filtered files:", filteredFiles)
+  }
   // $: {
   //   // console.log("Filtering sessions...")
-  //   filteredSessions = filteredFiles.sessions.filter((session) => {
-  //     const participant = getParticipant(session.participant_id)
-  //     // console.log("Session:", session.eegid, "Participant:", participant)
+  //   let filteredFiles = Files.filter((file: any) => {
+  //     const participant = file.participant
 
   //     const matchesSearch =
-  //       session.eegid.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       session.participant_id.toLowerCase().includes(searchTerm.toLowerCase())
+  //       file.eegid.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       file.participant.participant_id.toLowerCase().includes(searchTerm.toLowerCase())
   //     // console.log("Matches search:", matchesSearch)
 
   //     const matchesDiagnosis =
   //       selectedDiagnosis === "All" ||
-  //       participant?.clinical_measures.diagnosis === selectedDiagnosis
+  //       participant?.diagnosis === selectedDiagnosis
   //     // console.log("Matches diagnosis:", matchesDiagnosis)
 
   //     const matchesAgeGroup =
   //       selectedAgeGroup === "All" ||
-  //       participant?.demographics.age_group === selectedAgeGroup
+  //       participant?.age_group === selectedAgeGroup
   //     // console.log("Matches age group:", matchesAgeGroup)
 
   //     const matchesParadigm =
   //       selectedParadigm === "All" ||
-  //       session.paradigms.some((p: any) => p.type === selectedParadigm)
+  //       file.eeg_paradigm.name.some((p: any) => p.type === selectedParadigm)
   //     // console.log("Matches paradigm:", matchesParadigm)
 
   //     const result =
@@ -200,10 +205,9 @@
 
   //     return result
   //   })
-  //   // console.log("Filtered sessions:", filteredSessions.length)
 
   //   if (sortColumn) {
-  //     filteredSessions.sort((a, b) => {
+  //     filteredFiles.sort((a:any, b: any) => {
   //       let aValue, bValue
   //       switch (sortColumn) {
   //         case "eegid":
@@ -213,20 +217,20 @@
   //           bValue = b[sortColumn]
   //           break
   //         case "date":
-  //           aValue = new Date(a.date)
-  //           bValue = new Date(b.date)
+  //           aValue = new Date(a.date_added)
+  //           bValue = new Date(b.date_added)
   //           break
   //         case "diagnosis":
   //         case "age_group":
   //         case "species":
-  //           const aParticipant = getParticipant(a.participant_id)
-  //           const bParticipant = getParticipant(b.participant_id)
+  //           const aParticipant = a.participant
+  //           const bParticipant = b.participant
   //           if (sortColumn === "diagnosis") {
-  //             aValue = aParticipant?.clinical_measures.diagnosis
-  //             bValue = bParticipant?.clinical_measures.diagnosis
+  //             aValue = aParticipant?.diagnosis
+  //             bValue = bParticipant?.diagnosis
   //           } else {
-  //             aValue = aParticipant?.demographics[sortColumn]
-  //             bValue = bParticipant?.demographics[sortColumn]
+  //             aValue = aParticipant?[sortColumn]
+  //             bValue = bParticipant?[sortColumn]
   //           }
   //           break
   //         case "paradigms":
@@ -262,12 +266,6 @@
         return Zap
     }
   }
-
-  // function getParticipant(participantId: string) {
-  //   return filteredFiles.participants.find(
-  //     (p) => p.participant_id === participantId,
-  //   )
-  // }
 
   function getDiagnosisBadgeClasses(diagnosis: string): string {
     const colorMap = new Map([
@@ -336,6 +334,9 @@
   }
 
   function getSpeciesIcon(species: string) {
+    if (!species) {
+      return User2
+    }
     switch (species.toLowerCase()) {
       case "mouse":
         return Mouse
@@ -357,7 +358,7 @@
   }
 </script>
 
-<!-- <div class="container mx-auto p-4">
+<div class="container mx-auto p-4">
   <div class="mb-6 bg-white p-4 rounded-lg shadow">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold flex items-center">
@@ -424,62 +425,63 @@
         </select>
       </div>
     </div>
-  </div> -->
+  </div>
 
-  <!-- {#if viewMode === "card"}
+  {#if viewMode === "card"}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {#each filteredSessions as session}
-        {@const participant = getParticipant(session.participant_id)}
+      {#each filteredFiles as file}
+        {@const participant = file.participant}
         <Card
           class="hover:shadow-lg transition-shadow duration-300 cursor-pointer"
           on:click={() =>
-            (selectedSession = selectedSession === session ? null : session)}
+            (selectedSession = selectedSession === file ? null : file)}
         >
           <CardHeader>
             <CardTitle class="flex items-center justify-between">
-              <span>EEGID: {session.eegid}</span>
+              <span>EEGID: {file.eegid}</span>
               <div class="flex gap-2">
                 <Badge
                   class={getDiagnosisBadgeClasses(
-                    participant?.clinical_measures.diagnosis,
+                    participant?.diagnosis,
                   )}
                 >
-                  {participant?.clinical_measures.diagnosis || "Unknown"}
+                  {participant?.diagnosis || "Unknown"}
                 </Badge>
                 <Badge
                   class={getAgeBadgeClasses(
-                    participant?.demographics.age_group,
+                    participant?.age_group,
                   )}
                 >
                   <svelte:component
-                    this={getAgeIcon(participant?.demographics.age_group)}
+                    this={getAgeIcon(participant?.age_group)}
                     class="w-4 h-4 mr-1"
                   />
-                  {participant?.demographics.age_group || "Unknown"}
+                  {participant?.age_group || "Unknown"}
                 </Badge>
                 <Badge variant="outline" class="flex items-center gap-1">
                   <svelte:component
-                    this={getSpeciesIcon(participant?.demographics.species)}
+                    this={getSpeciesIcon(participant?.species)}
                     class="w-4 h-4 mr-1"
                   />
-                  {participant?.demographics.species || "Unknown"}
+                  {participant?.species || "Unknown"}
                 </Badge>
               </div>
             </CardTitle>
             <CardDescription>
-              Date: {new Date(session.date).toLocaleDateString()}
+              Date: {new Date(file.date_added).toLocaleDateString()}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p class="text-sm text-gray-600">
-              Participant ID: {session.participant_id}
+              Participant ID: {file.participant.participant_id}
             </p>
             <p class="text-sm text-gray-600">
-              Equipment: {session.equipment_used}
+              Equipment: {file.equipment_used}
             </p>
           </CardContent>
-          <CardFooter class="flex justify-between">
-            {#each session.paradigms as paradigm}
+          <!-- TODO Make this into showing something else -->
+          <!-- <CardFooter class="flex justify-between">
+            {#each file.paradigms as paradigm}
               <Badge variant="outline" class="flex items-center gap-1">
                 <svelte:component
                   this={getParadigmIcon(paradigm.type)}
@@ -488,10 +490,10 @@
                 {paradigm.type.replace("_", " ")}
               </Badge>
             {/each}
-          </CardFooter>
+          </CardFooter> -->
           <CardFooter>
             <a
-              href={getDetailedRecordLink(session.eegid)}
+              href={getDetailedRecordLink(file.eegid)}
               class="text-blue-500 hover:text-blue-700 flex items-center"
             >
               View Details
@@ -562,49 +564,49 @@
         </TableRow>
       </TableHeader>
       <TableBody>
-        {#each filteredSessions as session}
-          {@const participant = getParticipant(session.participant_id)}
+        {#each filteredFiles as file}
+          {@const participant = file.participant.participant_id}
           <TableRow
             on:click={() =>
-              (selectedSession = selectedSession === session ? null : session)}
+              (selectedSession = selectedSession === file ? null : file)}
             class="cursor-pointer hover:bg-gray-100"
           >
-            <TableCell>{session.eegid}</TableCell>
-            <TableCell>{session.participant_id}</TableCell>
-            <TableCell>{new Date(session.date).toLocaleDateString()}</TableCell>
+            <TableCell>{file.eegid}</TableCell>
+            <TableCell>{file.participant.participant_id}</TableCell>
+            <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
             <TableCell>
               <Badge
                 class={getDiagnosisBadgeClasses(
-                  participant?.clinical_measures.diagnosis,
+                  participant?.diagnosis,
                 )}
               >
-                {participant?.clinical_measures.diagnosis || "Unknown"}
+                {participant?.diagnosis || "Unknown"}
               </Badge>
             </TableCell>
             <TableCell>
               <Badge
-                class={getAgeBadgeClasses(participant?.demographics.age_group)}
+                class={getAgeBadgeClasses(participant?.age_group)}
               >
                 <svelte:component
-                  this={getAgeIcon(participant?.demographics.age_group)}
+                  this={getAgeIcon(participant?.age_group)}
                   class="w-4 h-4 mr-1"
                 />
-                {participant?.demographics.age_group || "Unknown"}
+                {participant?.age_group || "Unknown"}
               </Badge>
             </TableCell>
             <TableCell>
               <Badge variant="outline" class="flex items-center gap-1">
                 <svelte:component
-                  this={getSpeciesIcon(participant?.demographics.species)}
+                  this={getSpeciesIcon(participant?.species)}
                   class="w-4 h-4 mr-1"
                 />
-                {participant?.demographics.species || "Unknown"}
+                {participant?.species || "Unknown"}
               </Badge>
             </TableCell>
-            <TableCell>{session.equipment_used}</TableCell>
+            <TableCell>{file.equipment_used}</TableCell>
             <TableCell>
               <div class="flex gap-1">
-                {#each session.paradigms as paradigm}
+                {#each file.paradigms as paradigm}
                   <Badge variant="outline" class="flex items-center gap-1">
                     <svelte:component
                       this={getParadigmIcon(paradigm.type)}
@@ -617,7 +619,7 @@
             </TableCell>
             <TableCell>
               <a
-                href={getDetailedRecordLink(session.eegid)}
+                href={getDetailedRecordLink(file.eegid)}
                 class="text-blue-500 hover:text-blue-700 flex items-center"
               >
                 View
@@ -663,18 +665,18 @@
             </div>
             <div>
               <h3 class="font-semibold">Participant Info</h3>
-              {#if getParticipant(selectedSession.participant_id)}
+              {#if selectedSession.participant.participant_id}
                 <div class="w-full">
                   <label
                     for="Age"
                     class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.demographics.age} disabled={!isEditing}>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.age} disabled={!isEditing}>
                 </div>
                 <div class="w-full">
                   <label
                     for="Age Group"
                     class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.demographics.age_group} disabled={!isEditing}>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.age_group} disabled={!isEditing}>
                     {#each uniqueAgeGroups as ageGroup}
                       <option value={ageGroup}>{ageGroup}</option>
                     {/each}
@@ -684,7 +686,7 @@
                   <label
                     for="Gender"
                     class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.demographics.gender} disabled={!isEditing}>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.gender} disabled={!isEditing}>
                     {#each UniqueGender as gender}
                       <option value={gender}>{gender}</option>
                     {/each}
@@ -694,7 +696,7 @@
                   <label
                     for="Handedness"
                     class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.demographics.handedness} disabled={!isEditing}>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.handedness} disabled={!isEditing}>
                     {#each UniqueHandedness as handedness}
                       <option value={handedness}>{handedness}</option>
                     {/each}
@@ -704,7 +706,7 @@
                   <label
                     for="Species"
                     class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.demographics.species} disabled={!isEditing}>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.species} disabled={!isEditing}>
                     {#each UniqueSpecies as species}
                       <option value={species}>{species}</option>
                     {/each}
@@ -714,19 +716,19 @@
                   <label
                     for="Diagnosis"
                     class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="text" bind:value={selectedParticipant.clinical_measures.diagnosis} disabled={!isEditing}>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="text" bind:value={selectedParticipant.diagnosis} disabled={!isEditing}>
                 </div>
                 <div class="w-full">
                   <label
                     for="IQ Score"
                     class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.clinical_measures.iq_score} disabled={!isEditing}>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.iq_score} disabled={!isEditing}>
                 </div>
                 <div class="w-full">
                   <label
                     for="Anxiety Level"
                     class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.clinical_measures.anxiety_level} disabled={!isEditing}>
+                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.anxiety_level} disabled={!isEditing}>
                 </div>
               {/if}
             </div>
@@ -784,4 +786,4 @@
       </dialog>
     </section>
   {/if}
-</div> -->
+</div>
