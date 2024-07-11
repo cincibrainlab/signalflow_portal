@@ -643,6 +643,7 @@ def get_core_eeg_info( set_file_path ):
                 'total_samples': len(EEG)
             }
         except Exception as e:
+            print(f"Error loading as raw_eeglab: {e}")
             EEG = mne.io.read_epochs_eeglab(set_file_path)
             info = EEG.info
             eeg_core_info = {
@@ -654,6 +655,7 @@ def get_core_eeg_info( set_file_path ):
                 'total_samples': (len(EEG) if hasattr(EEG, '__len__') else 1) * len(EEG.times)
             }
     except Exception as e:
+        print(f"Error loading EEG file: {e}")
         # Handle potential errors from the entire block
         eeg_core_info = {
             'mne_load_error': True,  # This key can be used to track the error in the database

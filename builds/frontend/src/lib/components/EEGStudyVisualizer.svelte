@@ -41,8 +41,8 @@
   import { DateInput } from 'date-picker-svelte'
   import { getOriginalFileCatalog } from '$lib/services/apiService';
 
-  let selectedSession: any = null
-  // On the change of selectedSession, we want to fetch the participant data
+  let selectedFile: any = null
+  // On the change of selectedFile, we want to fetch the participant data
   let searchTerm = ""
   let selectedDiagnosis: string = "All"
   let selectedAgeGroup: string = "All"
@@ -65,13 +65,40 @@
 
   let isEditing = false
   let selectedParticipant: any = null
-  let selectedSessionDate: any = null
-  $: if (selectedSession) {
-    selectedParticipant = selectedSession.participant
-    selectedSessionDate = formatDateForInput(selectedSession.date_added)
-    console.log(selectedSession.date_added)
-    console.log(selectedSessionDate)
-  }
+  let selectedFileDate: any = null
+  $: if (selectedFile) {
+    selectedParticipant = {
+      participant_id: "Unknown",
+      age: -1,
+      age_group: "All",
+      gender: "All",
+      handedness: "All",
+      species: "All",
+      diagnosis: "All",
+      iq_score: -1,
+      anxiety_level: -1,
+    }
+    // try {
+    //   selectedParticipant = selectedFile.participant
+    // } catch (e) {
+    //     selectedParticipant = {
+    //       participant_id: "Unknown",
+    //       age: -1,
+    //       age_group: "All",
+    //       gender: "All",
+    //       handedness: "All",
+    //       species: "All",
+    //       diagnosis: "All",
+    //       iq_score: -1,
+    //       anxiety_level: -1,
+    //     }
+    //     // Handle the case when selectedFile.participant is undefined
+    //     // Add your exception handling code here
+    // }
+      selectedFile = formatDateForInput(selectedFile.date_added);
+      console.log(selectedFile.date_added);
+      console.log(selectedFile);
+    }
   
   function formatDateForInput(dateString: string) {
     return new Date(dateString); // Returns YYYY-MM-DDTHH:mm
@@ -434,7 +461,7 @@
         <Card
           class="hover:shadow-lg transition-shadow duration-300 cursor-pointer"
           on:click={() =>
-            (selectedSession = selectedSession === file ? null : file)}
+            (selectedFile = selectedFile === file ? null : file)}
         >
           <CardHeader>
             <CardTitle class="flex items-center justify-between">
@@ -568,7 +595,7 @@
           {@const participant = file.participant.participant_id}
           <TableRow
             on:click={() =>
-              (selectedSession = selectedSession === file ? null : file)}
+              (selectedFile = selectedFile === file ? null : file)}
             class="cursor-pointer hover:bg-gray-100"
           >
             <TableCell>{file.eegid}</TableCell>
@@ -631,10 +658,10 @@
       </TableBody>
     </Table>
   {/if}
-  {#if selectedSession}
+  {#if selectedFile}
     <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" transition:fade open>
-        <h2 class="text-2xl font-bold mb-4">Session Details: {selectedSession.eegid}</h2>
+        <h2 class="text-2xl font-bold mb-4">Session Details: {selectedFile.eegid}</h2>
         
         <form>
           <div class="grid grid-cols-2 gap-4 mb-4">
@@ -644,13 +671,13 @@
                 <label
                   for="Date"
                   class="block text-sm font-semibold text-gray-700 mb-1">Date:</label>
-                <DateInput value={selectedSessionDate} format="MM-dd-yyyy" disabled={!isEditing}/>
+                <DateInput value={selectedFileDate} format="MM-dd-yyyy" disabled={!isEditing}/>
               </div>
               <div class="w-full">
                 <label
                   for="Equipment"
                   class="block text-sm font-semibold text-gray-700 mb-1">Equipment:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedSession.equipment_used} disabled={!isEditing}>
+                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedFile.equipment_used} disabled={!isEditing}>
                     {#each UniqueEquipment as equipment}
                       <option value={equipment}>{equipment}</option>
                     {/each}
@@ -660,12 +687,12 @@
                 <label
                   for="Notes"
                   class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
-                <textarea class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6" bind:value={selectedSession.notes} disabled={!isEditing}></textarea>
+                <textarea class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6" bind:value={selectedFile.notes} disabled={!isEditing}></textarea>
               </div>
             </div>
             <div>
               <h3 class="font-semibold">Participant Info</h3>
-              {#if selectedSession.participant.participant_id}
+              {#if selectedParticipant.participant_id}
                 <div class="w-full">
                   <label
                     for="Age"
@@ -735,7 +762,7 @@
           </div>
           <div>
             <h3 class="font-semibold mb-2">Paradigms</h3>
-            {#each selectedSession.paradigms as paradigm}
+            <!-- {#each selectedFile.paradigms as paradigm}
               <div class="mb-2 p-2 bg-gray-100 rounded">
                 <div class="w-full">
                   <label
@@ -772,7 +799,7 @@
                   {/if}
                 </div>
               </div>
-            {/each}
+            {/each} -->
           </div>
           
           {#if !isEditing}
@@ -781,7 +808,7 @@
             <Button on:click={saveChanges}>Save</Button>
           {/if}
           
-          <Button on:click={() => selectedSession = null}>Close</Button>
+          <Button on:click={() => selectedFile = null}>Close</Button>
         </form>
       </dialog>
     </section>
