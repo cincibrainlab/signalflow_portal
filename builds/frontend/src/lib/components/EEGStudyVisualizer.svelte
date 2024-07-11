@@ -39,17 +39,10 @@
     TableRow,
   } from "$lib/components/ui/table"
   import { DateInput } from 'date-picker-svelte'
-
-  export let studyData: {
-    study: any
-    participants: any[]
-    sessions: any[]
-  }
+  import { getOriginalFileCatalog } from '$lib/services/apiService';
 
   let selectedSession: any = null
   // On the change of selectedSession, we want to fetch the participant data
-  
-  let filteredSessions: any[] = studyData.sessions
   let searchTerm = ""
   let selectedDiagnosis: string = "All"
   let selectedAgeGroup: string = "All"
@@ -73,12 +66,12 @@
   let isEditing = false
   let selectedParticipant: any = null
   let selectedSessionDate: any = null
-  $: if (selectedSession) {
-    selectedParticipant = getParticipant(selectedSession.participant_id)
-    selectedSessionDate = formatDateForInput(selectedSession.date)
-    console.log(selectedSession.date)
-    console.log(selectedSessionDate)
-  }
+  // $: if (selectedSession) {
+  //   selectedParticipant = getParticipant(selectedSession.participant_id)
+  //   selectedSessionDate = formatDateForInput(selectedSession.date)
+  //   console.log(selectedSession.date)
+  //   console.log(selectedSessionDate)
+  // }
   
   function formatDateForInput(dateString: string) {
     return new Date(dateString); // Returns YYYY-MM-DDTHH:mm
@@ -88,22 +81,33 @@
     isEditing = false
   }
 
+
   onMount(() => {
+    let filteredFiles: any = []
+    getOriginalFileCatalog().then(result => {
+      filteredFiles = result;
+    });
+
     uniqueDiagnoses = [
       "All",
-      ...new Set(
-        studyData.participants.map((p) => p.clinical_measures.diagnosis),
-      ),
+      "FXS",
+      "ASD",
+      "DD",
+      "Control",
+      "Blind",
     ]
     uniqueAgeGroups = [
       "All",
-      ...new Set(studyData.participants.map((p) => p.demographics.age_group)),
+      "infant",
+      "pediatric",
+      "adult",
     ]
     uniqueParadigms = [
       "All",
-      ...new Set(
-        studyData.sessions.flatMap((s) => s.paradigms.map((p: any) => p.type)),
-      ),
+      "resting_state",
+      "chirp",
+      "cognitive_flexibility",
+      "other",
     ]
     UniqueEquipment = [
       "All",
@@ -164,78 +168,78 @@
       "other"
     ]
   })
-  $: {
-    // console.log("Filtering sessions...")
-    filteredSessions = studyData.sessions.filter((session) => {
-      const participant = getParticipant(session.participant_id)
-      // console.log("Session:", session.eegid, "Participant:", participant)
+  // $: {
+  //   // console.log("Filtering sessions...")
+  //   filteredSessions = filteredFiles.sessions.filter((session) => {
+  //     const participant = getParticipant(session.participant_id)
+  //     // console.log("Session:", session.eegid, "Participant:", participant)
 
-      const matchesSearch =
-        session.eegid.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        session.participant_id.toLowerCase().includes(searchTerm.toLowerCase())
-      // console.log("Matches search:", matchesSearch)
+  //     const matchesSearch =
+  //       session.eegid.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       session.participant_id.toLowerCase().includes(searchTerm.toLowerCase())
+  //     // console.log("Matches search:", matchesSearch)
 
-      const matchesDiagnosis =
-        selectedDiagnosis === "All" ||
-        participant?.clinical_measures.diagnosis === selectedDiagnosis
-      // console.log("Matches diagnosis:", matchesDiagnosis)
+  //     const matchesDiagnosis =
+  //       selectedDiagnosis === "All" ||
+  //       participant?.clinical_measures.diagnosis === selectedDiagnosis
+  //     // console.log("Matches diagnosis:", matchesDiagnosis)
 
-      const matchesAgeGroup =
-        selectedAgeGroup === "All" ||
-        participant?.demographics.age_group === selectedAgeGroup
-      // console.log("Matches age group:", matchesAgeGroup)
+  //     const matchesAgeGroup =
+  //       selectedAgeGroup === "All" ||
+  //       participant?.demographics.age_group === selectedAgeGroup
+  //     // console.log("Matches age group:", matchesAgeGroup)
 
-      const matchesParadigm =
-        selectedParadigm === "All" ||
-        session.paradigms.some((p: any) => p.type === selectedParadigm)
-      // console.log("Matches paradigm:", matchesParadigm)
+  //     const matchesParadigm =
+  //       selectedParadigm === "All" ||
+  //       session.paradigms.some((p: any) => p.type === selectedParadigm)
+  //     // console.log("Matches paradigm:", matchesParadigm)
 
-      const result =
-        matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm
-      // console.log("Final result:", result)
+  //     const result =
+  //       matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm
+  //     // console.log("Final result:", result)
 
-      return result
-    })
-    // console.log("Filtered sessions:", filteredSessions.length)
+  //     return result
+  //   })
+  //   // console.log("Filtered sessions:", filteredSessions.length)
 
-    if (sortColumn) {
-      filteredSessions.sort((a, b) => {
-        let aValue, bValue
-        switch (sortColumn) {
-          case "eegid":
-          case "participant_id":
-          case "equipment_used":
-            aValue = a[sortColumn]
-            bValue = b[sortColumn]
-            break
-          case "date":
-            aValue = new Date(a.date)
-            bValue = new Date(b.date)
-            break
-          case "diagnosis":
-          case "age_group":
-          case "species":
-            const aParticipant = getParticipant(a.participant_id)
-            const bParticipant = getParticipant(b.participant_id)
-            if (sortColumn === "diagnosis") {
-              aValue = aParticipant?.clinical_measures.diagnosis
-              bValue = bParticipant?.clinical_measures.diagnosis
-            } else {
-              aValue = aParticipant?.demographics[sortColumn]
-              bValue = bParticipant?.demographics[sortColumn]
-            }
-            break
-          case "paradigms":
-            aValue = a.paradigms.map((p: any) => p.type).join(",")
-            bValue = b.paradigms.map((p: any) => p.type).join(",")
-            break
-        }
-        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
-        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
-        return 0
-      })
-    }
-  }
+  //   if (sortColumn) {
+  //     filteredSessions.sort((a, b) => {
+  //       let aValue, bValue
+  //       switch (sortColumn) {
+  //         case "eegid":
+  //         case "participant_id":
+  //         case "equipment_used":
+  //           aValue = a[sortColumn]
+  //           bValue = b[sortColumn]
+  //           break
+  //         case "date":
+  //           aValue = new Date(a.date)
+  //           bValue = new Date(b.date)
+  //           break
+  //         case "diagnosis":
+  //         case "age_group":
+  //         case "species":
+  //           const aParticipant = getParticipant(a.participant_id)
+  //           const bParticipant = getParticipant(b.participant_id)
+  //           if (sortColumn === "diagnosis") {
+  //             aValue = aParticipant?.clinical_measures.diagnosis
+  //             bValue = bParticipant?.clinical_measures.diagnosis
+  //           } else {
+  //             aValue = aParticipant?.demographics[sortColumn]
+  //             bValue = bParticipant?.demographics[sortColumn]
+  //           }
+  //           break
+  //         case "paradigms":
+  //           aValue = a.paradigms.map((p: any) => p.type).join(",")
+  //           bValue = b.paradigms.map((p: any) => p.type).join(",")
+  //           break
+  //       }
+  //       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
+  //       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
+  //       return 0
+  //     })
+  //   }
+  // }
 
   function toggleSort(column: string) {
     if (sortColumn === column) {
@@ -259,11 +263,11 @@
     }
   }
 
-  function getParticipant(participantId: string) {
-    return studyData.participants.find(
-      (p) => p.participant_id === participantId,
-    )
-  }
+  // function getParticipant(participantId: string) {
+  //   return filteredFiles.participants.find(
+  //     (p) => p.participant_id === participantId,
+  //   )
+  // }
 
   function getDiagnosisBadgeClasses(diagnosis: string): string {
     const colorMap = new Map([
@@ -353,7 +357,7 @@
   }
 </script>
 
-<div class="container mx-auto p-4">
+<!-- <div class="container mx-auto p-4">
   <div class="mb-6 bg-white p-4 rounded-lg shadow">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold flex items-center">
@@ -420,9 +424,9 @@
         </select>
       </div>
     </div>
-  </div>
+  </div> -->
 
-  {#if viewMode === "card"}
+  <!-- {#if viewMode === "card"}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each filteredSessions as session}
         {@const participant = getParticipant(session.participant_id)}
@@ -780,4 +784,4 @@
       </dialog>
     </section>
   {/if}
-</div>
+</div> -->

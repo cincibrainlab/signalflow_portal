@@ -527,8 +527,6 @@ async def ingest_info_files(info_files):
                 "upload_id": file_metadata.get("ID", "NA"),
                 "original_name": file_metadata["MetaData"].get("filename", "NA"),
                 "dataset_id": file_metadata["MetaData"].get("datasetId", "NA"),
-                "eeg_format": file_metadata["MetaData"].get("eegFormat", "NA"),
-                "eeg_paradigm": file_metadata["MetaData"].get("eegParadigm", "NA"),
                 # "upload_user": file_metadata["MetaData"].get("user", "NA"), TODO: Add user support
                 "status": add_status_code(200),
                 "date_added": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

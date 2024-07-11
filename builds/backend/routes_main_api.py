@@ -1,18 +1,12 @@
 from fastapi import APIRouter, HTTPException
 import logging
-
 import db as flow_db
 import os
 from fastapi.responses import JSONResponse
 from flows.AnalysisFlow import AnalysisFlow
-
 from entrypoint import check_entrypoint
 from typing import List
 import models
-
-
-
-
 
 router = APIRouter()
 
@@ -102,66 +96,66 @@ async def list_eeg_paradigms():
 # ────────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: FILES TAB
 # ────────────────────────────────────────────────────────────────────────────────
-@router.get("/api/get-upload-catalog")
+@router.get("/api/get-original-file-catalog")
 async def get_upload_catalog():
     logging.info("Getting file table...")
-    file_catalog = await flow_db.get_upload_catalog()
-    return [models.UploadCatalog(**upload) for upload in file_catalog]
+    file_catalog = await flow_db.get_OriginalImportFile()
+    return [models.OriginalImportFile(**upload) for upload in file_catalog]
 
-@router.get("/api/get-import-catalog")
-async def get_import_catalog():
-    logging.info("Getting import table...")
-    import_catalog = await flow_db.get_import_catalog()
-    return [models.ImportCatalog(**import_record) for import_record in import_catalog]
+# @router.get("/api/get-import-catalog")
+# async def get_import_catalog():
+#     logging.info("Getting import table...")
+#     import_catalog = await flow_db.get_import_catalog()
+#     return [models.ImportCatalog(**import_record) for import_record in import_catalog]
 
-@router.get("/api/get-dataset-catalog")
-async def get_dataset_catalog():
-    logging.info("Getting dataset table...")
-    dataset_catalog = await flow_db.get_dataset_catalog()
-    return [models.DatasetCatalog(**dataset) for dataset in dataset_catalog]
+# @router.get("/api/get-dataset-catalog")
+# async def get_dataset_catalog():
+#     logging.info("Getting dataset table...")
+#     dataset_catalog = await flow_db.get_dataset_catalog()
+#     return [models.DatasetCatalog(**dataset) for dataset in dataset_catalog]
 
-@router.get("/api/get-dataset-stats")
-async def get_dataset_stats():
-    logging.info("Getting dataset stats...")
-    dataset_stats = await flow_db.get_dataset_stats()
-    return dataset_stats
+# @router.get("/api/get-dataset-stats")
+# async def get_dataset_stats():
+#     logging.info("Getting dataset stats...")
+#     dataset_stats = await flow_db.get_dataset_stats()
+#     return dataset_stats
 
-@router.post("/api/merge-datasets")
-async def merge_datasets(dataset_id1: str, dataset_id2: str):
-    try:
-        merged_count = await flow_db.merge_datasets(dataset_id1, dataset_id2)
-        logging.info(f"Merged {merged_count} records from dataset {dataset_id2} into dataset {dataset_id1}")
-        return {"success": True, "message": f"Merged {merged_count} records successfully from dataset {dataset_id2} into dataset {dataset_id1}"}
-    except Exception as e:
-        logging.error(f"Error merging datasets: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+# @router.post("/api/merge-datasets")
+# async def merge_datasets(dataset_id1: str, dataset_id2: str):
+#     try:
+#         merged_count = await flow_db.merge_datasets(dataset_id1, dataset_id2)
+#         logging.info(f"Merged {merged_count} records from dataset {dataset_id2} into dataset {dataset_id1}")
+#         return {"success": True, "message": f"Merged {merged_count} records successfully from dataset {dataset_id2} into dataset {dataset_id1}"}
+#     except Exception as e:
+#         logging.error(f"Error merging datasets: {str(e)}")
+#         raise HTTPException(status_code=500, detail=str(e))
 
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: DATASET CRUD
 # ───────────────────────────────────────────────────────────────────────────────���
-@router.post("/api/add-dataset", response_model=models.Dataset)
-async def add_dataset(dataset_entry: models.Dataset):
-    try:
-        new_dataset = await flow_db.add_dataset(dataset_entry)
-        logging.debug(f"New Dataset Added: {new_dataset}")
-        return {"success": True, "message": "Dataset added successfully", "dataset": new_dataset}
-    except Exception as e:
-        logging.error(f"Error adding dataset: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+# @router.post("/api/add-dataset", response_model=models.Dataset)
+# async def add_dataset(dataset_entry: models.Dataset):
+#     try:
+#         new_dataset = await flow_db.add_dataset(dataset_entry)
+#         logging.debug(f"New Dataset Added: {new_dataset}")
+#         return {"success": True, "message": "Dataset added successfully", "dataset": new_dataset}
+#     except Exception as e:
+#         logging.error(f"Error adding dataset: {str(e)}")
+#         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/api/update-dataset", response_model=models.Dataset)
-async def update_dataset(dataset_entry: models.Dataset):
-    try:
-        updated_dataset = await flow_db.update_dataset(dataset_entry)
-        logging.debug(f"Dataset Updated: {updated_dataset}")
-        print(f"Dataset Updated: {updated_dataset}")
-        if updated_dataset:
-            return JSONResponse(status_code=200, content={"success": True, "message": "Dataset updated successfully"})
-        else:
-            return JSONResponse(status_code=404, content={"success": False, "message": "Dataset not found"})
-    except Exception as e:
-        logging.error(f"Error updating dataset: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+# @router.post("/api/update-dataset", response_model=models.Dataset)
+# async def update_dataset(dataset_entry: models.Dataset):
+#     try:
+#         updated_dataset = await flow_db.update_dataset(dataset_entry)
+#         logging.debug(f"Dataset Updated: {updated_dataset}")
+#         print(f"Dataset Updated: {updated_dataset}")
+#         if updated_dataset:
+#             return JSONResponse(status_code=200, content={"success": True, "message": "Dataset updated successfully"})
+#         else:
+#             return JSONResponse(status_code=404, content={"success": False, "message": "Dataset not found"})
+#     except Exception as e:
+#         logging.error(f"Error updating dataset: {str(e)}")
+#         raise HTTPException(status_code=400, detail=str(e))
 
 # ────────────────���───────────────────────────────────────────────────────────────
 # FUNCTION: UPLOAD PROCESSING
@@ -174,44 +168,44 @@ async def process_uploads():
     await flow_db.process_new_uploads(upload_dir=UPLOAD_PATH)
     return {"message": "Uploads processed successfully."}
 
-@router.get("/api/show_upload_catalog")
-async def list_upload_catalog():
-    from rich.console import Console
-    from rich.table import Table
+# @router.get("/api/show_upload_catalog")
+# async def list_upload_catalog():
+#     from rich.console import Console
+#     from rich.table import Table
 
-    logging.info("Getting Upload Catalog Info")
-    upload_catalog = await flow_db.get_upload_catalog()
+#     logging.info("Getting Upload Catalog Info")
+#     upload_catalog = await flow_db.get_upload_catalog()
 
-    console = Console()
-    table = Table(title="Upload Catalog")
-    table.add_column("Upload_ID", style="cyan", no_wrap=True)
-    table.add_column("FDT Upload", style="green", no_wrap=True)
-    table.add_column("FileName", style="magenta", no_wrap=True)
-    table.add_column("is_set_file", style="green", no_wrap=True)
-    table.add_column("has_fdt_file", style="magenta", no_wrap=True)
-    table.add_column("fdt_filename", style="green", no_wrap=True)
-    for upload in upload_catalog:
-        table.add_row(
-            upload["upload_id"],
-            upload["fdt_id"],
-            upload["original_name"],
-            str(upload["is_set_file"]),
-            str(upload["has_fdt_file"]),
-            upload["fdt_filename"],
-        )
+#     console = Console()
+#     table = Table(title="Upload Catalog")
+#     table.add_column("Upload_ID", style="cyan", no_wrap=True)
+#     table.add_column("FDT Upload", style="green", no_wrap=True)
+#     table.add_column("FileName", style="magenta", no_wrap=True)
+#     table.add_column("is_set_file", style="green", no_wrap=True)
+#     table.add_column("has_fdt_file", style="magenta", no_wrap=True)
+#     table.add_column("fdt_filename", style="green", no_wrap=True)
+#     for upload in upload_catalog:
+#         table.add_row(
+#             upload["upload_id"],
+#             upload["fdt_id"],
+#             upload["original_name"],
+#             str(upload["is_set_file"]),
+#             str(upload["has_fdt_file"]),
+#             upload["fdt_filename"],
+#         )
 
-    console.print(table)
-    return [
-        {
-            "upload_id": upload["upload_id"],
-            "fdt_id": upload["fdt_id"],
-            "original_name": upload["original_name"],
-            "is_set_file": upload["is_set_file"],
-            "has_fdt_file": upload["has_fdt_file"],
-            "fdt_filename": upload["fdt_filename"],
-        }
-        for upload in upload_catalog
-    ]
+#     console.print(table)
+#     return [
+#         {
+#             "upload_id": upload["upload_id"],
+#             "fdt_id": upload["fdt_id"],
+#             "original_name": upload["original_name"],
+#             "is_set_file": upload["is_set_file"],
+#             "has_fdt_file": upload["has_fdt_file"],
+#             "fdt_filename": upload["fdt_filename"],
+#         }
+#         for upload in upload_catalog
+#     ]
 
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: ANALYSIS ENDPOINT
