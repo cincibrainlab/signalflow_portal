@@ -100,7 +100,7 @@ class EegAnalysis(BaseModel):
     function_name: str
     description: str
     category: str
-    valid_formats: str
+    valid_formats: list[str]
     valid_paradigms: list[EEGParadigm]
     valid_files: list[File]
     files: list[FileStatus]

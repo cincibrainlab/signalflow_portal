@@ -40,7 +40,7 @@ async def is_database_connected():
 async def delete_database():
     await client.drop_database(DATABASE_NAME)
     
-def initialize_database(reset=False):
+def initialize_database(reset=True):
     db_url = MONGO_URL
     db_name = "sfportal"  # Set your desired database name
     console = Console()

@@ -10,13 +10,37 @@ api:
   port: 3005
   # 8001
 
-users:
-  - email: 'ernest.pedapati@cchmc.org'
-  - email: 'grace.westerkamp@cchmc.org'
-  - email: 'carrie.randle@ucr.edu'
-  - email: 'nate.suer@cchmc.org'
-  - email: 'yanchen.liu@cchmc.org'
-  - email: 'gavin.gammoh@cchmc.org'
+User:
+  - username: 'erniepedapati'
+    email: 'ernest.pedapati@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: True
+  - username: 'gracewesterkamp'
+    email: 'grace.westerkamp@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: False
+  - username: 'carrie.randle'
+    email: 'carrie.randle@ucr.edu'
+    password: 'password'
+    is_active: True
+    is_superuser: False
+  - username: 'nathansuer'
+    email: 'nathan.suer@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: True
+  - username: 'yanchenliu'
+    email: 'yanchen.liu@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: False
+  - username: 'gavingammoh'
+    email: 'gavin.gammoh@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: False
   
 # This file is used to configure the portal
 folder_paths:
@@ -28,7 +52,7 @@ folder_paths:
   logs: portal_files/logs
   
 # List of EEG formats
-eeg_formats:
+EEGFormat:
   - name: 'EGI128/Adult'
     description: 'EGI Hydrocel 128 (Adult)'
   - name: 'EGI128/Infant'
@@ -41,7 +65,7 @@ eeg_formats:
     description: 'NeuroNexus MEA 30 (v2)'
 
 # List of EEG paradigms
-eeg_paradigms:
+EEGParadigm:
   - name: 'Resting'
     description: 'Subject is at rest with eyes open or closed'
   - name: 'Visual'
@@ -49,7 +73,7 @@ eeg_paradigms:
   - name: 'Auditory Chirp'
     description: 'Version B Click-Train 2023+'
 
-eeg_analyses:
+EegAnalysis:
   - name: 'Mne-Connectivity-Default'
     category: 'Connectivity'
     description: 'All-to-all connectivity analysis'
