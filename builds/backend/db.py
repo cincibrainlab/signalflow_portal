@@ -365,7 +365,8 @@ async def assign_participant_to_file(participantId, fileId):
         {"upload_id": fileId},
         {
             "$set": {
-                "participant_id": selected_participant["_id"]
+                "participant": selected_participant["_id"],
+                "status": add_status_code(201)
             }
         }
     )

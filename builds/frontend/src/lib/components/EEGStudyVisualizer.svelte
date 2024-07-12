@@ -96,6 +96,18 @@
   let Files: any = []
   let Participants: any = []
 
+  function reloadFiles() {
+      getOriginalFileCatalog()
+          .then(result => {
+              const setFiles = result.filter((file: any) => file.is_set_file === true);
+              Files = [...Files, ...setFiles]; // Spread the new files into the existing array
+          })
+          .catch(error => {
+              console.error('Error fetching file catalog:', error);
+              // Handle the error appropriately
+          });
+  }
+
   onMount(() => {
 
     getOriginalFileCatalog()
@@ -830,7 +842,7 @@
                 {/each}
               </select>
             </div>
-            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); selectedFile = null;}}>Close</Button>
+            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); selectedFile = null; reloadFiles();}}>Close</Button>
           </form>
       </dialog>
     </section>
