@@ -110,14 +110,17 @@
   let Files: any = []
 
   onMount(() => {
-    
-    getOriginalFileCatalog().then(result => {
 
-      // for (let i = 0; i < result.length; i++) {
-      //   result[i].
-      // }
-      Files = result;
-    });
+    getOriginalFileCatalog()
+        .then(result => {
+            const setFiles = result.filter((file: any) => file.is_set_file === true);
+            Files = [...Files, ...setFiles]; // Spread the new files into the existing array
+        })
+        .catch(error => {
+            console.error('Error fetching file catalog:', error);
+            // Handle the error appropriately
+        });
+
 
     uniqueDiagnoses = [
       "All",
