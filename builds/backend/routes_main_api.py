@@ -7,6 +7,7 @@ from flows.AnalysisFlow import AnalysisFlow
 from entrypoint import check_entrypoint
 from typing import List
 import models
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -101,6 +102,26 @@ async def get_upload_catalog():
     logging.info("Getting file table...")
     file_catalog = await flow_db.get_OriginalImportFile()
     return [models.OriginalImportFile(**upload) for upload in file_catalog]
+
+@router.get("/api/get-participants")
+async def get_participants():
+    logging.info("Getting participants...")
+    participants = await flow_db.get_participants()
+    return [models.Participant(**participant) for participant in participants]
+
+class AssignmentRequest(BaseModel):
+    participantId: str
+    fileId: str
+    
+@router.post("/api/assign-participant-to-file",response_model=models.OriginalImportFile)
+async def assign_participant_to_file(request: AssignmentRequest):
+    try:
+        updated_file = await flow_db.assign_participant_to_file(request.participantId, request.fileId)
+        logging.debug(f"File Updated: {updated_file}")
+        return {"success": True, "message": "Participant assigned to file successfully", "file": updated_file}
+    except Exception as e:
+        logging.error(f"Error assigning participant to file: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 # @router.get("/api/get-import-catalog")
 # async def get_import_catalog():

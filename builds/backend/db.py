@@ -329,6 +329,52 @@ async def get_emails():
         for user in users
     ]
     
+async def get_participants():
+    db = await get_database()
+    participants = await db.Participant.find().to_list(length=None)
+    return [
+        {
+            "participant_id": participant["participant_id"],
+            "species": participant.get("species"),
+            "age": participant.get("age"),
+            "age_group": participant.get("age_group"),
+            "gender": participant.get("gender"),
+            "handedness": participant.get("handedness"),
+            "diagnosis": participant.get("diagnosis"),
+            "iq_score": participant.get("iq_score"),
+            "anxiety_level": participant.get("anxiety_level")
+        }
+        for participant in participants
+    ]
+    
+async def assign_participant_to_file(participantId, fileId):
+    db = await get_database()
+    
+    # Get the participant
+    selected_participant = await db.Participant.find_one({"participant_id": participantId})
+    if not selected_participant:
+        return {"error": "Participant not found"}
+    
+    # Check if the file exists
+    file = await db.OriginalImportFile.find_one({"upload_id": fileId})
+    if not file:
+        return {"error": "File not found"}
+    
+    # Update the file with the participant reference
+    result = await db.OriginalImportFile.update_one(
+        {"upload_id": fileId},
+        {
+            "$set": {
+                "participant_id": selected_participant["_id"]
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        return {"error": "File not updated. It may already have this participant."}
+    
+    return {"success": "Participant assigned to file"}
+    
 async def get_OriginalImportFile():
     db = await get_database()
     file_catalog = await db.OriginalImportFile.find().to_list(length=None)

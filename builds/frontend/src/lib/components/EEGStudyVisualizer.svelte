@@ -39,9 +39,10 @@
     TableRow,
   } from "$lib/components/ui/table"
   import { DateInput } from 'date-picker-svelte'
-  import { getOriginalFileCatalog } from '$lib/services/apiService';
+  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile } from '$lib/services/apiService';
 
   let selectedFile: any = null
+  let NewFile: boolean = false
   // On the change of selectedFile, we want to fetch the participant data
   let searchTerm = ""
   let selectedDiagnosis: string = "All"
@@ -67,38 +68,23 @@
   let selectedParticipant: any = null
   let selectedFileDate: any = null
   $: if (selectedFile) {
-    selectedParticipant = {
-      participant_id: "Unknown",
-      age: -1,
-      age_group: "All",
-      gender: "All",
-      handedness: "All",
-      species: "All",
-      diagnosis: "All",
-      iq_score: -1,
-      anxiety_level: -1,
-    }
-    // try {
-    //   selectedParticipant = selectedFile.participant
-    // } catch (e) {
-    //     selectedParticipant = {
-    //       participant_id: "Unknown",
-    //       age: -1,
-    //       age_group: "All",
-    //       gender: "All",
-    //       handedness: "All",
-    //       species: "All",
-    //       diagnosis: "All",
-    //       iq_score: -1,
-    //       anxiety_level: -1,
-    //     }
-    //     // Handle the case when selectedFile.participant is undefined
-    //     // Add your exception handling code here
-    // }
-      selectedFile = formatDateForInput(selectedFile.date_added);
+    if (selectedFile.status == "NEW") {
+      NewFile = true
+    } else {
+      NewFile = false
+      selectedParticipant = selectedFile.participant
+      selectedFileDate = formatDateForInput(selectedFile.date_added);
       console.log(selectedFile.date_added);
       console.log(selectedFile);
     }
+  }
+  
+  let Selected_participant_id: string = ""
+  $: if (NewFile) {
+    console.log("New File")
+    console.log(Participants)
+
+  }
   
   function formatDateForInput(dateString: string) {
     return new Date(dateString); // Returns YYYY-MM-DDTHH:mm
@@ -108,6 +94,7 @@
     isEditing = false
   }
   let Files: any = []
+  let Participants: any = []
 
   onMount(() => {
 
@@ -121,6 +108,14 @@
             // Handle the error appropriately
         });
 
+    getParticipants()
+        .then(result => {
+            Participants = result;
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            // Handle the error appropriately
+        });
 
     uniqueDiagnoses = [
       "All",
@@ -665,11 +660,10 @@
       </TableBody>
     </Table>
   {/if}
-  {#if selectedFile}
+  {#if NewFile === false && selectedFile}
     <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" transition:fade open>
         <h2 class="text-2xl font-bold mb-4">Session Details: {selectedFile.eegid}</h2>
-        
         <form>
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
@@ -818,6 +812,26 @@
           
           <Button on:click={() => selectedFile = null}>Close</Button>
         </form>
+      </dialog>
+    </section>
+  {/if}
+  {#if NewFile === true && selectedFile}
+    <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" transition:fade open>
+        <h2 class="text-2xl font-bold mb-4">Select Participant</h2>
+          <form>
+            <div class="w-full">
+              <label
+                for="Participant"
+                class="block text-sm font-semibold text-gray-700 mb-1">Participant:</label>
+              <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={Selected_participant_id} >
+                {#each Participants as person}
+                  <option value={person.participant_id}>{person.participant_id}</option>
+                {/each}
+              </select>
+            </div>
+            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); selectedFile = null;}}>Close</Button>
+          </form>
       </dialog>
     </section>
   {/if}

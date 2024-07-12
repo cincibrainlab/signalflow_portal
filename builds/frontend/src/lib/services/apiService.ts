@@ -37,6 +37,42 @@ export async function getOriginalFileCatalog() {
   }
 }
 
+export async function getParticipants() {
+  try {
+      const response = await fetch(`${baseUrl}get-participants`);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      return data;
+  } catch (error) {
+      console.error('Error fetching participants:', error);
+      throw error;
+  }
+}
+
+export async function assignParticipantToFile(participantId: string, fileId: string) {
+  console.log(`Assigning participant ${participantId} to file ${fileId}`);
+  const response = await fetch(`${baseUrl}assign-participant-to-file`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ participantId, fileId })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to assign participant to file');
+  }
+
+  return response.json();
+}
 // export async function addDataset(datasetEntry: DatasetRow) {
 //   console.log(`Adding dataset: ${JSON.stringify(datasetEntry)}`);
 //   const response = await fetch(`${baseUrl}add-dataset`, {
