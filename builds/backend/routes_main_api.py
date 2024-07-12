@@ -122,6 +122,16 @@ async def assign_participant_to_file(request: AssignmentRequest):
     except Exception as e:
         logging.error(f"Error assigning participant to file: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/api/get-participant/{participantObjectId}")
+async def get_participant(participantObjectId: str):
+    try:
+        participant = await flow_db.get_participant(participantObjectId)
+        logging.debug(f"Participant: {participant}")
+        return {"success": True, "message": "Participant retrieved successfully", "participant": participant}
+    except Exception as e:
+        logging.error(f"Error retrieving participant: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
 
 # @router.get("/api/get-import-catalog")
 # async def get_import_catalog():

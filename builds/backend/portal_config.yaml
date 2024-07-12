@@ -92,6 +92,17 @@ EegAnalysis:
 
 # List of fake Participants
 Participant:
+  - participant_id: 'Empty'
+    species: 'All'
+    age: -1
+    age_group: 'All'
+    gender: 'All'
+    handedness: 'All'
+    diagnosis: 'All'
+    iq_score: -1
+    anxiety_level: -1
+    paradigm: 'All'
+    equipment: 'All'
   - participant_id: '0012'
     species: 'Human'
     age: 25
@@ -101,6 +112,8 @@ Participant:
     diagnosis: 'None'
     iq_score: 100
     anxiety_level: 5
+    paradigm: 'resting_state'
+    equipment: 'EGI Hydrocel 128'
   - participant_id: '0274'
     species: 'Human'
     age: 25
@@ -110,6 +123,8 @@ Participant:
     diagnosis: 'None'
     iq_score: 100
     anxiety_level: 5
+    paradigm: 'chirp'
+    equipment: 'EGI Hydrocel 128 infant'
   - participant_id: '0280'
     species: 'Human'
     age: 25
@@ -119,6 +134,8 @@ Participant:
     diagnosis: 'None'
     iq_score: 100
     anxiety_level: 5
+    paradigm: 'cognitive_flexibility'
+    equipment: 'BioSemi ActiveTwo 32 infant'
   - participant_id: '0418'
     species: 'Human'
     age: 25
@@ -128,6 +145,8 @@ Participant:
     diagnosis: 'None'
     iq_score: 100
     anxiety_level: 5
+    paradigm: 'other'
+    equipment: 'EGI Hydrocel 128'
   - participant_id: '1807'
     species: 'Human'
     age: 25
@@ -137,6 +156,8 @@ Participant:
     diagnosis: 'None'
     iq_score: 100
     anxiety_level: 5
+    paradigm: 'resting_state'
+    equipment: 'BrainVision 64'
   - participant_id: '2502'
     species: 'Human'
     age: 25
@@ -146,5 +167,7 @@ Participant:
     diagnosis: 'None'
     iq_score: 100
     anxiety_level: 5
+    paradigm: 'chirp'
+    equipment: 'EGI Hydrocel 32'
 # -------------------------------------------------------------------------------------------------
   

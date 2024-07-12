@@ -14,6 +14,7 @@ import glob
 import hashlib
 from shutil import copy
 import mne
+import models
 
 MONGO_URL = "mongodb://localhost:3002"
 DATABASE_NAME = "sfportal"
@@ -375,6 +376,24 @@ async def assign_participant_to_file(participantId, fileId):
         return {"error": "File not updated. It may already have this participant."}
     
     return {"success": "Participant assigned to file"}
+
+async def get_participant(participant_id):
+    db = await get_database()
+    participant = await db.Participant.find_one({"participant_id": participant_id})
+    if participant:
+        return {
+            "participant_id": participant["participant_id"],
+            "species": participant.get("species"),
+            "age": participant.get("age"),
+            "age_group": participant.get("age_group"),
+            "gender": participant.get("gender"),
+            "handedness": participant.get("handedness"),
+            "diagnosis": participant.get("diagnosis"),
+            "iq_score": participant.get("iq_score"),
+            "anxiety_level": participant.get("anxiety_level")
+        }
+    
+            
     
 async def get_OriginalImportFile():
     db = await get_database()
@@ -397,7 +416,8 @@ async def get_OriginalImportFile():
             "hash": upload_record.get("hash"),
             "size": upload_record.get("size"),
             "remove_upload": upload_record.get("remove_upload"),
-            "upload_email": upload_record.get("upload_email")
+            "upload_email": upload_record.get("upload_email"),
+            "participant": upload_record.get("participant"),
         }
         for upload_record in file_catalog
     ]
@@ -568,8 +588,10 @@ async def delete_uploads_and_save_info_files():
 
 async def ingest_info_files(info_files):
     async def extract_metadata(info_file):
+        db = await get_database()
         config = await load_config()
         folder_path = config["folder_paths"]["uploads"]
+        participant = await db.Participant.find_one({"participant_id": "Empty"})
         with open(info_file, "r") as f:
             file_metadata = json.load(f)
             
@@ -587,6 +609,7 @@ async def ingest_info_files(info_files):
                     )
                 ),
                 "remove_upload": False,
+                "participant": participant["_id"]
             }
             
             dataset_catalog_entry = {
@@ -720,35 +743,37 @@ def get_core_eeg_info( set_file_path ):
     return eeg_core_info
 
     
-async def update_file_catalog():
-    db = await get_database()
-    set_files = await db.OriginalImportFile.find({"is_set_file": True}).to_list(None)
-    for file in set_files:
-        # Check if the record already exists in the ImportCatalog
-        existing_record = await db.File.find_one({"upload_id": file["upload_id"]})
-        if existing_record:
-            print(f"\033[93mRecord already exists in ImportCatalog with ID: {existing_record['upload_id']}\033[0m")
-        else:
-            set_dest_path, fdt_dest_path = await copy_import_files(file["upload_id"])
-            core_info = get_core_eeg_info(set_dest_path)
-            print(f"Before ImportCatalog creation: eeg_format={file['eeg_format']}, eeg_paradigm={file['eeg_paradigm']}")
+# async def update_file_catalog():
+#     db = await get_database()
+#     set_files = await db.OriginalImportFile.find({"is_set_file": True}).to_list(None)
+#     for file in set_files:
+#         # Check if the record already exists in the ImportCatalog
+#         existing_record = await db.File.find_one({"upload_id": file["upload_id"]})
+#         if existing_record:
+#             print(f"\033[93mRecord already exists in ImportCatalog with ID: {existing_record['upload_id']}\033[0m")
+#         else:
+#             set_dest_path, fdt_dest_path = await copy_import_files(file["upload_id"])
+#             core_info = get_core_eeg_info(set_dest_path)
+#             print(f"Before ImportCatalog creation: eeg_format={file['eeg_format']}, eeg_paradigm={file['eeg_paradigm']}")
             
-            file_record = {
-                "status": add_status_code(201),
-                "upload_id": file["upload_id"],
-                "date_added": file["date_added"],
-                "original_file": file,
-                "eeg_format": file["eeg_format"],
-                "is_set_file": file["is_set_file"],
-                "has_fdt_file": file["has_fdt_file"],
-                "fdt_filename": file["fdt_filename"],
-                "fdt_upload_id": file["fdt_upload_id"],
-                "hash": file["hash"],
-                "metadata": json.dumps(core_info),
-            }
+#             participant = await db.Participant.find_one({"participant_id": "Empty"})
+#             file_record = {
+#                 "status": add_status_code(201),
+#                 "upload_id": file["upload_id"],
+#                 "date_added": file["date_added"],
+#                 "original_file": file,
+#                 "eeg_format": file["eeg_format"],
+#                 "is_set_file": file["is_set_file"],
+#                 "has_fdt_file": file["has_fdt_file"],
+#                 "fdt_filename": file["fdt_filename"],
+#                 "fdt_upload_id": file["fdt_upload_id"],
+#                 "hash": file["hash"],
+#                 "metadata": json.dumps(core_info),
+#                 "participant": participant["_id"]
+#             }
         
-            await db.OriginalImportFile.insert_one(file_record)
-            print(f"\033[92mRecord added in ImportCatalog with ID: {file_record['upload_id']}\033[0m")
-            await clean_import_files(file["upload_id"])
+#             await db.OriginalImportFile.insert_one(file_record)
+#             print(f"\033[92mRecord added in ImportCatalog with ID: {file_record['upload_id']}\033[0m")
+#             await clean_import_files(file["upload_id"])
 
-    print(f"Transferred {len(set_files)} SET files from UploadCatalog to ImportCatalog.")
+#     print(f"Transferred {len(set_files)} SET files from UploadCatalog to ImportCatalog.")

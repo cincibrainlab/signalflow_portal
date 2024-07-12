@@ -39,7 +39,7 @@
     TableRow,
   } from "$lib/components/ui/table"
   import { DateInput } from 'date-picker-svelte'
-  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile } from '$lib/services/apiService';
+  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant } from '$lib/services/apiService';
 
   let selectedFile: any = null
   let NewFile: boolean = false
@@ -72,10 +72,11 @@
       NewFile = true
     } else {
       NewFile = false
-      selectedParticipant = selectedFile.participant
-      selectedFileDate = formatDateForInput(selectedFile.date_added);
-      console.log(selectedFile.date_added);
-      console.log(selectedFile);
+      console.log(selectedFile)
+      selectedParticipant = getParticipant(selectedFile.participant)
+      // selectedParticipant = selectedFile.participant
+      // selectedFileDate = formatDateForInput(selectedFile.date_added);
+      // console.log(selectedParticipant);
     }
   }
   
@@ -97,15 +98,16 @@
   let Participants: any = []
 
   function reloadFiles() {
-      getOriginalFileCatalog()
-          .then(result => {
-              const setFiles = result.filter((file: any) => file.is_set_file === true);
-              Files = [...Files, ...setFiles]; // Spread the new files into the existing array
-          })
-          .catch(error => {
-              console.error('Error fetching file catalog:', error);
-              // Handle the error appropriately
-          });
+    Files = []
+    getOriginalFileCatalog()
+        .then(result => {
+            const setFiles = result.filter((file: any) => file.is_set_file === true);
+            Files = [...Files, ...setFiles]; // Spread the new files into the existing array
+        })
+        .catch(error => {
+            console.error('Error fetching file catalog:', error);
+            // Handle the error appropriately
+        });
   }
 
   onMount(() => {
@@ -114,6 +116,7 @@
         .then(result => {
             const setFiles = result.filter((file: any) => file.is_set_file === true);
             Files = [...Files, ...setFiles]; // Spread the new files into the existing array
+            console.log("Files:", Files)
         })
         .catch(error => {
             console.error('Error fetching file catalog:', error);
@@ -471,7 +474,7 @@
   {#if viewMode === "card"}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each filteredFiles as file}
-        {@const participant = file.participant}
+        {@const participant = getParticipant(file.participant)}
         <Card
           class="hover:shadow-lg transition-shadow duration-300 cursor-pointer"
           on:click={() =>

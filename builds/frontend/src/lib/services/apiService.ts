@@ -56,6 +56,25 @@ export async function getParticipants() {
   }
 }
 
+export async function getParticipant(participantObjectId: string) {
+  try {
+      const response = await fetch(`${baseUrl}get-participant/${participantObjectId}`);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      return data;
+  } catch (error) {
+      console.error('Error fetching participant:', error);
+      throw error;
+  }
+}
+
 export async function assignParticipantToFile(participantId: string, fileId: string) {
   console.log(`Assigning participant ${participantId} to file ${fileId}`);
   const response = await fetch(`${baseUrl}assign-participant-to-file`, {
