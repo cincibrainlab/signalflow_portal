@@ -15,6 +15,7 @@ import hashlib
 from shutil import copy
 import mne
 import models
+from bson import ObjectId
 
 MONGO_URL = "mongodb://localhost:3002"
 DATABASE_NAME = "sfportal"
@@ -377,9 +378,10 @@ async def assign_participant_to_file(participantId, fileId):
     
     return {"success": "Participant assigned to file"}
 
-async def get_participant(participant_id):
+async def get_participant(participant_object_id):
     db = await get_database()
-    participant = await db.Participant.find_one({"participant_id": participant_id})
+    participant_object_id_true = ObjectId(participant_object_id)
+    participant = await db.Participant.find_one({"_id": participant_object_id_true})
     if participant:
         return {
             "participant_id": participant["participant_id"],
