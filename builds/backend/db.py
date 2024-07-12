@@ -502,7 +502,10 @@ async def align_fdt_files():
                     "fdt_filename": fdt_filename,
                     "fdt_upload_id": None
                 })
-            await db.OriginalImportFile.update_one({"_id": row['_id']}, {"$set": update_data})
+        else:
+            update_data = {"is_set_file": False}
+
+        await db.OriginalImportFile.update_one({"_id": row['_id']}, {"$set": update_data})
             
 async def delete_uploads_and_save_info_files():
     config = await load_config()
@@ -697,7 +700,7 @@ async def update_file_catalog():
                 "metadata": json.dumps(core_info),
             }
         
-            await db.File.insert_one(file_record)
+            await db.OriginalImportFile.insert_one(file_record)
             print(f"\033[92mRecord added in ImportCatalog with ID: {file_record['upload_id']}\033[0m")
             await clean_import_files(file["upload_id"])
 

@@ -112,6 +112,10 @@
   onMount(() => {
     
     getOriginalFileCatalog().then(result => {
+
+      // for (let i = 0; i < result.length; i++) {
+      //   result[i].
+      // }
       Files = result;
     });
 
@@ -697,6 +701,7 @@
                   <label
                     for="Age"
                     class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
+                    <DateInput value={selectedFileDate} format="MM-dd-yyyy" disabled={!isEditing}/>
                   <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.age} disabled={!isEditing}>
                 </div>
                 <div class="w-full">
