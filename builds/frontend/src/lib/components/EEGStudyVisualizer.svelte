@@ -1,6 +1,8 @@
 <!-- src/lib/components/EEGStudyVisualizer.svelte -->
 <script lang="ts">
   import { onMount } from "svelte"
+  import { goto } from "$app/navigation"
+  import { invalidate } from '$app/navigation';
   import { fade, slide } from "svelte/transition"
   import {
     Card,
@@ -97,8 +99,9 @@
   let Files: any = []
   let Participants: any = []
 
-  function reloadFiles() {
-    Files = []
+  function reloadFiles(Files: any[]) {
+    // Files = []
+    console.log("Reloading files:", Files)
     getOriginalFileCatalog()
         .then(result => {
             const setFiles = result.filter((file: any) => file.is_set_file === true);
@@ -108,6 +111,7 @@
             console.error('Error fetching file catalog:', error);
             // Handle the error appropriately
         });
+    return Files
   }
 
   onMount(() => {
@@ -186,12 +190,12 @@
     ]
     UniqueSpecies = [
       "All",
-      "Human",
-      "Mouse",
-      "Rat",
-      "Monkey",
-      "Dog",
-      "Cat",
+      "human",
+      "mouse",
+      "rat",
+      "monkey",
+      "dog",
+      "cat",
       "Other"
     ]
     UniqueParadigmTypes = [
@@ -474,77 +478,78 @@
   {#if viewMode === "card"}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each filteredFiles as file}
-        {@const participant = getParticipant(file.participant)}
-        <Card
-          class="hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-          on:click={() =>
-            (selectedFile = selectedFile === file ? null : file)}
-        >
-          <CardHeader>
-            <CardTitle class="flex items-center justify-between">
-              <span>EEGID: {file.eegid}</span>
-              <div class="flex gap-2">
-                <Badge
-                  class={getDiagnosisBadgeClasses(
-                    participant?.diagnosis,
-                  )}
-                >
-                  {participant?.diagnosis || "Unknown"}
-                </Badge>
-                <Badge
-                  class={getAgeBadgeClasses(
-                    participant?.age_group,
-                  )}
-                >
-                  <svelte:component
-                    this={getAgeIcon(participant?.age_group)}
-                    class="w-4 h-4 mr-1"
-                  />
-                  {participant?.age_group || "Unknown"}
-                </Badge>
+        {#await getParticipant(file.participant) then participant}
+          <Card
+            class="hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+            on:click={() =>
+              (selectedFile = selectedFile === file ? null : file)}
+          >
+            <CardHeader>
+              <CardTitle class="flex items-center justify-between">
+                <span>Name: {file.original_name}</span>
+                <div class="flex gap-2">
+                  <Badge
+                    class={getDiagnosisBadgeClasses(
+                      participant.diagnosis,
+                    )}
+                  >
+                    {participant.diagnosis || "Unknown"}
+                  </Badge>
+                  <Badge
+                    class={getAgeBadgeClasses(
+                      participant?.age_group,
+                    )}
+                  >
+                    <svelte:component
+                      this={getAgeIcon(participant?.age_group)}
+                      class="w-4 h-4 mr-1"
+                    />
+                    {participant?.age_group || "Unknown"}
+                  </Badge>
+                  <Badge variant="outline" class="flex items-center gap-1">
+                    <svelte:component
+                      this={getSpeciesIcon(participant?.species)}
+                      class="w-4 h-4 mr-1"
+                    />
+                    {participant?.species || "Unknown"}
+                  </Badge>
+                </div>
+              </CardTitle>
+              <CardDescription>
+                Date: {new Date(file.date_added).toLocaleDateString()}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p class="text-sm text-gray-600">
+                Participant ID: {participant?.participant_id}
+              </p>
+              <p class="text-sm text-gray-600">
+                Status: {file.status}
+              </p>
+            </CardContent>
+            <!-- TODO Make this into showing something else -->
+            <!-- <CardFooter class="flex justify-between">
+              {#each file.paradigms as paradigm}
                 <Badge variant="outline" class="flex items-center gap-1">
                   <svelte:component
-                    this={getSpeciesIcon(participant?.species)}
-                    class="w-4 h-4 mr-1"
+                    this={getParadigmIcon(paradigm.type)}
+                    class="w-4 h-4"
                   />
-                  {participant?.species || "Unknown"}
+                  {paradigm.type.replace("_", " ")}
                 </Badge>
-              </div>
-            </CardTitle>
-            <CardDescription>
-              Date: {new Date(file.date_added).toLocaleDateString()}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p class="text-sm text-gray-600">
-              Participant ID: {file.participant.participant_id}
-            </p>
-            <p class="text-sm text-gray-600">
-              Equipment: {file.equipment_used}
-            </p>
-          </CardContent>
-          <!-- TODO Make this into showing something else -->
-          <!-- <CardFooter class="flex justify-between">
-            {#each file.paradigms as paradigm}
-              <Badge variant="outline" class="flex items-center gap-1">
-                <svelte:component
-                  this={getParadigmIcon(paradigm.type)}
-                  class="w-4 h-4"
-                />
-                {paradigm.type.replace("_", " ")}
-              </Badge>
-            {/each}
-          </CardFooter> -->
-          <CardFooter>
-            <a
-              href={getDetailedRecordLink(file.eegid)}
-              class="text-blue-500 hover:text-blue-700 flex items-center"
-            >
-              View Details
-              <ExternalLink class="w-4 h-4 ml-1" />
-            </a>
-          </CardFooter>
-        </Card>
+              {/each}
+            </CardFooter> -->
+            <CardFooter>
+              <a
+                href={getDetailedRecordLink(file.eegid)}
+                class="text-blue-500 hover:text-blue-700 flex items-center"
+              >
+                View Details
+                <ExternalLink class="w-4 h-4 ml-1" />
+              </a>
+            </CardFooter>
+          </Card>
+        {/await}
       {/each}
     </div>
   {:else}
@@ -845,7 +850,7 @@
                 {/each}
               </select>
             </div>
-            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); selectedFile = null; reloadFiles();}}>Close</Button>
+            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); selectedFile = null; Files = reloadFiles(Files);}}>Close</Button>
           </form>
       </dialog>
     </section>

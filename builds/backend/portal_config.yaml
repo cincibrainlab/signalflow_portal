@@ -104,67 +104,67 @@ Participant:
     paradigm: 'All'
     equipment: 'All'
   - participant_id: '0012'
-    species: 'Human'
+    species: 'mouse'
     age: 25
-    age_group: 'Adult'
+    age_group: 'infant'
     gender: 'Male'
     handedness: 'Right'
-    diagnosis: 'None'
+    diagnosis: 'FXS'
     iq_score: 100
     anxiety_level: 5
     paradigm: 'resting_state'
     equipment: 'EGI Hydrocel 128'
   - participant_id: '0274'
-    species: 'Human'
+    species: 'cat'
     age: 25
-    age_group: 'Adult'
+    age_group: 'infant'
     gender: 'Female'
     handedness: 'Right'
-    diagnosis: 'None'
+    diagnosis: 'ASD'
     iq_score: 100
     anxiety_level: 5
     paradigm: 'chirp'
     equipment: 'EGI Hydrocel 128 infant'
   - participant_id: '0280'
-    species: 'Human'
+    species: 'mouse'
     age: 25
-    age_group: 'Adult'
+    age_group: 'pediatric'
     gender: 'Female'
     handedness: 'Right'
-    diagnosis: 'None'
+    diagnosis: 'DD'
     iq_score: 100
     anxiety_level: 5
     paradigm: 'cognitive_flexibility'
     equipment: 'BioSemi ActiveTwo 32 infant'
   - participant_id: '0418'
-    species: 'Human'
+    species: 'mouse'
     age: 25
-    age_group: 'Adult'
+    age_group: 'pediatric'
     gender: 'Female'
     handedness: 'Right'
-    diagnosis: 'None'
+    diagnosis: 'Control'
     iq_score: 100
     anxiety_level: 5
     paradigm: 'other'
     equipment: 'EGI Hydrocel 128'
   - participant_id: '1807'
-    species: 'Human'
+    species: 'human'
     age: 25
-    age_group: 'Adult'
+    age_group: 'adult'
     gender: 'Female'
     handedness: 'Right'
-    diagnosis: 'None'
+    diagnosis: 'Blind'
     iq_score: 100
     anxiety_level: 5
     paradigm: 'resting_state'
     equipment: 'BrainVision 64'
   - participant_id: '2502'
-    species: 'Human'
+    species: 'human'
     age: 25
-    age_group: 'Adult'
+    age_group: 'adult'
     gender: 'Female'
     handedness: 'Right'
-    diagnosis: 'None'
+    diagnosis: 'Blind'
     iq_score: 100
     anxiety_level: 5
     paradigm: 'chirp'

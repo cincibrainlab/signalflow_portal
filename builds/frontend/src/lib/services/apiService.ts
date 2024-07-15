@@ -68,7 +68,8 @@ export async function getParticipant(participantObjectId: string) {
       
       const data = await response.json();
       console.log('Response data:', data);
-      return data;
+      let participantObject = data.participant;
+      return participantObject;
   } catch (error) {
       console.error('Error fetching participant:', error);
       throw error;

@@ -51,14 +51,13 @@ async def run_startup_process():
     restart_database = True
     if restart_database:
         initialize_database()
+        if not await check_entrypoint(console):
+            console.print("[bold red]Entry point failed.[/bold red]", style="red")
+            return False
     else:
         if not await is_startup_table_present():
             initialize_database()
-    
-    if not await check_entrypoint(console):
-        console.print("[bold red]Entry point failed.[/bold red]", style="red")
-        return False
-    
+
     await set_logging()
     await set_cors()
     
