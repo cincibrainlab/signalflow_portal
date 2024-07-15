@@ -236,74 +236,80 @@
   })
 
   let filteredFiles: any = []
-  $: filteredFiles = Files.filter((file: any) => {
-    console.log("File:", file);
-    const participant = file.participantData;
-    console.log("Participant:", participant);
+  let isFiltering = false;
 
-    const matchesSearch =
-      file.original_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      participant?.participant_id.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-    console.log("Matches Search:", matchesSearch);
+  $: {
+    isFiltering = true;
+    filteredFiles = Files.filter((file: any) => {
+      console.log("File:", file);
+      const participant = file.participantData;
+      console.log("Participant:", participant);
 
-    const matchesDiagnosis =
-      selectedDiagnosis === "All" ||
-      participant?.diagnosis === selectedDiagnosis;
-    console.log("Matches Diagnosis:", matchesDiagnosis);
+      const matchesSearch =
+        file.original_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+        participant?.participant_id.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+      console.log("Matches Search:", matchesSearch);
 
-    const matchesAgeGroup =
-      selectedAgeGroup === "All" ||
-      participant?.age_group === selectedAgeGroup;
-    console.log("Matches Age Group:", matchesAgeGroup);
+      const matchesDiagnosis =
+        selectedDiagnosis === "All" ||
+        participant?.diagnosis === selectedDiagnosis;
+      console.log("Matches Diagnosis:", matchesDiagnosis);
 
-    const matchesParadigm =
-      selectedParadigm === "All" ||
-      file.eeg_paradigm.some((p: any) => p.type === selectedParadigm);
-    console.log("Matches Paradigm:", matchesParadigm);
+      const matchesAgeGroup =
+        selectedAgeGroup === "All" ||
+        participant?.age_group === selectedAgeGroup;
+      console.log("Matches Age Group:", matchesAgeGroup);
 
-    return matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm;
-  }).sort((a: any, b: any) => {
-    if (!sortColumn) return 0;
-    
-    let aValue, bValue;
-    switch (sortColumn) {
-      case "eegid":
-        aValue = a.original_name;
-        bValue = b.original_name;
-        break;
-      case "participant_id":
-        aValue = a.participantData?.participant_id;
-        bValue = b.participantData?.participant_id;
-        break;
-      case "equipment_used":
-        aValue = a.equipment_used;
-        bValue = b.equipment_used;
-        break;
-      case "date":
-        aValue = new Date(a.date_added);
-        bValue = new Date(b.date_added);
-        break;
-      case "diagnosis":
-      case "age_group":
-      case "species":
-        aValue = a.participantData?.[sortColumn];
-        bValue = b.participantData?.[sortColumn];
-        break;
-      case "paradigms":
-        aValue = a.eeg_paradigm.map((p: any) => p.type).join(",");
-        bValue = b.eeg_paradigm.map((p: any) => p.type).join(",");
-        break;
-    }
-    
-    // Handle undefined or null values
-    if (aValue === undefined || aValue === null) return 1;
-    if (bValue === undefined || bValue === null) return -1;
-    
-    // Compare values
-    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  });
+      const matchesParadigm =
+        selectedParadigm === "All" ||
+        file.eeg_paradigm.some((p: any) => p.type === selectedParadigm);
+      console.log("Matches Paradigm:", matchesParadigm);
+
+      return matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm;
+    }).sort((a: any, b: any) => {
+      if (!sortColumn) return 0;
+      
+      let aValue, bValue;
+      switch (sortColumn) {
+        case "eegid":
+          aValue = a.original_name;
+          bValue = b.original_name;
+          break;
+        case "participant_id":
+          aValue = a.participantData?.participant_id;
+          bValue = b.participantData?.participant_id;
+          break;
+        case "equipment_used":
+          aValue = a.equipment_used;
+          bValue = b.equipment_used;
+          break;
+        case "date":
+          aValue = new Date(a.date_added);
+          bValue = new Date(b.date_added);
+          break;
+        case "diagnosis":
+        case "age_group":
+        case "species":
+          aValue = a.participantData?.[sortColumn];
+          bValue = b.participantData?.[sortColumn];
+          break;
+        case "paradigms":
+          aValue = a.eeg_paradigm.map((p: any) => p.type).join(",");
+          bValue = b.eeg_paradigm.map((p: any) => p.type).join(",");
+          break;
+      }
+      
+      // Handle undefined or null values
+      if (aValue === undefined || aValue === null) return 1;
+      if (bValue === undefined || bValue === null) return -1;
+      
+      // Compare values
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+    isFiltering = false;
+  }
   console.log("Filtered Files:", filteredFiles)
 
   function toggleSort(column: string) {
@@ -607,79 +613,79 @@
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead on:click={() => toggleSort("eegid")}>
+          <TableHead class="w-1/8" on:click={() => toggleSort("eegid")}>
             EEGID
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead on:click={() => toggleSort("participant_id")}>
+          <TableHead class="w-1/8" on:click={() => toggleSort("participant_id")}>
             Participant ID
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead on:click={() => toggleSort("date")}>
+          <TableHead class="w-1/8" on:click={() => toggleSort("date")}>
             Date
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead on:click={() => toggleSort("diagnosis")}>
+          <TableHead class="w-1/8" on:click={() => toggleSort("diagnosis")}>
             Diagnosis
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead on:click={() => toggleSort("age_group")}>
+          <TableHead class="w-1/8" on:click={() => toggleSort("age_group")}>
             Age Group
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead on:click={() => toggleSort("species")}>
+          <TableHead class="w-1/8" on:click={() => toggleSort("species")}>
             Species
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead on:click={() => toggleSort("equipment_used")}>
+          <TableHead class="w-1/8" on:click={() => toggleSort("equipment_used")}>
             Equipment
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead on:click={() => toggleSort("paradigms")}>
+          <TableHead class="w-1/8" on:click={() => toggleSort("paradigms")}>
             Paradigms
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead>Details</TableHead>
+          <TableHead class="w-1/8">Details</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {#each filteredFiles as file}
-          {#await getParticipant(file.participant) then participant}
-            <TableRow
-              on:click={() =>
-                (selectedFile = selectedFile === file ? null : file)}
-              class="cursor-pointer hover:bg-gray-100"
-            >
+        {#if isFiltering}
+          <TableRow>
+            <TableCell colspan="9" class="text-center">Loading...</TableCell>
+          </TableRow>
+        {:else}
+          {#each filteredFiles as file (file.original_name)}
+            <TableRow class="table-row-transition">
               <TableCell>{file.original_name}</TableCell>
-              <TableCell>{participant?.participant_id}</TableCell>
+              <TableCell>{file.participantData?.participant_id}</TableCell>
               <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
               <TableCell>
                 <Badge
                   class={getDiagnosisBadgeClasses(
-                    participant?.diagnosis,
+                    file.participantData?.diagnosis,
                   )}
                 >
-                  {participant?.diagnosis || "Unknown"}
+                  {file.participantData?.diagnosis || "Unknown"}
                 </Badge>
               </TableCell>
               <TableCell>
                 <Badge
-                  class={getAgeBadgeClasses(participant?.age_group)}
+                  class={getAgeBadgeClasses(file.participantData?.age_group)}
                 >
                   <svelte:component
-                    this={getAgeIcon(participant?.age_group)}
+                    this={getAgeIcon(file.participantData?.age_group)}
                     class="w-4 h-4 mr-1"
                   />
-                  {participant?.age_group || "Unknown"}
+                  {file.participantData?.age_group || "Unknown"}
                 </Badge>
               </TableCell>
               <TableCell>
                 <Badge variant="outline" class="flex items-center gap-1">
                   <svelte:component
-                    this={getSpeciesIcon(participant?.species)}
+                    this={getSpeciesIcon(file.participantData?.species)}
                     class="w-4 h-4 mr-1"
                   />
-                  {participant?.species || "Unknown"}
+                  {file.participantData?.species || "Unknown"}
                 </Badge>
               </TableCell>
               <TableCell>{file.equipment_used}</TableCell>
@@ -707,8 +713,8 @@
                 </a>
               </TableCell>
             </TableRow>
-          {/await}
-        {/each}
+          {/each}
+        {/if}
       </TableBody>
     </Table>
   {/if}
