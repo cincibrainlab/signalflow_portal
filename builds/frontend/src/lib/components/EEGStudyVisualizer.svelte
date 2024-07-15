@@ -50,7 +50,7 @@
   let selectedDiagnosis: string = "All"
   let selectedAgeGroup: string = "All"
   let selectedParadigm: string = "All"
-  let viewMode: "card" | "table" = "card"
+  let viewMode: "card" | "table" = "table"
 
   let uniqueDiagnoses: string[] = []
   let uniqueAgeGroups: string[] = []
@@ -76,6 +76,7 @@
       NewFile = false
       console.log(selectedFile)
       selectedParticipant = getParticipant(selectedFile.participant)
+      console.log("Selected",selectedParticipant)
       // selectedParticipant = selectedFile.participant
       // selectedFileDate = formatDateForInput(selectedFile.date_added);
       // console.log(selectedParticipant);
@@ -620,68 +621,69 @@
       </TableHeader>
       <TableBody>
         {#each filteredFiles as file}
-          {@const participant = file.participant.participant_id}
-          <TableRow
-            on:click={() =>
-              (selectedFile = selectedFile === file ? null : file)}
-            class="cursor-pointer hover:bg-gray-100"
-          >
-            <TableCell>{file.eegid}</TableCell>
-            <TableCell>{file.participant.participant_id}</TableCell>
-            <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
-            <TableCell>
-              <Badge
-                class={getDiagnosisBadgeClasses(
-                  participant?.diagnosis,
-                )}
-              >
-                {participant?.diagnosis || "Unknown"}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Badge
-                class={getAgeBadgeClasses(participant?.age_group)}
-              >
-                <svelte:component
-                  this={getAgeIcon(participant?.age_group)}
-                  class="w-4 h-4 mr-1"
-                />
-                {participant?.age_group || "Unknown"}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Badge variant="outline" class="flex items-center gap-1">
-                <svelte:component
-                  this={getSpeciesIcon(participant?.species)}
-                  class="w-4 h-4 mr-1"
-                />
-                {participant?.species || "Unknown"}
-              </Badge>
-            </TableCell>
-            <TableCell>{file.equipment_used}</TableCell>
-            <TableCell>
-              <div class="flex gap-1">
-                {#each file.paradigms as paradigm}
-                  <Badge variant="outline" class="flex items-center gap-1">
-                    <svelte:component
-                      this={getParadigmIcon(paradigm.type)}
-                      class="w-4 h-4"
-                    />
-                    {paradigm.type.replace("_", " ")}
-                  </Badge>
-                {/each}
-              </div>
-            </TableCell>
-            <TableCell>
-              <a
-                href={getDetailedRecordLink(file.eegid)}
-                class="text-blue-500 hover:text-blue-700 flex items-center"
-              >
-                View
-                <ExternalLink class="w-4 h-4 ml-1" />
-              </a>
-            </TableCell>
-          </TableRow>
+          {#await getParticipant(file.participant) then participant}
+            <TableRow
+              on:click={() =>
+                (selectedFile = selectedFile === file ? null : file)}
+              class="cursor-pointer hover:bg-gray-100"
+            >
+              <TableCell>{file.original_name}</TableCell>
+              <TableCell>{file.original_name}</TableCell>
+              <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
+              <TableCell>
+                <Badge
+                  class={getDiagnosisBadgeClasses(
+                    participant?.diagnosis,
+                  )}
+                >
+                  {participant?.diagnosis || "Unknown"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  class={getAgeBadgeClasses(participant?.age_group)}
+                >
+                  <svelte:component
+                    this={getAgeIcon(participant?.age_group)}
+                    class="w-4 h-4 mr-1"
+                  />
+                  {participant?.age_group || "Unknown"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline" class="flex items-center gap-1">
+                  <svelte:component
+                    this={getSpeciesIcon(participant?.species)}
+                    class="w-4 h-4 mr-1"
+                  />
+                  {participant?.species || "Unknown"}
+                </Badge>
+              </TableCell>
+              <TableCell>{file.equipment_used}</TableCell>
+              <TableCell>
+                <div class="flex gap-1">
+                  <!-- {#each file.paradigms as paradigm}
+                    <Badge variant="outline" class="flex items-center gap-1">
+                      <svelte:component
+                        this={getParadigmIcon(paradigm.type)}
+                        class="w-4 h-4"
+                      />
+                      {paradigm.type.replace("_", " ")}
+                    </Badge>
+                  {/each} -->
+                </div>
+              </TableCell>
+              <TableCell>
+                <a
+                  href={getDetailedRecordLink(file.eegid)}
+                  class="text-blue-500 hover:text-blue-700 flex items-center"
+                >
+                  View
+                  <ExternalLink class="w-4 h-4 ml-1" />
+                </a>
+              </TableCell>
+            </TableRow>
+          {/await}
         {/each}
       </TableBody>
     </Table>
