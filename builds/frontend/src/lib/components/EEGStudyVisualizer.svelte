@@ -43,12 +43,14 @@
   import { DateInput } from 'date-picker-svelte'
   import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant, addParticipant} from '$lib/services/apiService';
   import AddParticipant from './AddParticipant.svelte';
+  import { debounce } from 'lodash-es';
   
 
   let selectedFile: any = null
   let NewFile: boolean = false
   // On the change of selectedFile, we want to fetch the participant data
   let searchTerm = ""
+  let debouncedSearchTerm = ""
   let selectedDiagnosis: string = "All"
   let selectedAgeGroup: string = "All"
   let selectedParadigm: string = "All"
@@ -99,15 +101,29 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  async function fetchParticipantsForFiles(files: any[]) {
+    const filesWithParticipants = await Promise.all(
+      files.map(async (file) => {
+        if (file.participant) {
+          const participantData = await getParticipant(file.participant);
+          return { ...file, participantData };
+        }
+        return file;
+      })
+    );
+    return filesWithParticipants;
+  }
+
   function getSetFiles() {
     sleep(500).then(() => { 
       Files = []
     
       getOriginalFileCatalog()
-          .then(result => {
+          .then(async (result) => {
             const setFiles = result.filter((file: any) => file.is_set_file === true);
-            Files = [...Files, ...setFiles]; // Spread the new files into the existing array  
-            console.log("Files:", Files)
+            const filesWithParticipants = await fetchParticipantsForFiles(setFiles);
+            Files = filesWithParticipants;
+            console.log("Files with participants:", Files);
           })
           .catch(error => {
             console.error('Error fetching file catalog:', error);
@@ -117,12 +133,12 @@
   }
 
   onMount(() => {
-
     getOriginalFileCatalog()
-        .then(result => {
+        .then(async (result) => {
             const setFiles = result.filter((file: any) => file.is_set_file === true);
-            Files = [...Files, ...setFiles]; // Spread the new files into the existing array
-            console.log("Files:", Files)
+            const filesWithParticipants = await fetchParticipantsForFiles(setFiles);
+            Files = filesWithParticipants;
+            console.log("Files with participants:", Files);
         })
         .catch(error => {
             console.error('Error fetching file catalog:', error);
@@ -220,88 +236,86 @@
   })
 
   let filteredFiles: any = []
-  $:{
-  filteredFiles = Files
-  console.log("Filtered files:", filteredFiles)
-  }
-  // $: {
-  //   // console.log("Filtering sessions...")
-  //   let filteredFiles = Files.filter((file: any) => {
-  //     const participant = file.participant
+  $: filteredFiles = Files.filter((file: any) => {
+    console.log("File:", file);
+    const participant = file.participantData;
+    console.log("Participant:", participant);
 
-  //     const matchesSearch =
-  //       file.eegid.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       file.participant.participant_id.toLowerCase().includes(searchTerm.toLowerCase())
-  //     // console.log("Matches search:", matchesSearch)
+    const matchesSearch =
+      file.original_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      participant?.participant_id.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+    console.log("Matches Search:", matchesSearch);
 
-  //     const matchesDiagnosis =
-  //       selectedDiagnosis === "All" ||
-  //       participant?.diagnosis === selectedDiagnosis
-  //     // console.log("Matches diagnosis:", matchesDiagnosis)
+    const matchesDiagnosis =
+      selectedDiagnosis === "All" ||
+      participant?.diagnosis === selectedDiagnosis;
+    console.log("Matches Diagnosis:", matchesDiagnosis);
 
-  //     const matchesAgeGroup =
-  //       selectedAgeGroup === "All" ||
-  //       participant?.age_group === selectedAgeGroup
-  //     // console.log("Matches age group:", matchesAgeGroup)
+    const matchesAgeGroup =
+      selectedAgeGroup === "All" ||
+      participant?.age_group === selectedAgeGroup;
+    console.log("Matches Age Group:", matchesAgeGroup);
 
-  //     const matchesParadigm =
-  //       selectedParadigm === "All" ||
-  //       file.eeg_paradigm.name.some((p: any) => p.type === selectedParadigm)
-  //     // console.log("Matches paradigm:", matchesParadigm)
+    const matchesParadigm =
+      selectedParadigm === "All" ||
+      file.eeg_paradigm.some((p: any) => p.type === selectedParadigm);
+    console.log("Matches Paradigm:", matchesParadigm);
 
-  //     const result =
-  //       matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm
-  //     // console.log("Final result:", result)
-
-  //     return result
-  //   })
-
-  //   if (sortColumn) {
-  //     filteredFiles.sort((a:any, b: any) => {
-  //       let aValue, bValue
-  //       switch (sortColumn) {
-  //         case "eegid":
-  //         case "participant_id":
-  //         case "equipment_used":
-  //           aValue = a[sortColumn]
-  //           bValue = b[sortColumn]
-  //           break
-  //         case "date":
-  //           aValue = new Date(a.date_added)
-  //           bValue = new Date(b.date_added)
-  //           break
-  //         case "diagnosis":
-  //         case "age_group":
-  //         case "species":
-  //           const aParticipant = a.participant
-  //           const bParticipant = b.participant
-  //           if (sortColumn === "diagnosis") {
-  //             aValue = aParticipant?.diagnosis
-  //             bValue = bParticipant?.diagnosis
-  //           } else {
-  //             aValue = aParticipant?[sortColumn]
-  //             bValue = bParticipant?[sortColumn]
-  //           }
-  //           break
-  //         case "paradigms":
-  //           aValue = a.paradigms.map((p: any) => p.type).join(",")
-  //           bValue = b.paradigms.map((p: any) => p.type).join(",")
-  //           break
-  //       }
-  //       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1
-  //       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1
-  //       return 0
-  //     })
-  //   }
-  // }
+    return matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm;
+  }).sort((a: any, b: any) => {
+    if (!sortColumn) return 0;
+    
+    let aValue, bValue;
+    switch (sortColumn) {
+      case "eegid":
+        aValue = a.original_name;
+        bValue = b.original_name;
+        break;
+      case "participant_id":
+        aValue = a.participantData?.participant_id;
+        bValue = b.participantData?.participant_id;
+        break;
+      case "equipment_used":
+        aValue = a.equipment_used;
+        bValue = b.equipment_used;
+        break;
+      case "date":
+        aValue = new Date(a.date_added);
+        bValue = new Date(b.date_added);
+        break;
+      case "diagnosis":
+      case "age_group":
+      case "species":
+        aValue = a.participantData?.[sortColumn];
+        bValue = b.participantData?.[sortColumn];
+        break;
+      case "paradigms":
+        aValue = a.eeg_paradigm.map((p: any) => p.type).join(",");
+        bValue = b.eeg_paradigm.map((p: any) => p.type).join(",");
+        break;
+    }
+    
+    // Handle undefined or null values
+    if (aValue === undefined || aValue === null) return 1;
+    if (bValue === undefined || bValue === null) return -1;
+    
+    // Compare values
+    if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
+  console.log("Filtered Files:", filteredFiles)
 
   function toggleSort(column: string) {
+    console.log("Toggling sort for column:", column)
     if (sortColumn === column) {
       sortDirection = sortDirection === "asc" ? "desc" : "asc"
     } else {
       sortColumn = column
       sortDirection = "asc"
     }
+    console.log("New sort column:", sortColumn)
+    console.log("New sort direction:", sortDirection)
   }
 
   function getParadigmIcon(type: string) {
@@ -419,6 +433,20 @@
             console.error('Error fetching participants:', error);
             // Handle the error appropriately
         });
+  }
+
+  const updateDebouncedSearch = debounce((value) => {
+    debouncedSearchTerm = value;
+  }, 300);
+
+  $: {
+    updateDebouncedSearch(searchTerm);
+  }
+
+  $: {
+    if (sortColumn === "eegid") {
+      console.log("Sorted files by EEGID:", filteredFiles.map(f => f.original_name));
+    }
   }
 </script>
 <div class="container mx-auto p-4">
@@ -579,56 +607,35 @@
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead
-            class="cursor-pointer"
-            on:click={() => toggleSort("eegid")}
-          >
+          <TableHead on:click={() => toggleSort("eegid")}>
             EEGID
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead
-            class="cursor-pointer"
-            on:click={() => toggleSort("participant_id")}
-          >
+          <TableHead on:click={() => toggleSort("participant_id")}>
             Participant ID
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead class="cursor-pointer" on:click={() => toggleSort("date")}>
+          <TableHead on:click={() => toggleSort("date")}>
             Date
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead
-            class="cursor-pointer"
-            on:click={() => toggleSort("diagnosis")}
-          >
+          <TableHead on:click={() => toggleSort("diagnosis")}>
             Diagnosis
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead
-            class="cursor-pointer"
-            on:click={() => toggleSort("age_group")}
-          >
+          <TableHead on:click={() => toggleSort("age_group")}>
             Age Group
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead
-            class="cursor-pointer"
-            on:click={() => toggleSort("species")}
-          >
+          <TableHead on:click={() => toggleSort("species")}>
             Species
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead
-            class="cursor-pointer"
-            on:click={() => toggleSort("equipment_used")}
-          >
+          <TableHead on:click={() => toggleSort("equipment_used")}>
             Equipment
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
-          <TableHead
-            class="cursor-pointer"
-            on:click={() => toggleSort("paradigms")}
-          >
+          <TableHead on:click={() => toggleSort("paradigms")}>
             Paradigms
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
@@ -644,7 +651,7 @@
               class="cursor-pointer hover:bg-gray-100"
             >
               <TableCell>{file.original_name}</TableCell>
-              <TableCell>{file.original_name}</TableCell>
+              <TableCell>{participant?.participant_id}</TableCell>
               <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
               <TableCell>
                 <Badge

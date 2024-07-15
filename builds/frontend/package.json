@@ -58,6 +58,7 @@
     "faker-js": "^1.0.0",
     "flowbite-svelte": "^0.46.14",
     "highlight.js": "11.9.0",
+    "lodash-es": "^4.17.21",
     "lucide-svelte": "^0.399.0",
     "mongodb": "^6.8.0",
     "svelte-radix": "^1.1.0",
