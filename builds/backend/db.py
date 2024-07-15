@@ -23,6 +23,7 @@ DATABASE_NAME = "sfportal"
 client = AsyncIOMotorClient(MONGO_URL, server_api=ServerApi('1'))
 db = client[DATABASE_NAME]
 console = Console()
+global config
 
 async def get_database():
     return db
@@ -149,15 +150,16 @@ async def load_config_from_yaml():
     Returns:
         bool: True if successful, False otherwise.
     """
-    data = await load_config()
-    if data is None:
+    global config
+    config = await load_config()
+    if config is None:
         return False
 
     db = await get_database()
     config_collection = db.config
 
     # Update or insert each section of the configuration
-    for section, content in data.items():
+    for section, content in config.items():
         if isinstance(content, list):
             # Handle array content (like users, eeg_formats, etc.)
             section_collection = db[section]
@@ -577,7 +579,6 @@ async def align_fdt_files():
         await db.OriginalImportFile.update_one({"_id": row['_id']}, {"$set": update_data})
             
 async def delete_uploads_and_save_info_files():
-    config = await load_config()
     UPLOAD_PATH = config["folder_paths"]["uploads"]
     INFO_PATH = config["folder_paths"]["info_archive"]
     db = await get_database()
@@ -591,7 +592,6 @@ async def delete_uploads_and_save_info_files():
 async def ingest_info_files(info_files):
     async def extract_metadata(info_file):
         db = await get_database()
-        config = await load_config()
         folder_path = config["folder_paths"]["uploads"]
         participant = await db.Participant.find_one({"participant_id": "Empty"})
         with open(info_file, "r") as f:
@@ -645,7 +645,6 @@ async def process_new_uploads(upload_dir):
     
 async def get_upload_and_fdt_upload_id(upload_id):
     db = await get_database()
-    config = await load_config()
     UPLOAD_PATH = config["folder_paths"]["uploads"]
     IMPORT_PATH = config["folder_paths"]["import"]
     file_record = await db.OriginalImportFile.find_one({"upload_id": upload_id})
