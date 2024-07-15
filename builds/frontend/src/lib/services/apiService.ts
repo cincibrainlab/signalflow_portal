@@ -93,43 +93,22 @@ export async function assignParticipantToFile(participantId: string, fileId: str
 
   return response.json();
 }
-// export async function addDataset(datasetEntry: DatasetRow) {
-//   console.log(`Adding dataset: ${JSON.stringify(datasetEntry)}`);
-//   const response = await fetch(`${baseUrl}add-dataset`, {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json'
-//     },
-//     body: JSON.stringify(datasetEntry)
-//   });
-//   return response.json();
-// }
-// export async function mergeDatasets(datasetId1: string, datasetId2: string) {
-//   console.log(`Merging datasets: ${datasetId1} and ${datasetId2}`);
-//   const response = await fetch(`${baseUrl}merge-datasets`, {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json'
-//     },
-//     body: JSON.stringify({ dataset_id1: datasetId1, dataset_id2: datasetId2 })
-//   });
-//   return response.json();
-// }
 
+export async function addParticipant(participantData: any) {
+  const response = await fetch(`${baseUrl}add-participant`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(participantData),
+  });
 
-// export async function updateDataset(datasetEntry: DatasetRow) {
-//   console.log(`Updating dataset: ${JSON.stringify(datasetEntry)}`);
-//   const response = await fetch(`${baseUrl}update-dataset`, {
-//     method: 'POST',
-//     headers: {
-//       'Content-Type': 'application/json'
-//     },
-//     body: JSON.stringify(datasetEntry)
-//   });
-//   console.log(`Response from update-dataset: ${JSON.stringify(response)}`);
-//   return response.json();
-// }
+  if (!response.ok) {
+    throw new Error('Failed to add participant');
+  }
 
+  return await response.json();
+}
 
 export async function callAPI(apiSuffix: string): Promise<string> {
     console.log(`Attempting to call API with suffix: ${apiSuffix}`);

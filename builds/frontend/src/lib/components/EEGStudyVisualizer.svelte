@@ -41,7 +41,9 @@
     TableRow,
   } from "$lib/components/ui/table"
   import { DateInput } from 'date-picker-svelte'
-  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant } from '$lib/services/apiService';
+  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant, addParticipant} from '$lib/services/apiService';
+  import AddParticipant from './AddParticipant.svelte';
+  
 
   let selectedFile: any = null
   let NewFile: boolean = false
@@ -404,8 +406,21 @@
   function getDetailedRecordLink(eegid: string) {
     return `/record-viz?recordId=${eegid}`
   }
-</script>
 
+  let showAddParticipantModal = false;
+
+  function handleParticipantAdded() {
+    // Refresh your participants list here
+    getParticipants()
+    .then(result => {
+            Participants = result;
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            // Handle the error appropriately
+        });
+  }
+</script>
 <div class="container mx-auto p-4">
   <div class="mb-6 bg-white p-4 rounded-lg shadow">
     <div class="flex justify-between items-center mb-4">
@@ -413,6 +428,14 @@
         <Filter class="w-5 h-5 mr-2" />
         Filters
       </h2>
+      <AddParticipant 
+        bind:showModal={showAddParticipantModal} 
+        on:participantAdded={handleParticipantAdded} 
+        on:close={() => showAddParticipantModal = false}
+      />
+      <Button variant="outline" on:click={() => showAddParticipantModal = true}>
+        Add New Participant
+      </Button>
       <Button
         on:click={toggleViewMode}
         variant="outline"

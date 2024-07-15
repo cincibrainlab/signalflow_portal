@@ -133,6 +133,16 @@ async def get_participant(participantObjectId: str):
         logging.error(f"Error retrieving participant: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
 
+@router.post("/api/add-participant", response_model=models.Participant)
+async def add_participant(participant: models.Participant):
+    try:
+        new_participant = await flow_db.add_participant(participant)
+        logging.debug(f"New Participant Added: {new_participant}")
+        return {"success": True, "message": "Participant added successfully", "participant": new_participant}
+    except Exception as e:
+        logging.error(f"Error adding participant: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
 # @router.get("/api/get-import-catalog")
 # async def get_import_catalog():
 #     logging.info("Getting import table...")

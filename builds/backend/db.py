@@ -397,6 +397,16 @@ async def get_participant(participant_object_id):
             "anxiety_level": participant.get("anxiety_level")
         }
     
+async def add_participant(participant: models.Participant):
+    db = await get_database()
+    # Convert the Pydantic model to a dictionary
+    participant_dict = participant.model_dump()
+    result = await db.Participant.insert_one(participant_dict)
+    return {
+        "id": str(result.inserted_id),
+        "participant_id": participant_dict["participant_id"]
+    }
+    
             
     
 async def get_OriginalImportFile():
