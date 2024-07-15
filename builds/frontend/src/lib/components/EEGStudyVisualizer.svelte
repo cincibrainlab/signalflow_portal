@@ -67,19 +67,12 @@
   let sortDirection: "asc" | "desc" = "asc"
 
   let isEditing = false
-  let selectedParticipant: any = null
-  let selectedFileDate: any = null
+  // let selectedParticipant: any = null
   $: if (selectedFile) {
     if (selectedFile.status == "NEW") {
       NewFile = true
     } else {
       NewFile = false
-      console.log(selectedFile)
-      selectedParticipant = getParticipant(selectedFile.participant)
-      console.log("Selected",selectedParticipant)
-      // selectedParticipant = selectedFile.participant
-      // selectedFileDate = formatDateForInput(selectedFile.date_added);
-      // console.log(selectedParticipant);
     }
   }
   
@@ -662,6 +655,7 @@
               <TableCell>{file.equipment_used}</TableCell>
               <TableCell>
                 <div class="flex gap-1">
+                  <!-- TODO Re-activate or change this  -->
                   <!-- {#each file.paradigms as paradigm}
                     <Badge variant="outline" class="flex items-center gap-1">
                       <svelte:component
@@ -695,104 +689,86 @@
         <form>
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
+              <!-- TODO add sessions -->
               <h3 class="font-semibold">Session Info</h3>
               <div class="w-full">
                 <label
                   for="Date"
                   class="block text-sm font-semibold text-gray-700 mb-1">Date:</label>
-                <DateInput value={selectedFileDate} format="MM-dd-yyyy" disabled={!isEditing}/>
+                <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{new Date(selectedFile.date_added).toLocaleDateString()}</p>
               </div>
               <div class="w-full">
                 <label
                   for="Equipment"
                   class="block text-sm font-semibold text-gray-700 mb-1">Equipment:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedFile.equipment_used} disabled={!isEditing}>
-                    {#each UniqueEquipment as equipment}
-                      <option value={equipment}>{equipment}</option>
-                    {/each}
-                  </select>
+                <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedFile.equipment_used}</p>
               </div>
               <div class="w-full h-4/6">
                 <label
                   for="Notes"
                   class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
-                <textarea class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6" bind:value={selectedFile.notes} disabled={!isEditing}></textarea>
+                <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes}</p>
               </div>
             </div>
             <div>
               <h3 class="font-semibold">Participant Info</h3>
-              {#if selectedParticipant.participant_id}
-                <div class="w-full">
-                  <label
-                    for="Age"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
-                    <DateInput value={selectedFileDate} format="MM-dd-yyyy" disabled={!isEditing}/>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.age} disabled={!isEditing}>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="Age Group"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.age_group} disabled={!isEditing}>
-                    {#each uniqueAgeGroups as ageGroup}
-                      <option value={ageGroup}>{ageGroup}</option>
-                    {/each}
-                  </select>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="Gender"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.gender} disabled={!isEditing}>
-                    {#each UniqueGender as gender}
-                      <option value={gender}>{gender}</option>
-                    {/each}
-                  </select>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="Handedness"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.handedness} disabled={!isEditing}>
-                    {#each UniqueHandedness as handedness}
-                      <option value={handedness}>{handedness}</option>
-                    {/each}
-                  </select>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="Species"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParticipant.species} disabled={!isEditing}>
-                    {#each UniqueSpecies as species}
-                      <option value={species}>{species}</option>
-                    {/each}
-                  </select>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="Diagnosis"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="text" bind:value={selectedParticipant.diagnosis} disabled={!isEditing}>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="IQ Score"
-                    class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.iq_score} disabled={!isEditing}>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="Anxiety Level"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={selectedParticipant.anxiety_level} disabled={!isEditing}>
-                </div>
-              {/if}
+              {#await getParticipant(selectedFile.participant) then selectedParticipant}
+                {#if selectedParticipant}
+                  <div class="w-full">
+                    <label
+                      for="Age"
+                      class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age}</p>
+                  </div>
+                  <div class="w-full">
+                    <label
+                      for="Age Group"
+                      class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group}</p>
+                  </div>
+                  <div class="w-full">
+                    <label
+                      for="Gender"
+                      class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender}</p>
+                  </div>
+                  <div class="w-full">
+                    <label
+                      for="Handedness"
+                      class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness}</p>
+                  </div>
+                  <div class="w-full">
+                    <label
+                      for="Species"
+                      class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
+                  </div>
+                  <div class="w-full">
+                    <label
+                      for="Diagnosis"
+                      class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.diagnosis}</p>
+                  </div>
+                  <div class="w-full">
+                    <label
+                      for="IQ Score"
+                      class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score}</p>
+                  </div>
+                  <div class="w-full">
+                    <label
+                      for="Anxiety Level"
+                      class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level}</p>
+                  </div>
+                {/if}
+              {/await}
             </div>
           </div>
           <div>
-            <h3 class="font-semibold mb-2">Paradigms</h3>
-            <!-- {#each selectedFile.paradigms as paradigm}
+            <!-- <h3 class="font-semibold mb-2">Paradigms</h3>
+            {#each selectedFile.paradigms as paradigm}
               <div class="mb-2 p-2 bg-gray-100 rounded">
                 <div class="w-full">
                   <label
@@ -832,11 +808,11 @@
             {/each} -->
           </div>
           
-          {#if !isEditing}
+          <!-- {#if !isEditing}
             <Button on:click={() => isEditing = true}>Make changes</Button>
           {:else}
             <Button on:click={saveChanges}>Save</Button>
-          {/if}
+          {/if} -->
           
           <Button on:click={() => selectedFile = null}>Close</Button>
         </form>
