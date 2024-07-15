@@ -99,19 +99,25 @@
   let Files: any = []
   let Participants: any = []
 
-  function reloadFiles(Files: any[]) {
-    // Files = []
-    console.log("Reloading files:", Files)
-    getOriginalFileCatalog()
-        .then(result => {
+  function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function getSetFiles() {
+    sleep(500).then(() => { 
+      Files = []
+    
+      getOriginalFileCatalog()
+          .then(result => {
             const setFiles = result.filter((file: any) => file.is_set_file === true);
-            Files = [...Files, ...setFiles]; // Spread the new files into the existing array
-        })
-        .catch(error => {
+            Files = [...Files, ...setFiles]; // Spread the new files into the existing array  
+            console.log("Files:", Files)
+          })
+          .catch(error => {
             console.error('Error fetching file catalog:', error);
-            // Handle the error appropriately
-        });
-    return Files
+              // Handle the error appropriately
+          });
+    })
   }
 
   onMount(() => {
@@ -850,7 +856,7 @@
                 {/each}
               </select>
             </div>
-            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); selectedFile = null; Files = reloadFiles(Files);}}>Close</Button>
+            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); selectedFile = null; getSetFiles();}}>Close</Button>
           </form>
       </dialog>
     </section>
