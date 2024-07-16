@@ -655,6 +655,8 @@ async def ingest_info_files(info_files):
         db = await get_database()
         folder_path = config["folder_paths"]["uploads"]
         participant = await db.Participant.find_one({"participant_id": "Empty"})
+        paradigm = await db.EEGParadigm.find_one({"name": "Unassigned"})
+        EEGFormat = await db.EEGFormat.find_one({"name": "Unassigned"})
         with open(info_file, "r") as f:
             file_metadata = json.load(f)
             
@@ -672,7 +674,9 @@ async def ingest_info_files(info_files):
                     )
                 ),
                 "remove_upload": False,
-                "participant": participant["_id"]
+                "participant": participant["_id"],
+                "eeg_format": EEGFormat["_id"],
+                "eeg_paradigm": paradigm["_id"],
             }
             
             dataset_catalog_entry = {

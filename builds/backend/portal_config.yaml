@@ -21,6 +21,8 @@ folder_paths:
   
 # List of EEG formats
 EEGFormat:
+  - name: 'Unassigned'
+    description: 'Unassigned EEG format'
   - name: 'EGI128/Adult'
     description: 'EGI Hydrocel 128 (Adult)'
   - name: 'EGI128/Infant'
@@ -35,6 +37,8 @@ EEGFormat:
 # These will be dleted later and are just for testing ----------------------------------------------
 # List of EEG paradigms
 EEGParadigm:
+  - name: 'Unassigned'
+    description: 'Unassigned EEG paradigm'
   - name: 'Resting'
     description: 'Subject is at rest with eyes open or closed'
   - name: 'Visual'
