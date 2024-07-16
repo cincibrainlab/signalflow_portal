@@ -62,6 +62,7 @@
     "lodash-es": "^4.17.21",
     "lucide-svelte": "^0.399.0",
     "mongodb": "^6.8.0",
+    "svelte-dnd-action": "^0.9.49",
     "svelte-radix": "^1.1.0",
     "svelte-simple-datatables": "^0.3.1",
     "tailwind-variants": "^0.2.1",

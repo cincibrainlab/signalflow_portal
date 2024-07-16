@@ -1,6 +1,29 @@
 <script lang="ts">
     // Import necessary components and data
 
+    import { flip } from 'svelte/animate';
+    import { dndzone } from 'svelte-dnd-action';
+
+    let pendingFiles = [
+        { id: 1, name: "document1.pdf" },
+        { id: 2, name: "image1.jpg" },
+        { id: 3, name: "spreadsheet1.xlsx" },
+        { id: 4, name: "presentation1.pptx" }
+    ];
+
+    function handleDndConsider(e: CustomEvent) {
+        pendingFiles = e.detail.items;
+    }
+
+    function handleDndFinalize(e: CustomEvent) {
+        pendingFiles = e.detail.items;
+    }
+
+    function processFile(id: number) {
+        // Implement your file processing logic here
+        console.log(`Processing file with id: ${id}`);
+    }
+
 
     // Runs dummy data
     import { Chart } from 'chart.js/auto';
@@ -96,17 +119,6 @@
                 <canvas id="runsChart" class="w-full"></canvas>
             </section>
             <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Failed Files</h2>
-                <ul class="space-y-3">
-                    {#each failedFiles as file (file.id)}
-                        <li class="bg-red-50 p-3 rounded-lg flex items-center justify-between">
-                            <span class="text-red-700">{file.name}</span>
-                            <button on:click={() => retryFile(file.id)} class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">Retry</button>
-                        </li>
-                    {/each}
-                </ul>
-            </section>
-            <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-700">Stats</h2>
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-blue-50 p-4 rounded-lg">
@@ -144,16 +156,39 @@
                 </div>
             </section>
             <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Possible Files</h2>
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Failed Files</h2>
                 <ul class="space-y-3">
-                    {#each possibleFiles as file (file.id)}
-                        <li class="bg-blue-50 p-3 rounded-lg flex items-center justify-between">
-                            <span class="text-blue-700">{file.name}</span>
-                            <button on:click={() => addFile(file.id)} class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">Add to Analysis</button>
+                    {#each failedFiles as file (file.id)}
+                        <li class="bg-red-50 p-3 rounded-lg flex items-center justify-between">
+                            <span class="text-red-700">{file.name}</span>
+                            <button on:click={() => retryFile(file.id)} class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">Retry</button>
                         </li>
                     {/each}
                 </ul>
             </section>
+            <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Pending Files</h2>
+                <ul class="space-y-3"
+                    use:dndzone={{items: pendingFiles, flipDurationMs: 300}}
+                    on:consider={handleDndConsider}
+                    on:finalize={handleDndFinalize}>
+                  {#each pendingFiles as file (file.id)}
+                    <li animate:flip={{duration: 300}}
+                        class="bg-yellow-50 p-3 rounded-lg flex items-center justify-between cursor-move">
+                      <div class="flex items-center">
+                        <span class="text-yellow-700 mr-2">⋮⋮</span>
+                        <span class="text-yellow-800">{file.name}</span>
+                      </div>
+                      <button on:click={() => processFile(file.id)}
+                              class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">
+                        Process
+                      </button>
+                    </li>
+                  {/each}
+                </ul>
+            </section>
+            
+            
         </div>
         <div class="lg:w-1/3">
             <section class="bg-white rounded-xl shadow-md p-6 h-full transition duration-300 ease-in-out hover:shadow-lg">
@@ -174,6 +209,20 @@
                 </ul>
             </section>
         </div>
+        
+    </div>
+    <div class="w-full mt-6">
+        <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Possible Files</h2>
+            <ul class="space-y-3">
+                {#each possibleFiles as file (file.id)}
+                    <li class="bg-blue-50 p-3 rounded-lg flex items-center justify-between">
+                        <span class="text-blue-700">{file.name}</span>
+                        <button on:click={() => addFile(file.id)} class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">Add to Analysis</button>
+                    </li>
+                {/each}
+            </ul>
+        </section>
     </div>
 </main>
   
