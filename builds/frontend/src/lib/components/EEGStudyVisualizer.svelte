@@ -437,7 +437,7 @@
         });
   }
 
-  const updateDebouncedSearch = debounce((value) => {
+  const updateDebouncedSearch = debounce((value: any) => {
     debouncedSearchTerm = value;
   }, 300);
 
@@ -447,7 +447,7 @@
 
   $: {
     if (sortColumn === "eegid") {
-      console.log("Sorted files by EEGID:", filteredFiles.map(f => f.original_name));
+      console.log("Sorted files by EEGID:", filteredFiles.map((f: any) => f.original_name));
     }
   }
 </script>
@@ -657,7 +657,7 @@
       <TableBody>
         {#if isFiltering}
           <TableRow>
-            <TableCell colspan="9" class="text-center">Loading...</TableCell>
+            <TableCell colspan={9} class="text-center">Loading...</TableCell>
           </TableRow>
         {:else}
           {#each filteredFiles as file (file.original_name)}
