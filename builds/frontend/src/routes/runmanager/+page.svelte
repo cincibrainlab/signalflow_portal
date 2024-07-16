@@ -108,7 +108,7 @@
 
 </script>
 
-<main class="max-w-7xl mx-auto p-6 bg-gray-100 min-h-screen">
+<main class="w-11/12 mx-auto p-6 bg-gray-100 min-h-screen">
     <header class="text-center mb-8">
         <h1 class="text-4xl font-bold text-gray-800">Dashboard</h1>
     </header>
@@ -156,135 +156,130 @@
                 </div>
             </section>
             <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Failed Files</h2>
-                <ul class="space-y-3">
-                    {#each failedFiles as file (file.id)}
-                        <li class="bg-red-50 p-3 rounded-lg flex items-center justify-between">
-                            <span class="text-red-700">{file.name}</span>
-                            <button on:click={() => retryFile(file.id)} class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">Retry</button>
-                        </li>
-                    {/each}
-                </ul>
+                <h2 class="text-xl font-semibold mb-2 text-gray-700">Failed Files</h2>
+                <div class="h-48 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="p-2 text-left">Name</th>
+                                <th class="p-2 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#each failedFiles as file (file.id)}
+                                <tr class="border-b">
+                                    <td class="p-2 text-red-700">{file.name}</td>
+                                    <td class="p-2 text-right">
+                                        <button on:click={() => retryFile(file.id)} class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">Retry</button>
+                                    </td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
             </section>
             <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Pending Files</h2>
-                <ul class="space-y-3"
-                    use:dndzone={{items: pendingFiles, flipDurationMs: 300}}
-                    on:consider={handleDndConsider}
-                    on:finalize={handleDndFinalize}>
-                  {#each pendingFiles as file (file.id)}
-                    <li animate:flip={{duration: 300}}
-                        class="bg-yellow-50 p-3 rounded-lg flex items-center justify-between cursor-move">
-                      <div class="flex items-center">
-                        <span class="text-yellow-700 mr-2">⋮⋮</span>
-                        <span class="text-yellow-800">{file.name}</span>
-                      </div>
-                      <button on:click={() => processFile(file.id)}
-                              class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">
-                        Process
-                      </button>
-                    </li>
-                  {/each}
-                </ul>
+                <h2 class="text-xl font-semibold mb-2 text-gray-700">Pending Files</h2>
+                <div class="h-48 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="p-2 text-left">Name</th>
+                                <th class="p-2 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody use:dndzone={{items: pendingFiles, flipDurationMs: 300}} on:consider={handleDndConsider} on:finalize={handleDndFinalize}>
+                            {#each pendingFiles as file (file.id)}
+                                <tr animate:flip={{duration: 300}} class="border-b cursor-move">
+                                    <td class="p-2 text-yellow-800">⋮⋮ {file.name}</td>
+                                    <td class="p-2 text-right">
+                                        <button on:click={() => processFile(file.id)} class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs">Process</button>
+                                    </td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
             </section>
             
             
         </div>
         <div class="lg:w-1/3">
             <section class="bg-white rounded-xl shadow-md p-6 h-full transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Files</h2>
-                <ul class="space-y-3">
-                    {#each files as file (file.id)}
-                        <li class="bg-gray-50 p-3 rounded-lg">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="font-medium text-gray-800">{file.name}</span>
-                                <span class="text-sm text-gray-500">{file.status}</span>
-                            </div>
-                            <div class="flex justify-end space-x-2">
-                                <button on:click={() => viewDetails(file.id)} class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">View Details</button>
-                                <button on:click={() => removeFile(file.id)} class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">Remove</button>
-                            </div>
-                        </li>
-                    {/each}
-                </ul>
+                <h2 class="text-xl font-semibold mb-2 text-gray-700">Files</h2>
+                <div class="h-48 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="p-2 text-left">Name</th>
+                                <th class="p-2">Status</th>
+                                <th class="p-2 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#each files as file (file.id)}
+                                <tr class="border-b">
+                                    <td class="p-2 font-medium text-gray-800">{file.name}</td>
+                                    <td class="p-2 text-center text-gray-500">{file.status}</td>
+                                    <td class="p-2 text-right">
+                                        <button on:click={() => viewDetails(file.id)} class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-xs mr-1">View</button>
+                                        <button on:click={() => removeFile(file.id)} class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs">Remove</button>
+                                    </td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </div>
         
     </div>
     <div class="w-full mt-6">
         <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Possible Files</h2>
-            <ul class="space-y-3">
-                {#each possibleFiles as file (file.id)}
-                    <li class="bg-blue-50 p-3 rounded-lg flex items-center justify-between">
-                        <span class="text-blue-700">{file.name}</span>
-                        <button on:click={() => addFile(file.id)} class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition duration-300 ease-in-out">Add to Analysis</button>
-                    </li>
-                {/each}
-            </ul>
+            <h2 class="text-xl font-semibold mb-2 text-gray-700">Possible Files</h2>
+            <div class="h-48 overflow-y-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="p-2 text-left">Name</th>
+                            <th class="p-2 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each possibleFiles as file (file.id)}
+                            <tr class="border-b">
+                                <td class="p-2 text-blue-700">{file.name}</td>
+                                <td class="p-2 text-right">
+                                    <button on:click={() => addFile(file.id)} 
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition duration-300 ease-in-out">
+                                        Add to Analysis
+                                    </button>
+                                </td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    <div class="w-full mt-6">
+        <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Utilities</h2>
+            <div class="flex justify-start space-x-4">
+                <button class="bg-blue-600 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded transition ease-in-out duration-300">
+                    Download CSV
+                </button>
+                <button class="bg-green-600 hover:bg-green-800 text-white font-semibold py-2 px-4 rounded transition ease-in-out duration-300">
+                    Download All Files
+                </button>
+            </div>
         </section>
     </div>
 </main>
+
+<!-- Add utlities area 
+ Download csv 
+ Download all files
+  -->
   
-<!-- <main class="max-w-7xl mx-auto p-4">
-    <header class="text-center mb-6">
-        <h1 class="text-3xl font-bold">Dashboard</h1>
-    </header>
-    <div class="flex">
-        <div class="w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6 mr-6">
-            <section class="md:col-span-1 bg-white rounded-lg shadow p-6 rounded-md">
-                <h2 class="text-xl font-semibold mb-4">Current Runs</h2>
-                <canvas id="runsChart"></canvas>
-            </section>
-            <section class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-semibold mb-4">Failed Files</h2>
-                <ul class="space-y-2">
-                    {#each failedFiles as file (file.id)}
-                        <section class="bg-gray-400 p-2 rounded-md">
-                            <li class="flex items-center justify-between">
-                                <span>{file.name}</span>
-                                <button on:click={() => retryFile(file.id)} class="bg-yellow-500 text-white px-2 py-1 rounded text-sm">Retry</button>
-                            </li>
-                        </section>
-                    {/each}
-                </ul>
-            </section>
-            <section class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-semibold mb-4">Stats</h2>
-                <p class="mb-2">Average Runtime: {averageRuntime}</p>
-                <p>Completion Percentage: {completionPercentage}</p>
-            </section>
-            <section class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl font-semibold mb-4">Possible Files</h2>
-                <ul class="space-y-2">
-                    {#each possibleFiles as file (file.id)}
-                        <section class="bg-gray-400 p-2 rounded-md">
-                            <li class="flex items-center justify-between">
-                                <span>{file.name}</span>
-                                <button on:click={() => addFile(file.id)} class="bg-green-500 text-white px-2 py-1 rounded text-sm">Add to Analysis</button>
-                            </li>
-                        </section>
-                    {/each}
-                </ul>
-            </section>
-        </div>
-        <div class="w-1/3">
-            <section class="bg-white rounded-lg shadow p-6 h-full">
-                <h2 class="text-xl font-semibold mb-4">Files</h2>
-                <ul class="space-y-2">
-                    {#each files as file (file.id)}
-                        <section class="bg-gray-400 p-2 rounded-md">
-                            <li class="flex items-center justify-between">
-                                <span>{file.name} - {file.status}</span>
-                                <div>
-                                    <button on:click={() => viewDetails(file.id)} class="bg-blue-500 text-white px-2 py-1 rounded text-sm mr-2">View Details</button>
-                                    <button on:click={() => removeFile(file.id)} class="bg-red-500 text-white px-2 py-1 rounded text-sm">Remove</button>
-                                </div>
-                            </li>
-                        </section>
-                    {/each}
-                </ul>
-            </section>
-        </div>
-    </div>
-</main> -->
+<!-- Have an area that shows duplicate files and participants -->
