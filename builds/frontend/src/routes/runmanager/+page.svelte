@@ -277,9 +277,5 @@
     </div>
 </main>
 
-<!-- Add utlities area 
- Download csv 
- Download all files
-  -->
   
 <!-- Have an area that shows duplicate files and participants -->
