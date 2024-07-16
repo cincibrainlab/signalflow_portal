@@ -140,6 +140,44 @@ export async function getParticipant(participantObjectId: string) {
   }
 }
 
+export async function getEEGFormat(FormatObjectID: string) {
+  try { 
+      const response = await fetch(`${baseUrl}get-eeg-format/${FormatObjectID}`);
+      console.log('Get EEG Format Response status:', response.status);
+
+      const data = await response.json();
+      if (!response.ok) {
+          console.log('Response data:', data);
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      let formatObject = data.eeg_format;
+      return formatObject;
+  } catch (error) {
+      console.error('Error fetching EEG format:', error);
+      throw error;
+  }
+}
+
+export async function getParadigm(ParadigmObjectID: string) {
+  try { 
+      const response = await fetch(`${baseUrl}get-eeg-paradigm/${ParadigmObjectID}`);
+      console.log('Get EEG Paradigm Response status:', response.status);
+
+      const data = await response.json();
+      if (!response.ok) {
+          console.log('Response data:', data);
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      let paradigmObject = data.eeg_paradigm;
+      return paradigmObject;
+  } catch (error) {
+      console.error('Error fetching EEG paradigm:', error);
+      throw error;
+  }
+}
+
 export async function assignParticipantToFile(participantId: string, fileId: string) {
   console.log(`Assigning participant ${participantId} to file ${fileId}`);
   const response = await fetch(`${baseUrl}assign-participant-to-file`, {

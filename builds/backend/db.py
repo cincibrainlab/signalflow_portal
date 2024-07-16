@@ -428,7 +428,29 @@ async def get_participant(participant_object_id):
             "iq_score": participant.get("iq_score"),
             "anxiety_level": participant.get("anxiety_level")
         }
+
+async def get_eeg_format(eeg_format_object_id):
+    db = await get_database()
+    eeg_format_object_id_true = ObjectId(eeg_format_object_id)
+    eeg_format = await db.EEGFormat.find_one({"_id": eeg_format_object_id_true})
+    if eeg_format:
+        return {
+            "id": str(eeg_format["_id"]),
+            "name": eeg_format["name"],
+            "description": eeg_format.get("description")
+        }
     
+async def get_eeg_paradigm(eeg_paradigm_object_id):
+    db = await get_database()
+    eeg_paradigm_object_id_true = ObjectId(eeg_paradigm_object_id)
+    eeg_paradigm = await db.EEGParadigm.find_one({"_id": eeg_paradigm_object_id_true})
+    if eeg_paradigm:
+        return {
+            "id": str(eeg_paradigm["_id"]),
+            "name": eeg_paradigm["name"],
+            "description": eeg_paradigm.get("description")
+        }
+        
 async def add_participant(participant: models.Participant):
     db = await get_database()
     # Convert the Pydantic model to a dictionary

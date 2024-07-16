@@ -138,6 +138,26 @@ async def get_participant(participantObjectId: str):
     except Exception as e:
         logging.error(f"Error retrieving participant: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
+    
+@router.get("/api/get-eeg-format/{FormatObjectID}")
+async def get_eeg_format(FormatObjectID: str):
+    try:
+        eeg_format = await flow_db.get_eeg_format(FormatObjectID)
+        logging.debug(f"EEG Format: {eeg_format}")
+        return {"success": True, "message": "EEG Format retrieved successfully", "eeg_format": eeg_format}
+    except Exception as e:
+        logging.error(f"Error retrieving EEG Format: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    
+@router.get("/api/get-eeg-paradigm/{ParadigmObjectID}")
+async def get_eeg_paradigm(ParadigmObjectID: str):
+    try:
+        eeg_paradigm = await flow_db.get_eeg_paradigm(ParadigmObjectID)
+        logging.debug(f"EEG Paradigm: {eeg_paradigm}")
+        return {"success": True, "message": "EEG Paradigm retrieved successfully", "eeg_paradigm": eeg_paradigm}
+    except Exception as e:
+        logging.error(f"Error retrieving EEG Paradigm: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.post("/api/add-participant", response_model=models.Participant)
 async def add_participant(participant: models.Participant):

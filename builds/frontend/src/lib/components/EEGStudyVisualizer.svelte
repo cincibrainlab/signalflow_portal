@@ -45,7 +45,7 @@
   import AddParticipant from './AddParticipant.svelte';
   import AddAnalysis from "./AddAnalysis.svelte";
   import { debounce } from 'lodash-es';
-  import { getFormats, getParadigms } from '$lib/services/apiService';
+  import { getFormats, getParadigms, getEEGFormat, getParadigm } from '$lib/services/apiService';
   
 
   let selectedFile: any = null
@@ -74,14 +74,40 @@
   let sortDirection: "asc" | "desc" = "asc"
 
   let isEditing = false
-  // let selectedParticipant: any = null
-  $: if (selectedFile) {
-    if (selectedFile.status == "NEW") {
-      NewFile = true
-    } else {
-      NewFile = false
+  let selectedEEGFormat: any;
+  let selectedParadigmData: any;
+  let selectedEEGFormat_Name: string = ""
+  let selectedParadigmData_Name: string = ""
+
+  async function getSelectedFileData() {
+  if (selectedFile) {
+    try {
+      // Fetching data
+      selectedParadigmData = await getParadigm(selectedFile.eeg_paradigm);
+      selectedEEGFormat = await getEEGFormat(selectedFile.eeg_format);
+
+      selectedEEGFormat_Name = selectedEEGFormat?.name;
+      selectedParadigmData_Name = selectedParadigmData?.name;
+
+      // Log updated values
+      console.log("Selected File:", selectedFile);
+      console.log("Selected Paradigm:", selectedParadigmData);
+      console.log("Selected EEG Format:", selectedEEGFormat);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      // Handle the error appropriately
     }
   }
+}
+
+$: if (selectedFile) {
+  if (selectedFile.status === "NEW") {
+    NewFile = true;
+  } else {
+    NewFile = false;
+    getSelectedFileData();
+  }
+}
   
   let Selected_participant_id: string = ""
   $: if (NewFile) {
@@ -104,17 +130,25 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async function fetchParticipantsForFiles(files: any[]) {
-    const filesWithParticipants = await Promise.all(
+  async function getObjectsInFiles(files: any[]) {
+    const filesWithObjects = await Promise.all(
       files.map(async (file) => {
+        if (file.eeg_format) {
+          const formatData = await getEEGFormat(file.eeg_format);
+          file = { ...file, formatData };
+        }
         if (file.participant) {
           const participantData = await getParticipant(file.participant);
-          return { ...file, participantData };
+          file = { ...file, participantData };
+        }
+        if (file.eeg_paradigm) {
+          const paradigmData = await getParadigm(file.eeg_paradigm);
+          file = { ...file, paradigmData };
         }
         return file;
       })
     );
-    return filesWithParticipants;
+    return filesWithObjects;
   }
 
   function getSetFiles() {
@@ -124,9 +158,9 @@
       getOriginalFileCatalog()
           .then(async (result) => {
             const setFiles = result.filter((file: any) => file.is_set_file === true);
-            const filesWithParticipants = await fetchParticipantsForFiles(setFiles);
-            Files = filesWithParticipants;
-            console.log("Files with participants:", Files);
+            const filesWithObjects = await getObjectsInFiles(setFiles);
+            Files = filesWithObjects;
+            console.log("Files with Objects:", Files);
           })
           .catch(error => {
             console.error('Error fetching file catalog:', error);
@@ -137,16 +171,16 @@
 
   onMount(() => {
     getOriginalFileCatalog()
-        .then(async (result) => {
+          .then(async (result) => {
             const setFiles = result.filter((file: any) => file.is_set_file === true);
-            const filesWithParticipants = await fetchParticipantsForFiles(setFiles);
-            Files = filesWithParticipants;
-            console.log("Files with participants:", Files);
-        })
-        .catch(error => {
+            const filesWithObjects = await getObjectsInFiles(setFiles);
+            Files = filesWithObjects;
+            console.log("Files with Objects:", Files);
+          })
+          .catch(error => {
             console.error('Error fetching file catalog:', error);
-            // Handle the error appropriately
-        });
+              // Handle the error appropriately
+          });
 
     getParticipants()
         .then(result => {
@@ -705,7 +739,7 @@
                 <label
                   for="Equipment"
                   class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
-                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto"  disabled={!isEditing}>
+                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name} disabled={!isEditing}>
                   {#each UniqueFormats as format}
                     <option value={format}>{format}</option>
                   {/each}
@@ -715,7 +749,7 @@
                 <label
                   for="Equipment"
                   class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
-                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto"  disabled={!isEditing}>
+                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name} disabled={!isEditing}>
                   {#each uniqueParadigms as paradigm}
                     <option value={paradigm}>{paradigm}</option>
                   {/each}
