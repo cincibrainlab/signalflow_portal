@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { Button } from "$lib/components/ui/button";
-  import { addAnalysis, getFormats, getParadigms } from '$lib/services/apiService';
+  import { addAnalysis, getFormats, getParadigms, getMatchingFiles } from '$lib/services/apiService';
 
   export let showModal = false;
   
@@ -56,14 +56,20 @@
   }
 
   function findValidFiles(){
-
+      getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms)
+      .then(result => {
+            console.log(result)
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            // Handle the error appropriately
+        });
   }
 
   onMount(() => {
     getParadigms()
         .then(result => {
             uniqueParadigms = result.map((item: any) => item.name);
-            console.log("Paradigms: ", uniqueParadigms)
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
@@ -73,7 +79,6 @@
     getFormats()
         .then(result => {
             UniqueFormats = result.map((item: any) => item.name);
-            console.log("Formats: ", UniqueFormats)
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
