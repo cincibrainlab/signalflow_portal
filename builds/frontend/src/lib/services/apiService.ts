@@ -22,14 +22,15 @@ export async function getOriginalFileCatalog() {
   try {
       const response = await fetch(`${baseUrl}get-original-file-catalog`);
       console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // console.log('Response headers:', response.headers);
       
       const data = await response.json();
-      console.log('Response data:', data);
+      if (!response.ok) {
+        console.log('Response data:', data);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+
       return data;
   } catch (error) {
       console.error('Error fetching original file catalog:', error);
@@ -104,10 +105,10 @@ export async function getParticipants() {
       console.log('Get Participants Response status:', response.status);
       
       const data = await response.json();
-      console.log('Response data:', data);
-
+      
       if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        console.log('Response data:', data);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       return data;
   } catch (error) {
