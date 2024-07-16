@@ -478,13 +478,13 @@ async def get_OriginalImportFile():
         for upload_record in file_catalog
     ]
 
-# async def get_matchingFiles(valid_formats: list[str], valid_paradigms: list[str]):
-#     db = await get_database()
-#     valid_files = await db.OriginalImportFile.find({
-#         "eeg_format": {"$in": valid_formats},
-#         "eeg_paradigm": {"$in": valid_paradigms}
-#     }).to_list(length=None)
-#     return valid_files
+async def get_matchingFiles(valid_formats: list[str], valid_paradigms: list[str]):
+    db = await get_database()
+    valid_files = await db.OriginalImportFile.find({
+        "eeg_format": {"$in": valid_formats},
+        "eeg_paradigm": {"$in": valid_paradigms}
+    }).to_list(length=None)
+    return valid_files
 
 
 async def get_import_catalog():

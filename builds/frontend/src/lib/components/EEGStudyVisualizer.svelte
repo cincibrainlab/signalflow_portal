@@ -160,7 +160,6 @@
       getParadigms()
         .then(result => {
             uniqueParadigms = result.map((item: any) => item.name);
-            console.log("Paradigms: ", uniqueParadigms)
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
@@ -170,7 +169,6 @@
     getFormats()
         .then(result => {
             UniqueFormats = result.map((item: any) => item.name);
-            console.log("Formats: ", UniqueFormats)
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
