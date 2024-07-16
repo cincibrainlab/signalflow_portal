@@ -115,18 +115,38 @@ async def get_participants():
     participants = await flow_db.get_participants()
     return [models.Participant(**participant) for participant in participants]
 
-class AssignmentRequest(BaseModel):
-    participantId: str
+class FileAssignmentRequest(BaseModel):
+    ID: str
     fileId: str
     
 @router.post("/api/assign-participant-to-file",response_model=models.OriginalImportFile)
-async def assign_participant_to_file(request: AssignmentRequest):
+async def assign_participant_to_file(request: FileAssignmentRequest):
     try:
-        updated_file = await flow_db.assign_participant_to_file(request.participantId, request.fileId)
+        updated_file = await flow_db.assign_participant_to_file(request.ID, request.fileId)
         logging.debug(f"File Updated: {updated_file}")
         return {"success": True, "message": "Participant assigned to file successfully", "file": updated_file}
     except Exception as e:
         logging.error(f"Error assigning participant to file: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.post("/api/assign-eeg-format-to-file",response_model=models.OriginalImportFile)
+async def assign_eeg_format_to_file(request: FileAssignmentRequest):
+    try:
+        updated_file = await flow_db.assign_eeg_format_to_file(request.ID, request.fileId)
+        logging.debug(f"File Updated: {updated_file}")
+        return {"success": True, "message": "EEG Format assigned to file successfully", "file": updated_file}
+    except Exception as e:
+        logging.error(f"Error assigning EEG Format to file: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.post("/api/assign-eeg-paradigm-to-file",response_model=models.OriginalImportFile)
+async def assign_eeg_paradigm_to_file(request: FileAssignmentRequest):
+    try:
+        updated_file = await flow_db.assign_eeg_paradigm_to_file(request.ID, request.fileId)
+        logging.debug(f"File Updated: {updated_file}")
+        return {"success": True, "message": "EEG Paradigm assigned to file successfully", "file": updated_file}
+    except Exception as e:
+        logging.error(f"Error assigning EEG Paradigm to file: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     
 @router.get("/api/get-participant/{participantObjectId}")

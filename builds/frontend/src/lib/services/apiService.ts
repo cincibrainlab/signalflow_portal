@@ -178,19 +178,55 @@ export async function getParadigm(ParadigmObjectID: string) {
   }
 }
 
-export async function assignParticipantToFile(participantId: string, fileId: string) {
-  console.log(`Assigning participant ${participantId} to file ${fileId}`);
+export async function assignParticipantToFile(ID: string, fileId: string) {
+  console.log(`Assigning participant ${ID} to file ${fileId}`);
   const response = await fetch(`${baseUrl}assign-participant-to-file`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ participantId, fileId })
+    body: JSON.stringify({ ID, fileId })
   });
 
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.detail || 'Failed to assign participant to file');
+  }
+
+  return response.json();
+}
+
+export async function assignEEGFormatToFile(ID: string, fileId: string) {
+  console.log(`Assigning EEG format ${ID} to file ${fileId}`);
+  const response = await fetch(`${baseUrl}assign-eeg-format-to-file`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ ID, fileId })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to assign EEG format to file');
+  }
+
+  return response.json();
+}
+
+export async function assignEEGParadigmToFile(ID: string, fileId: string) {
+  console.log(`Assigning EEG paradigm ${ID} to file ${fileId}`);
+  const response = await fetch(`${baseUrl}assign-eeg-paradigm-to-file`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ ID, fileId })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || 'Failed to assign EEG paradigm to file');
   }
 
   return response.json();

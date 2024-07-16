@@ -45,7 +45,7 @@
   import AddParticipant from './AddParticipant.svelte';
   import AddAnalysis from "./AddAnalysis.svelte";
   import { debounce } from 'lodash-es';
-  import { getFormats, getParadigms, getEEGFormat, getParadigm } from '$lib/services/apiService';
+  import { getFormats, getParadigms, getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile } from '$lib/services/apiService';
   
 
   let selectedFile: any = null
@@ -78,6 +78,7 @@
   let selectedParadigmData: any;
   let selectedEEGFormat_Name: string = ""
   let selectedParadigmData_Name: string = ""
+
 
   async function getSelectedFileData() {
   if (selectedFile) {
@@ -121,7 +122,14 @@ $: if (selectedFile) {
   }
   let saveChanges = () => {
     // Save changes to the selected session and participant
+    console.log("Selected File:", selectedFile);
+    console.log("Old Paradigm:", selectedParadigmData);
+    console.log("Old EEG Format:", selectedEEGFormat);
+    console.log("New Paradigm:", selectedParadigmData_Name);
+    console.log("New EEG Format:", selectedEEGFormat_Name);
     isEditing = false
+    assignEEGFormatToFile(selectedEEGFormat_Name, selectedFile.upload_id);
+    assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
   }
   let Files: any = []
   let Participants: any = []

@@ -382,6 +382,65 @@ async def assign_participant_to_file(participantId, fileId):
     
     return {"success": "Participant assigned to file"}
 
+async def assign_eeg_format_to_file(eeg_format_name, file_id):
+    db = await get_database()
+    
+    # Get the EEGFormat
+    selected_eeg_format = await db.EEGFormat.find_one({"name": eeg_format_name})
+    if not selected_eeg_format:
+        return {"error": "EEGFormat not found"}
+    
+    # Check if the file exists
+    file = await db.OriginalImportFile.find_one({"upload_id": file_id})
+    if not file:
+        return {"error": "File not found"}
+    
+    # Update the file with the EEGFormat reference
+    result = await db.OriginalImportFile.update_one(
+        {"upload_id": file_id},
+        {
+            "$set": {
+                "eeg_format": selected_eeg_format["_id"],
+                "status": add_status_code(201)
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        return {"error": "File not updated. It may already have this EEGFormat."}
+    
+    return {"success": "EEGFormat assigned to file"}
+
+async def assign_eeg_paradigm_to_file(eeg_paradigm_name, file_id):
+    db = await get_database()
+    
+    # Get the EEGParadigm
+    selected_eeg_paradigm = await db.EEGParadigm.find_one({"name": eeg_paradigm_name})
+    if not selected_eeg_paradigm:
+        return {"error": "EEGParadigm not found"}
+    
+    # Check if the file exists
+    file = await db.OriginalImportFile.find_one({"upload_id": file_id})
+    if not file:
+        return {"error": "File not found"}
+    
+    # Update the file with the EEGParadigm reference
+    result = await db.OriginalImportFile.update_one(
+        {"upload_id": file_id},
+        {
+            "$set": {
+                "eeg_paradigm": selected_eeg_paradigm["_id"],
+                "status": add_status_code(201)
+            }
+        }
+    )
+    
+    if result.modified_count == 0:
+        return {"error": "File not updated. It may already have this EEGParadigm."}
+    
+    return {"success": "EEGParadigm assigned to file"}
+    
+
 #TODO Not finished
 # async def assign_file_to_analysis(analysisId, fileId):
 #     db = await get_database()
