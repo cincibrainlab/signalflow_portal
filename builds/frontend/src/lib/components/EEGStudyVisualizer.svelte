@@ -45,6 +45,7 @@
   import AddParticipant from './AddParticipant.svelte';
   import AddAnalysis from "./AddAnalysis.svelte";
   import { debounce } from 'lodash-es';
+  import { getFormats, getParadigms } from '$lib/services/apiService';
   
 
   let selectedFile: any = null
@@ -55,11 +56,12 @@
   let selectedDiagnosis: string = "All"
   let selectedAgeGroup: string = "All"
   let selectedParadigm: string = "All"
-  let viewMode: "card" | "table" = "table"
+  let viewMode: "card" | "table" = "card"
 
   let uniqueDiagnoses: string[] = []
   let uniqueAgeGroups: string[] = []
   let uniqueParadigms: string[] = []
+  let UniqueFormats: string[] = []
   let UniqueEquipment: string[] = []
   let UniqueGender: string[] = []
   let UniqueHandedness: string[] = []
@@ -155,6 +157,26 @@
             // Handle the error appropriately
         });
 
+      getParadigms()
+        .then(result => {
+            uniqueParadigms = result.map((item: any) => item.name);
+            console.log("Paradigms: ", uniqueParadigms)
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            // Handle the error appropriately
+        });
+
+    getFormats()
+        .then(result => {
+            UniqueFormats = result.map((item: any) => item.name);
+            console.log("Formats: ", UniqueFormats)
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            // Handle the error appropriately
+        });
+
     uniqueDiagnoses = [
       "All",
       "FXS",
@@ -168,64 +190,6 @@
       "infant",
       "pediatric",
       "adult",
-    ]
-    uniqueParadigms = [
-      "All",
-      "resting_state",
-      "chirp",
-      "cognitive_flexibility",
-      "other",
-    ]
-    UniqueEquipment = [
-      "All",
-      "EGI Hydrocel 128 infant",
-      "BioSemi ActiveTwo 32 infant",
-      "EGI Hydrocel 128",
-      "BrainVision 64",
-      "EGI Hydrocel 32",
-      "MCS 60-channel MEA",
-      "Axion Maestro 768-channel MEA",
-      "Neuropixels probe",
-      "NeuroNexus silicon probe",
-      "MultiChannel Systems MEA2100",
-      "Alpha MED Scientific MED64",
-      "NEURON simulation environment",
-      "Unknown equipment"
-    ]
-    UniqueGender = [
-      "All",
-      "male",
-      "female",
-      "non-binary/non-conforming",
-      "other",
-      "prefer not to respond"
-    ]
-    UniqueHandedness = [
-      "All",
-      "right",
-      "left",
-      "ambidextrous",
-      "prefer not to respond"
-    ]
-    UniqueSpecies = [
-      "All",
-      "human",
-      "mouse",
-      "rat",
-      "monkey",
-      "dog",
-      "cat",
-      "Other"
-    ]
-    UniqueParadigmTypes = [
-      "All",
-      "rest",
-      "chirp",
-      "cogflex",
-      "revlearn",
-      "statlearn",
-      "alphabeats",
-      "other"
     ]
     UniqueProcessingStatus = [
       "All",
@@ -742,8 +706,22 @@
               <div class="w-full">
                 <label
                   for="Equipment"
-                  class="block text-sm font-semibold text-gray-700 mb-1">Equipment:</label>
-                <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedFile.equipment_used}</p>
+                  class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
+                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto"  disabled={!isEditing}>
+                  {#each UniqueFormats as format}
+                    <option value={format}>{format}</option>
+                  {/each}
+                </select>
+              </div>
+              <div class="w-full">
+                <label
+                  for="Equipment"
+                  class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
+                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto"  disabled={!isEditing}>
+                  {#each uniqueParadigms as paradigm}
+                    <option value={paradigm}>{paradigm}</option>
+                  {/each}
+                </select>
               </div>
               <div class="w-full h-4/6">
                 <label
@@ -808,53 +786,12 @@
               {/await}
             </div>
           </div>
-          <div>
-            <!-- <h3 class="font-semibold mb-2">Paradigms</h3>
-            {#each selectedFile.paradigms as paradigm}
-              <div class="mb-2 p-2 bg-gray-100 rounded">
-                <div class="w-full">
-                  <label
-                    for="Paradigm Type"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Type:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={paradigm.type} disabled={!isEditing}>
-                    {#each UniqueParadigmTypes as paradigmType}
-                      <option value={paradigmType}>{paradigmType}</option>
-                    {/each}
-                  </select>
-                </div> 
-                <div class="w-full">
-                  <label
-                    for="Duration"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Duration:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="number" bind:value={paradigm.duration} disabled={!isEditing}>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="File"
-                    class="block text-sm font-semibold text-gray-700 mb-1">File:</label>
-                  <input class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" type="text" bind:value={paradigm.file.filename} disabled={!isEditing}>
-                  <label
-                    for="Processing Status"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Processing Status:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={paradigm.file.processing_status} disabled={!isEditing}>
-                    {#each UniqueProcessingStatus as processingStatus}
-                      <option value={processingStatus}>{processingStatus}</option>
-                    {/each}
-                  </select>
-                  {#if paradigm.metadata}
-                    <label for="Metadata" class="block text-sm font-semibold text-gray-700 mb-1">Metadata:</label>
-                    <p>Metadata: {JSON.stringify(paradigm.metadata)}</p>
-                  {/if}
-                </div>
-              </div>
-            {/each} -->
-          </div>
           
-          <!-- {#if !isEditing}
+          {#if !isEditing}
             <Button on:click={() => isEditing = true}>Make changes</Button>
           {:else}
             <Button on:click={saveChanges}>Save</Button>
-          {/if} -->
+          {/if}
           
           <Button on:click={() => selectedFile = null}>Close</Button>
         </form>
