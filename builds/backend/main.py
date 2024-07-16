@@ -48,7 +48,7 @@ app.add_middleware(
 
 
 async def run_startup_process():
-    restart_database = False
+    restart_database = True
     if restart_database:
         initialize_database()
         if not await check_entrypoint(console):

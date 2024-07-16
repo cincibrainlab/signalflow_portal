@@ -37,28 +37,28 @@ export async function getOriginalFileCatalog() {
   }
 }
 
-export async function getMatchingFiles(valid_formats: any[], valid_paradigms: any[]) {
-  try {
-      const url = new URL(`${baseUrl}get-matching-files`);
-      url.searchParams.append('valid_formats', JSON.stringify(valid_formats));
-      url.searchParams.append('valid_paradigms', JSON.stringify(valid_paradigms));
+// export async function getMatchingFiles(valid_formats: any[], valid_paradigms: any[]) {
+//   try {
+//       const url = new URL(`${baseUrl}get-matching-files`);
+//       url.searchParams.append('valid_formats', JSON.stringify(valid_formats));
+//       url.searchParams.append('valid_paradigms', JSON.stringify(valid_paradigms));
 
-      const response = await fetch(url.toString());
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+//       const response = await fetch(url.toString());
+//       console.log('Response status:', response.status);
+//       console.log('Response headers:', response.headers);
       
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
+//       if (!response.ok) {
+//           throw new Error(`HTTP error! status: ${response.status}`);
+//       }
       
-      const data = await response.json();
-      console.log('Response data:', data);
-      return data;
-  } catch (error) {
-      console.error('Error fetching original file catalog:', error);
-      throw error;
-  }
-}
+//       const data = await response.json();
+//       console.log('Response data:', data);
+//       return data;
+//   } catch (error) {
+//       console.error('Error fetching original file catalog:', error);
+//       throw error;
+//   }
+// }
 
 export async function getFormats() {
   try {

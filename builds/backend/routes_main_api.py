@@ -100,14 +100,14 @@ async def list_eeg_paradigms():
 @router.get("/api/get-original-file-catalog")
 async def get_upload_catalog():
     logging.info("Getting file table...")
-    file_catalog = await flow_db.get_matchingFiles()
+    file_catalog = await flow_db.get_OriginalImportFile()
     return [models.OriginalImportFile(**upload) for upload in file_catalog]
 
-@router.get("/api/get-matching-files")
-async def get_matching_files(valid_formats: list[str], valid_paradigms: list[str]):
-    logging.info("Getting file table...")
-    file_catalog = await flow_db.get_matchingFiles(valid_formats, valid_paradigms)
-    return [models.OriginalImportFile(**upload) for upload in file_catalog]
+# @router.get("/api/get-matching-files")
+# async def get_matching_files(valid_formats: list[str], valid_paradigms: list[str]):
+#     logging.info("Getting file table...")
+#     file_catalog = await flow_db.get_matchingFiles(valid_formats, valid_paradigms)
+#     return [models.OriginalImportFile(**upload) for upload in file_catalog]
 
 @router.get("/api/get-participants")
 async def get_participants():
