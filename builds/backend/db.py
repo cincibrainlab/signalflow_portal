@@ -710,7 +710,6 @@ async def process_new_uploads(upload_dir):
     
 async def get_upload_and_fdt_upload_id(upload_id):
     db = await get_database()
-    config = await load_config()
     UPLOAD_PATH = config["folder_paths"]["uploads"]
     IMPORT_PATH = config["folder_paths"]["import"]
     file_record = await db.OriginalImportFile.find_one({"upload_id": upload_id})
