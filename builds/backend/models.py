@@ -105,6 +105,7 @@ class File(BaseModel):
     hash: Optional[str] = Field(default="")
     metadata: Optional[str] = Field(default="")
     status: Optional[str] = Field(default="")
+    current_status: Optional[str] = Field(default="")
     
 class Dataset(BaseModel):
     dataset_name: Optional[str] = Field(default="")
@@ -124,9 +125,6 @@ class Session(BaseModel):
     recording_type: Optional[str] = Field(default="")
     data_type: Optional[str] = Field(default="")
     
-class FileStatus(BaseModel):
-    file_id: Optional[PyObjectId] = Field(default=None)
-    current_status: Optional[str] = Field(default="")
     
 class EegAnalysis(BaseModel):
     name: Optional[str] = Field(default="")
