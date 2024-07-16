@@ -100,7 +100,13 @@ async def list_eeg_paradigms():
 @router.get("/api/get-original-file-catalog")
 async def get_upload_catalog():
     logging.info("Getting file table...")
-    file_catalog = await flow_db.get_OriginalImportFile()
+    file_catalog = await flow_db.get_matchingFiles()
+    return [models.OriginalImportFile(**upload) for upload in file_catalog]
+
+@router.get("/api/get-matching-files")
+async def get_matching_files(valid_formats: list[str], valid_paradigms: list[str]):
+    logging.info("Getting file table...")
+    file_catalog = await flow_db.get_matchingFiles(valid_formats, valid_paradigms)
     return [models.OriginalImportFile(**upload) for upload in file_catalog]
 
 @router.get("/api/get-participants")
@@ -141,6 +147,16 @@ async def add_participant(participant: models.Participant):
         return {"success": True, "message": "Participant added successfully", "participant": new_participant}
     except Exception as e:
         logging.error(f"Error adding participant: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.post("/api/add-analysis", response_model=models.EegAnalysis)
+async def add_analysis(analysis: models.EegAnalysis):
+    try:
+        new_analysis = await flow_db.add_analysis(analysis)
+        logging.debug(f"New analysis Added: {new_analysis}")
+        return {"success": True, "message": "Analysis added successfully", "analysis": analysis, "analysisId" : new_analysis["id"]}
+    except Exception as e:
+        logging.error(f"Error adding analysis: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 # @router.get("/api/get-import-catalog")

@@ -26,7 +26,9 @@ console = Console()
 global config
 
 async def get_database():
-    return db
+    client = AsyncIOMotorClient(MONGO_URL, server_api=ServerApi('1'))
+    curr_db = client[DATABASE_NAME]
+    return curr_db
 
 async def get_database_url():
     return MONGO_URL
@@ -300,7 +302,7 @@ async def is_config_table_present():
     
 async def get_eeg_formats():
     db = await get_database()
-    eeg_formats = await db.eeg_formats.find().to_list(length=None)
+    eeg_formats = await db.EEGFormat.find().to_list(length=None)
     return [
         {
             "id": str(eeg_format["_id"]),
@@ -312,7 +314,7 @@ async def get_eeg_formats():
 
 async def get_eeg_paradigms():
     db = await get_database()
-    eeg_paradigms = await db.eeg_paradigms.find().to_list(length=None)
+    eeg_paradigms = await db.EEGParadigm.find().to_list(length=None)
     return [
         {
             "id": str(eeg_paradigm["_id"]),
@@ -380,6 +382,36 @@ async def assign_participant_to_file(participantId, fileId):
     
     return {"success": "Participant assigned to file"}
 
+#TODO Not finished
+# async def assign_file_to_analysis(analysisId, fileId):
+#     db = await get_database()
+    
+#     # Get the participant
+#     selected_analysis = await db.EegAnalysis.find_one({"_id": "$oid": analysisId})
+#     if not selected_analysis:
+#         return {"error": "Analysis not found"}
+    
+#     # Check if the file exists
+#     file = await db.File.find_one({"_id": "$oid": fileId})
+#     if not file:
+#         return {"error": "File not found"}
+    
+#     # Update the file with the participant reference
+#     result = await db.File.update_one(
+#         {"upload_id": fileId},
+#         {
+#             "$set": {
+#                 "participant": selected_analysis["_id"],
+#                 "status": add_status_code(201)
+#             }
+#         }
+#     )
+    
+#     if result.modified_count == 0:
+#         return {"error": "File not updated. It may already have this participant."}
+    
+#     return {"success": "Participant assigned to file"}
+
 async def get_participant(participant_object_id):
     db = await get_database()
     participant_object_id_true = ObjectId(participant_object_id)
@@ -405,6 +437,16 @@ async def add_participant(participant: models.Participant):
     return {
         "id": str(result.inserted_id),
         "participant_id": participant_dict["participant_id"]
+    }
+
+async def add_analysis(analysis: models.EegAnalysis):
+    db = await get_database()
+    # Convert the Pydantic model to a dictionary
+    analysis_dict = analysis.model_dump()
+    result = await db.EegAnalysis.insert_one(analysis_dict)
+    return {
+        "id": str(result.inserted_id),
+        "analysis_name": analysis_dict["name"]
     }
     
             
@@ -435,6 +477,15 @@ async def get_OriginalImportFile():
         }
         for upload_record in file_catalog
     ]
+
+async def get_matchingFiles(valid_formats: list[str], valid_paradigms: list[str]):
+    db = await get_database()
+    valid_files = await db.OriginalImportFile.find({
+        "eeg_format": {"$in": valid_formats},
+        "eeg_paradigm": {"$in": valid_paradigms}
+    }).to_list(length=None)
+    return valid_files
+
 
 async def get_import_catalog():
     db = await get_database()
@@ -655,6 +706,7 @@ async def process_new_uploads(upload_dir):
     
 async def get_upload_and_fdt_upload_id(upload_id):
     db = await get_database()
+    config = await load_config()
     UPLOAD_PATH = config["folder_paths"]["uploads"]
     IMPORT_PATH = config["folder_paths"]["import"]
     file_record = await db.OriginalImportFile.find_one({"upload_id": upload_id})

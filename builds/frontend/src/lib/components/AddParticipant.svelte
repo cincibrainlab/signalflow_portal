@@ -28,6 +28,7 @@
 
   async function handleSubmit() {
     try {
+      console.log("Attempting to add: ", newParticipant)
       await addParticipant(newParticipant);
       dispatch('participantAdded', newParticipant);
       closeModal();

@@ -25,14 +25,14 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 @task(retries=1)
 async def loadconfig():
     # Load configuration file
-    config = flow_db.load_config()
+    config = await flow_db.load_config()
     return config
 
 @task()
 async def get_file_and_analyses(db: AsyncIOMotorDatabase):
     loop = asyncio.get_event_loop()
-    file = await loop.run_in_executor(None, flow_db.import_catalog.find_one)
-    analyses = await loop.run_in_executor(None, flow_db.eeg_analyses.find().to_list, None)
+    file = await loop.run_in_executor(None, db.import_catalog.find_one)
+    analyses = await loop.run_in_executor(None, db.eeg_analyses.find().to_list, None)
     results = [file._result, analyses._result]
     return results
 
@@ -53,7 +53,7 @@ async def getRaw(upload_id: str, upload_path: str):
         set_dest_path, fdt_dest_path = await flow_db.copy_import_files(upload_id)
         
         # Use asyncio.to_thread for CPU-bound operations
-        raw_eeg = await asyncio.to_thread(mne.io.read_raw_eeglab, "portal_files/import/1000_6_to_1100_9_aaebci_NS_09-05-2023_20230905_121427.set", preload=True, verbose=False)
+        raw_eeg = await asyncio.to_thread(mne.io.read_raw_eeglab, set_dest_path, preload=True, verbose=False)
                                                                                                 
         if os.path.exists(set_dest_path):
             await asyncio.to_thread(os.remove, set_dest_path)
@@ -67,18 +67,6 @@ async def getRaw(upload_id: str, upload_path: str):
         print("Exception Occurred when creating Raw Obj: " + str(e))
         raise
 
-@task
-def heatmap(raw: mne.io.Raw):
-    """
-    This function is used to create a heatmap of the raw EEG data.
-
-    Parameters:
-    raw (mne.io.Raw): The raw EEG data.
-    """
-
-    epochs = mne.make_fixed_length_epochs(raw, duration=5, preload=False)
-    # TODO - Add code to create heatmap
-    # dbheatmap_power(epochs)
 
 @task(name="FakeAnalysis", description="Run a fake analysis on the file.")
 async def fakeAnalysis(importID: str, output_path: str):
@@ -125,10 +113,6 @@ async def saveMetaData(fileImport: dict, output_path: str, analysisList: list):
 # Analysis Flow
 # ────────────────────────────────────────────────────────────────────────────────
 
-ANALYSIS_FUNCTIONS = {  # Dictionary of analysis functions
-    "heatmap": heatmap,
-    "Test1": fakeAnalysis
-}
 
 @flow(log_prints=True)
 async def AnalysisFlow(filename: str):
@@ -148,28 +132,18 @@ async def AnalysisFlow(filename: str):
     upload_path = config["folder_paths"]["uploads"]  # Get upload directory path
     output_path = config["folder_paths"]["output"]  # Get output directory path
 # 1000_6_to_1100_9_aaebci_NS_09-05-2023_20230905_121427.set
-    loop = asyncio.get_event_loop()
     db = await flow_db.get_database()
-    file, analyses = await get_file_and_analyses(db)
-
-    analysis_list = []
+    test_file = await db.OriginalImportFile.find_one({"upload_id": "d737c2416b20da38c42853012e431279"})
+    upload_id = test_file["upload_id"]
     tasks = []
-    for analysis in analyses:
-        if file['eeg_format'] in analysis['valid_formats'] and file['eeg_paradigm'] in analysis['valid_paradigms']:
-            raw_eeg = await getRaw(file['upload_id'], upload_path, wait_for=[file])  # Retrieve raw EEG data for the file
 
-            analysis_function = ANALYSIS_FUNCTIONS.get(analysis['name'])
-            if analysis_function:
-                tasks.append(analysis_function(file['upload_id'], output_path, wait_for=[raw_eeg]))  # Schedule the analysis function
-                analysis_list.append(analysis['name'])  # Add the name of the analysis to a list
-            else:
-                print(f"No function found for analysis {analysis['name']}")
+    raw_eeg = await getRaw(upload_id, upload_path)
+    tasks.append(fakeAnalysis(upload_id, output_path, wait_for=[raw_eeg]))
 
     if tasks:
         await asyncio.gather(*tasks)  # Run all analysis tasks in parallel
 
-    if analysis_list:
-        await saveMetaData(file, output_path, analysis_list)  # Save metadata for the file if any analyses were run
+    # await saveMetaData(file, output_path, ["FakeAnalysis"])  # Save metadata for the file if any analyses were run
 
     return "Success"
 

@@ -78,17 +78,15 @@ User:
 # List of EEG Analyses
 EegAnalysis:
   - name: 'Mne-Connectivity-Default'
+    function_name: "fakeAnalysis"
     category: 'Connectivity'
-    description: 'All-to-all connectivity analysis'
-    valid_formats: ['EGI128', 'EGI32', 'MEA30', 'MEA30 (v2)']
-    valid_paradigms: ['Resting']
-    parameters: None
-  - name: 'Test1'
-    category: 'Test1'
     description: 'All-to-all connectivity analysis'
     valid_formats: ['EGI128/Adult', 'EGI32/Adult', 'MEA30', 'MEA30 (v2)']
     valid_paradigms: ['Resting']
-    parameters: None
+    # valid_files: Optional[list[PyObjectId]] = Field(default=None)
+    # files: Optional[list[PyObjectId]] = Field(default=None)
+    parameters: ""
+
 
 # List of fake Participants
 Participant:
@@ -169,5 +167,4 @@ Participant:
     anxiety_level: 5
     paradigm: 'chirp'
     equipment: 'EGI Hydrocel 32'
-# -------------------------------------------------------------------------------------------------
-  
+ 

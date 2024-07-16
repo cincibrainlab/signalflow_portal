@@ -43,6 +43,7 @@
   import { DateInput } from 'date-picker-svelte'
   import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant, addParticipant} from '$lib/services/apiService';
   import AddParticipant from './AddParticipant.svelte';
+  import AddAnalysis from "./AddAnalysis.svelte";
   import { debounce } from 'lodash-es';
   
 
@@ -241,29 +242,23 @@
   $: {
     isFiltering = true;
     filteredFiles = Files.filter((file: any) => {
-      console.log("File:", file);
       const participant = file.participantData;
-      console.log("Participant:", participant);
 
       const matchesSearch =
         file.original_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         participant?.participant_id.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-      console.log("Matches Search:", matchesSearch);
 
       const matchesDiagnosis =
         selectedDiagnosis === "All" ||
         participant?.diagnosis === selectedDiagnosis;
-      console.log("Matches Diagnosis:", matchesDiagnosis);
 
       const matchesAgeGroup =
         selectedAgeGroup === "All" ||
         participant?.age_group === selectedAgeGroup;
-      console.log("Matches Age Group:", matchesAgeGroup);
 
       const matchesParadigm =
         selectedParadigm === "All" ||
         file.eeg_paradigm.some((p: any) => p.type === selectedParadigm);
-      console.log("Matches Paradigm:", matchesParadigm);
 
       return matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm;
     }).sort((a: any, b: any) => {
@@ -428,6 +423,7 @@
   }
 
   let showAddParticipantModal = false;
+  let showAddAnalysisModal = false;
 
   function handleParticipantAdded() {
     // Refresh your participants list here
@@ -462,6 +458,7 @@
         <Filter class="w-5 h-5 mr-2" />
         Filters
       </h2>
+
       <AddParticipant 
         bind:showModal={showAddParticipantModal} 
         on:participantAdded={handleParticipantAdded} 
@@ -470,6 +467,15 @@
       <Button variant="outline" on:click={() => showAddParticipantModal = true}>
         Add New Participant
       </Button>
+
+      <AddAnalysis 
+        bind:showModal={showAddAnalysisModal} 
+        on:close={() => showAddAnalysisModal = false}
+      />
+      <Button variant="outline" on:click={() => showAddAnalysisModal = true}>
+        Add New Analysis
+      </Button>
+
       <Button
         on:click={toggleViewMode}
         variant="outline"

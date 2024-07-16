@@ -37,9 +37,13 @@ export async function getOriginalFileCatalog() {
   }
 }
 
-export async function getParticipants() {
+export async function getMatchingFiles(valid_formats: any[], valid_paradigms: any[]) {
   try {
-      const response = await fetch(`${baseUrl}get-participants`);
+      const url = new URL(`${baseUrl}get-matching-files`);
+      url.searchParams.append('valid_formats', JSON.stringify(valid_formats));
+      url.searchParams.append('valid_paradigms', JSON.stringify(valid_paradigms));
+
+      const response = await fetch(url.toString());
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
       
@@ -51,6 +55,62 @@ export async function getParticipants() {
       console.log('Response data:', data);
       return data;
   } catch (error) {
+      console.error('Error fetching original file catalog:', error);
+      throw error;
+  }
+}
+
+export async function getFormats() {
+  try {
+      const response = await fetch(`${baseUrl}list-eeg-formats`);
+      console.log('Response status:', response.status);
+      // console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      return data;
+  } catch (error) {
+      console.error('Error fetching eeg formats:', error);
+      throw error;
+  }
+}
+
+export async function getParadigms() {
+  try {
+      const response = await fetch(`${baseUrl}list-eeg-paradigms`);
+      console.log('Response status:', response.status);
+      // console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      return data;
+  } catch (error) {
+      console.error('Error fetching eeg paradigms:', error);
+      throw error;
+  }
+}
+
+export async function getParticipants() {
+  try {
+      const response = await fetch(`${baseUrl}get-participants`);
+      console.log('Get Participants Response status:', response.status);
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return data;
+  } catch (error) {
       console.error('Error fetching participants:', error);
       throw error;
   }
@@ -59,15 +119,14 @@ export async function getParticipants() {
 export async function getParticipant(participantObjectId: string) {
   try {
       const response = await fetch(`${baseUrl}get-participant/${participantObjectId}`);
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
+      console.log('Get Participant Response status:', response.status);
+
+      const data = await response.json();
       if (!response.ok) {
+          console.log('Response data:', data);
           throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
-      console.log('Response data:', data);
       let participantObject = data.participant;
       return participantObject;
   } catch (error) {
@@ -95,12 +154,30 @@ export async function assignParticipantToFile(participantId: string, fileId: str
 }
 
 export async function addParticipant(participantData: any) {
+  console.log(JSON.stringify(participantData))
   const response = await fetch(`${baseUrl}add-participant`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(participantData),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to add participant');
+  }
+
+  return await response.json();
+}
+
+export async function addAnalysis(analysisData: any) {
+  console.log(JSON.stringify(analysisData))
+  const response = await fetch(`${baseUrl}add-analysis`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(analysisData),
   });
 
   if (!response.ok) {

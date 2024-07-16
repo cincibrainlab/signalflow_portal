@@ -93,7 +93,6 @@ class OriginalImportFile(BaseModel):
     eegid: Optional[str] = Field(default="")
     
 class File(BaseModel):
-    status: Optional[str] = Field(default="")
     upload_id: Optional[str] = Field(default="")
     date_added: Optional[str] = Field(default="")
     original_file: Optional[PyObjectId] = Field(default=None)
@@ -131,10 +130,10 @@ class EegAnalysis(BaseModel):
     function_name: Optional[str] = Field(default="")
     description: Optional[str] = Field(default="")
     category: Optional[str] = Field(default="")
-    valid_formats: Optional[list[str]] = Field(default=None)
-    valid_paradigms: Optional[list[PyObjectId]] = Field(default=None)
-    valid_files: Optional[list[PyObjectId]] = Field(default=None)
-    files: Optional[list[PyObjectId]] = Field(default=None)
+    valid_formats: Optional[list[str]] = Field(default=None) #TODO Consider linking to obj ID
+    valid_paradigms: Optional[list[str]] = Field(default=None) #TODO Consider linking to obj ID
+    valid_files: Optional[list[str]] = Field(default=None) #List of mongo Obj ID's for compatible originalImportFiles
+    files: Optional[list[str]] = Field(default=None) #List of obj Id's for 
     parameters: Optional[str] = Field(default="")
     
 class UserGroup(BaseModel):
