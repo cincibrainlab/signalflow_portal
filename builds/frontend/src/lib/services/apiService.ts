@@ -278,3 +278,20 @@ export async function callAPI(apiSuffix: string): Promise<string> {
         return JSON.stringify({ error: `Failed to connect to ${apiSuffix} API.` });
     }
 }
+
+export async function getFormOptions(form_name: string) {
+  try {
+      const response = await fetch(`${baseUrl}get-form-options/${form_name}`);
+      console.log('Get Form Options Response status:', response.status);
+      
+      const data = await response.json();
+      if (!response.ok) {
+        console.log('Response data:', data);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return data;
+  } catch (error) {
+      console.error('Error fetching form options:', error);
+      throw error;
+  }
+}

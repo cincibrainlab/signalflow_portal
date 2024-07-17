@@ -115,6 +115,12 @@ async def get_participants():
     participants = await flow_db.get_participants()
     return [models.Participant(**participant) for participant in participants]
 
+@router.get("/api/get-form-options/{form_name}")
+async def get_form_options(form_name: str):
+    logging.info("Getting form options...")
+    form_options = await flow_db.get_form_options(form_name)
+    return models.FormInfo(**form_options)
+
 class FileAssignmentRequest(BaseModel):
     ID: str
     fileId: str

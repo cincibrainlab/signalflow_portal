@@ -55,6 +55,11 @@ class EEGFormat(BaseModel):
     name: Optional[str] = Field(default="")
     description: Optional[str] = Field(default="")
     
+class FormInfo(BaseModel):
+    name: Optional[str] = Field(default="")
+    description: Optional[str] = Field(default="")
+    form_options: Optional[list[str]] = Field(default=None)
+    
 class EEGParadigm(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     name: Optional[str] = Field(default="")
