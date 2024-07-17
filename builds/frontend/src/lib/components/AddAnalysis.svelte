@@ -2,6 +2,14 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { Button } from "$lib/components/ui/button";
   import { addAnalysis, getFormats, getParadigms, getMatchingFiles } from '$lib/services/apiService';
+  import {ChevronDownCircle, FileLineChart} from 'lucide-svelte';
+  import { Toast } from 'flowbite-svelte';
+
+  import MultiSelect from 'svelte-multiselect'
+
+  const ui_libs = [`Svelte`, `React`, `Vue`, `Angular`, `...`]
+
+  let selected = []
 
   export let showModal = false;
   
@@ -55,10 +63,12 @@
     };
   }
 
+
   function findValidFiles(){
+    console.log(newAnalysis)
       getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms)
       .then(result => {
-            console.log(result)
+            newAnalysis.valid_files = result
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
@@ -69,7 +79,8 @@
   onMount(() => {
     getParadigms()
         .then(result => {
-            uniqueParadigms = result.map((item: any) => item.name);
+            console.log(result)
+            uniqueParadigms = result.map(item => ({ id: item._id, name: item.name }));
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
@@ -78,7 +89,7 @@
 
     getFormats()
         .then(result => {
-            UniqueFormats = result.map((item: any) => item.name);
+            UniqueFormats = result.map(item => ({ id: item._id, name: item.name }));
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
@@ -87,13 +98,27 @@
   })
 
   function handleFormatSelection(event) {
-    const selectedFormat = event.target.value;
-    newAnalysis.valid_formats.push(selectedFormat);
+    const selectedFormatName = event.target.value;
+    const selectedFormat = UniqueFormats.find(format => format.name === selectedFormatName);
+    console.log("Selected Format, ", selectedFormat)
+    if (selectedFormat) {
+      newAnalysis.valid_formats.push(selectedFormat.id);
+    }
   }
 
   function handleParadigmSelection(event) {
-    const selectedParadigm = event.target.value;
-    newAnalysis.valid_paradigms.push(selectedParadigm);
+    const selectedParadigmName = event.target.value;
+    const selectedParadigm = uniqueParadigms.find(paradigm => paradigm.name === selectedParadigmName);
+    console.log("Selected Paradigm ", selectedParadigm)
+    if (selectedParadigm) {
+      newAnalysis.valid_paradigms.push(selectedParadigm.id);
+    }
+  }
+
+  function dismissAlert() {
+      // Perform any actions needed to dismiss the alert for the given file
+      console.log(`Alert dismissed`);
+      // You can remove the file from the list of validFiles or update its status, etc.
   }
 </script>
 
@@ -119,15 +144,17 @@
             <label for="valid_formats" class="block text-sm font-semibold text-gray-700 mb-1">Valid Formats:</label>
             <select id="valid_formats" on:change={handleFormatSelection} required class="w-full p-2 border rounded" multiple>
               {#each UniqueFormats as formats}
-                <option value={formats}>{formats}</option>
+                <option value={formats.name}>{formats.name}</option>
               {/each}
             </select>
           </div>
+
+          <MultiSelect bind:selected options={ui_libs} />
           <div>
             <label for="valid_paradigms" class="block text-sm font-semibold text-gray-700 mb-1">Valid Paradigms:</label>
             <select id="valid_paradigms" on:change={handleParadigmSelection} required class="w-full p-2 border rounded" multiple>
               {#each uniqueParadigms as paradigms}
-                <option value={paradigms}>{paradigms}</option>
+                <option value={paradigms.name}>{paradigms.name}</option>
               {/each}
             </select>
           </div>
@@ -148,10 +175,22 @@
             <textarea id="description" bind:value={newAnalysis.description} class="w-full p-2 border rounded"></textarea>
           </div>
         </div>
+
         <div class="flex gap-2">
           <p>Valid Files: </p>
           <Button on:click={findValidFiles}>Check for Valid Files</Button>
         </div>
+        <div id="NotificationBox" class="grid grid-cols-2 gap-4 bg-slate-400 p-3 rounded-xl">
+          {#each newAnalysis.valid_files as file}
+            <Toast class="alert bg-slate-200" style="padding: 10px; margin-bottom: 10px; display: flex; justify-content: space-between;">
+              <div>
+                  <FileLineChart size=40 strokeWidth=1.5/>
+                  <span>{file.original_name}</span>
+              </div>
+            </Toast>
+          {/each}
+        </div>
+
         <div class="flex justify-end gap-2">
           <Button type="submit">Add Analysis</Button>
           <Button on:click={closeModal}>Cancel</Button>

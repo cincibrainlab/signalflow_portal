@@ -303,26 +303,12 @@ async def is_config_table_present():
 async def get_eeg_formats():
     db = await get_database()
     eeg_formats = await db.EEGFormat.find().to_list(length=None)
-    return [
-        {
-            "id": str(eeg_format["_id"]),
-            "name": eeg_format["name"],
-            "description": eeg_format.get("description")
-        }
-        for eeg_format in eeg_formats
-    ]
+    return eeg_formats
 
 async def get_eeg_paradigms():
     db = await get_database()
     eeg_paradigms = await db.EEGParadigm.find().to_list(length=None)
-    return [
-        {
-            "id": str(eeg_paradigm["_id"]),
-            "name": eeg_paradigm["name"],
-            "description": eeg_paradigm.get("description")
-        }
-        for eeg_paradigm in eeg_paradigms
-    ]
+    return eeg_paradigms
 
 async def get_emails():
     db = await get_database()
@@ -559,12 +545,16 @@ async def get_OriginalImportFile():
         for upload_record in file_catalog
     ]
 
-async def get_matchingFiles(valid_formats: list[str], valid_paradigms: list[str]):
+async def get_matchingFiles(valid_formats, valid_paradigms):
     db = await get_database()
+    valid_formats = [ObjectId(format_id) for format_id in valid_formats]
+    valid_paradigms = [ObjectId(paradigm_id) for paradigm_id in valid_paradigms]
+    
     valid_files = await db.OriginalImportFile.find({
         "eeg_format": {"$in": valid_formats},
         "eeg_paradigm": {"$in": valid_paradigms}
     }).to_list(length=None)
+    
     return valid_files
 
 

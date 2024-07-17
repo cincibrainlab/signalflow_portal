@@ -833,7 +833,7 @@ $: if (selectedFile) {
             <Button on:click={saveChanges}>Save</Button>
           {/if}
           
-          <Button on:click={() => selectedFile = null}>Close</Button>
+          <Button on:click={() => {selectedFile = null; getSetFiles();}}>Close</Button>
         </form>
       </dialog>
     </section>

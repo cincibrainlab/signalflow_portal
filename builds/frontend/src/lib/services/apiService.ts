@@ -30,7 +30,6 @@ export async function getOriginalFileCatalog() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-
       return data;
   } catch (error) {
       console.error('Error fetching original file catalog:', error);
@@ -50,7 +49,7 @@ export async function getMatchingFiles(valid_formats: any[], valid_paradigms: an
       });
 
       console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+      // console.log('Response headers:', response.headers);
       
       if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -76,7 +75,7 @@ export async function getFormats() {
       }
       
       const data = await response.json();
-      console.log('Response data:', data);
+      console.log('Format Response data:', data);
       return data;
   } catch (error) {
       console.error('Error fetching eeg formats:', error);
@@ -95,7 +94,7 @@ export async function getParadigms() {
       }
       
       const data = await response.json();
-      console.log('Response data:', data);
+      console.log('Paradigm Response data:', data);
       return data;
   } catch (error) {
       console.error('Error fetching eeg paradigms:', error);

@@ -51,10 +51,12 @@ class Study(BaseModel):
     description: Optional[str] = Field(default="")
     
 class EEGFormat(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     name: Optional[str] = Field(default="")
     description: Optional[str] = Field(default="")
     
 class EEGParadigm(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     name: Optional[str] = Field(default="")
     description: Optional[str] = Field(default="")
     study: Optional[PyObjectId] = Field(default=None)
@@ -130,8 +132,8 @@ class EegAnalysis(BaseModel):
     function_name: Optional[str] = Field(default="")
     description: Optional[str] = Field(default="")
     category: Optional[str] = Field(default="")
-    valid_formats: Optional[list[str]] = Field(default=None) #TODO Consider linking to obj ID
-    valid_paradigms: Optional[list[str]] = Field(default=None) #TODO Consider linking to obj ID
+    valid_formats: Optional[list[PyObjectId]] = Field(default=None) #TODO Consider linking to obj ID
+    valid_paradigms: Optional[list[PyObjectId]] = Field(default=None) #TODO Consider linking to obj ID
     valid_files: Optional[list[str]] = Field(default=None) #List of mongo Obj ID's for compatible originalImportFiles
     files: Optional[list[str]] = Field(default=None) #List of obj Id's for 
     parameters: Optional[str] = Field(default="")
