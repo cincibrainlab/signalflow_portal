@@ -41,7 +41,7 @@
     TableRow,
   } from "$lib/components/ui/table"
   import { DateInput } from 'date-picker-svelte'
-  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant, addParticipant} from '$lib/services/apiService';
+  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant, addParticipant, getFormOptions} from '$lib/services/apiService';
   import AddParticipant from './AddParticipant.svelte';
   import AddAnalysis from "./AddAnalysis.svelte";
   import { debounce } from 'lodash-es';
@@ -62,13 +62,7 @@
   let uniqueAgeGroups: string[] = []
   let uniqueParadigms: string[] = []
   let UniqueFormats: string[] = []
-  let UniqueEquipment: string[] = []
-  let UniqueGender: string[] = []
-  let UniqueHandedness: string[] = []
-  let UniqueSpecies: string[] = []
 
-  let UniqueParadigmTypes: string[] = []
-  let UniqueProcessingStatus: string[] = []
 
   let sortColumn: string = ""
   let sortDirection: "asc" | "desc" = "asc"
@@ -122,11 +116,11 @@ $: if (selectedFile) {
   }
   let saveChanges = () => {
     // Save changes to the selected session and participant
-    console.log("Selected File:", selectedFile);
-    console.log("Old Paradigm:", selectedParadigmData);
-    console.log("Old EEG Format:", selectedEEGFormat);
-    console.log("New Paradigm:", selectedParadigmData_Name);
-    console.log("New EEG Format:", selectedEEGFormat_Name);
+    // console.log("Selected File:", selectedFile);
+    // console.log("Old Paradigm:", selectedParadigmData);
+    // console.log("Old EEG Format:", selectedEEGFormat);
+    // console.log("New Paradigm:", selectedParadigmData_Name);
+    // console.log("New EEG Format:", selectedEEGFormat_Name);
     isEditing = false
     assignEEGFormatToFile(selectedEEGFormat_Name, selectedFile.upload_id);
     assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
@@ -208,7 +202,7 @@ $: if (selectedFile) {
             // Handle the error appropriately
         });
 
-    getFormats()
+      getFormats()
         .then(result => {
             UniqueFormats = result.map((item: any) => item.name);
         })
@@ -217,27 +211,24 @@ $: if (selectedFile) {
             // Handle the error appropriately
         });
 
-    uniqueDiagnoses = [
-      "All",
-      "FXS",
-      "ASD",
-      "DD",
-      "Control",
-      "Blind",
-    ]
-    uniqueAgeGroups = [
-      "All",
-      "infant",
-      "pediatric",
-      "adult",
-    ]
-    UniqueProcessingStatus = [
-      "All",
-      "raw",
-      "preprocessed",
-      "analyzed",
-      "other"
-    ]
+        
+      getFormOptions("Diagnosis")
+        .then(result => {
+            uniqueDiagnoses = result.form_options
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            // Handle the error appropriately
+        });
+
+      getFormOptions("AgeGroup")
+        .then(result => {
+            uniqueAgeGroups = result.form_options
+        })
+        .catch(error => {
+            console.error('Error fetching participants:', error);
+            // Handle the error appropriately
+        });
   })
 
   let filteredFiles: any = []

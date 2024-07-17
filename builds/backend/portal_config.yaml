@@ -171,4 +171,43 @@ Participant:
     anxiety_level: 5
     paradigm: 'chirp'
     equipment: 'EGI Hydrocel 32'
- 
+
+FormInfo:
+- name: Equipment
+  description: Options for EEG equipment used
+  form_options: 
+    - 'n/a'
+    - 'S Lab Front Booth'
+    - 'S Lab Back Booth'
+    - 'T Clinic'
+- name: Gender
+  description: Options for gender in selections 
+  form_options:
+    - 'n/a'
+    - 'Male'
+    - 'Female'
+    - 'Non-Binary/Other'
+- name: Handedness
+  description: Options for handedness in selections
+  form_options:
+    - 'n/a'
+    - 'Right'
+    - 'Left'
+    - 'Ambidextrous'
+- name: Diagnosis
+  description: Options for diagnosis in selections
+  form_options:
+    - 'n/a'
+    - 'FXS'
+    - 'ASD'
+    - 'DD'
+    - 'Control'
+    - 'Blind'
+    - 'Other'
+- name: AgeGroup
+  description: Options for age group in selections
+  form_options:
+    - 'n/a'
+    - 'Infant'
+    - 'Pediatric'
+    - 'Adult'

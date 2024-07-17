@@ -567,6 +567,15 @@ async def get_matchingFiles(valid_formats: list[str], valid_paradigms: list[str]
     }).to_list(length=None)
     return valid_files
 
+async def get_form_options(FormField: str):
+    db = await get_database()
+    options = await db.FormInfo.find_one({"name": FormField})
+    if options:
+        return {
+            "name": options["name"],
+            "description": options.get("description"),
+            "form_options": options.get("form_options")
+        }
 
 async def get_import_catalog():
     db = await get_database()
