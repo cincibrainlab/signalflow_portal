@@ -94,6 +94,12 @@ async def list_eeg_paradigms():
     logging.debug(f"EEG Paradigms: {paradigms}")
     return [models.EEGParadigm(**paradigm) for paradigm in paradigms]
 
+@router.get("/api/list-analysis-functions", response_model=List[models.AnalysisFunction])
+async def list_analysis_functions():
+    functions = await flow_db.get_analysis_functions()
+    logging.debug(f"Analysis Functions: {functions}")
+    return [models.AnalysisFunction(**function) for function in functions]
+
 # ────────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: FILES TAB
 # ────────────────────────────────────────────────────────────────────────────────

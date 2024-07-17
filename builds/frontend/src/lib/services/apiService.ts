@@ -102,6 +102,25 @@ export async function getParadigms() {
   }
 }
 
+export async function getAnalysisFunctions() {
+  try {
+      const response = await fetch(`${baseUrl}list-analysis-functions`);
+      console.log('Response status:', response.status);
+      // console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Function Response data:', data);
+      return data;
+  } catch (error) {
+      console.error('Error fetching eeg paradigms:', error);
+      throw error;
+  }
+}
+
 export async function getParticipants() {
   try {
       const response = await fetch(`${baseUrl}get-participants`);

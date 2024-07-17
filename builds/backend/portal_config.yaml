@@ -79,18 +79,15 @@ User:
     is_active: True
     is_superuser: False
 
-# List of EEG Analyses
-EegAnalysis:
-  - name: 'Mne-Connectivity-Default'
-    function_name: "fakeAnalysis"
-    category: 'Connectivity'
-    description: 'All-to-all connectivity analysis'
-    valid_formats: ['EGI128/Adult', 'EGI32/Adult', 'MEA30', 'MEA30 (v2)']
-    valid_paradigms: ['Resting']
-    # valid_files: Optional[list[PyObjectId]] = Field(default=None)
-    # files: Optional[list[PyObjectId]] = Field(default=None)
-    parameters: ""
-
+AnalysisFunction:
+  - name: "fakeAnalysis"
+    description: "placeholder analysis for development"
+    parameters:
+      - 'example_num'
+  - name: "fakeAnalysis2"
+    description: "placeholder analysis for development"
+    parameters:
+      - 'example_num'
 
 # List of fake Participants
 Participant:
@@ -149,28 +146,7 @@ Participant:
     anxiety_level: 5
     paradigm: 'other'
     equipment: 'EGI Hydrocel 128'
-  - participant_id: '1807'
-    species: 'human'
-    age: 25
-    age_group: 'adult'
-    gender: 'Female'
-    handedness: 'Right'
-    diagnosis: 'Blind'
-    iq_score: 100
-    anxiety_level: 5
-    paradigm: 'resting_state'
-    equipment: 'BrainVision 64'
-  - participant_id: '2502'
-    species: 'human'
-    age: 25
-    age_group: 'adult'
-    gender: 'Female'
-    handedness: 'Right'
-    diagnosis: 'Blind'
-    iq_score: 100
-    anxiety_level: 5
-    paradigm: 'chirp'
-    equipment: 'EGI Hydrocel 32'
+
 
 FormInfo:
 - name: Equipment

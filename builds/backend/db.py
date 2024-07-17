@@ -310,6 +310,11 @@ async def get_eeg_paradigms():
     eeg_paradigms = await db.EEGParadigm.find().to_list(length=None)
     return eeg_paradigms
 
+async def get_analysis_functions():
+    db = await get_database()
+    analysis_functions = await db.AnalysisFunction.find().to_list(length=None)
+    return analysis_functions
+
 async def get_emails():
     db = await get_database()
     users = await db.users.find().to_list(length=None)
@@ -426,7 +431,6 @@ async def assign_eeg_paradigm_to_file(eeg_paradigm_name, file_id):
     
     return {"success": "EEGParadigm assigned to file"}
     
-
 #TODO Not finished
 # async def assign_file_to_analysis(analysisId, fileId):
 #     db = await get_database()
@@ -510,6 +514,11 @@ async def add_analysis(analysis: models.EegAnalysis):
     db = await get_database()
     # Convert the Pydantic model to a dictionary
     analysis_dict = analysis.model_dump()
+    analysis_dict["valid_formats"] = [ObjectId(format_id) for format_id in analysis_dict["valid_formats"]]
+    analysis_dict["valid_paradigms"] = [ObjectId(paradigm_id) for paradigm_id in analysis_dict["valid_paradigms"]]
+    analysis_dict["valid_files"] = [ObjectId(orginal_file_id) for orginal_file_id in analysis_dict["valid_files"]]
+
+
     result = await db.EegAnalysis.insert_one(analysis_dict)
     return {
         "id": str(result.inserted_id),
