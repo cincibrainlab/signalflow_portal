@@ -1,18 +1,19 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { Button } from "$lib/components/ui/button";
-  import { addAnalysis, getFormats, getParadigms, getMatchingFiles, getAnalysisFunctions} from '$lib/services/apiService';
-  import {ChevronDownCircle, FileLineChart} from 'lucide-svelte';
-  import { Toast, Checkbox } from 'flowbite-svelte';
+  import { addAnalysis, getFormats, getParadigms, getMatchingFiles, getAnalysisFunctions, runAnalysis} from '$lib/services/apiService';
+  import { Checkbox } from 'flowbite-svelte';
 
   import MultiSelect from 'svelte-multiselect'
 
-  const ui_libs = [`Svelte`, `React`, `Vue`, `Angular`, `...`]
 
   let selectedFormats = []
   let selectedParadigms = []
+  let test: any
 
   export let showModal = false;
+  let runAnalysis_choice = false;
+  let added_analysis_id: string
   
   const dispatch = createEventDispatcher();
 
@@ -37,9 +38,18 @@
 
   async function handleSubmit() {
     try {
-      console.log("Trying to add: ", newAnalysis)
       newAnalysis.valid_files = newAnalysis.valid_files.map(file => file._id)
-      await addAnalysis(newAnalysis);
+      newAnalysis.files = newAnalysis.files.map(file => file._id)
+      console.log("Trying to add: ", newAnalysis)
+      await addAnalysis(newAnalysis)
+      .then(result => {
+        console.log(result)
+        added_analysis_id = result.analysisId
+        if (runAnalysis_choice){
+          runAnalysis(added_analysis_id)
+        }
+      })
+      .catch(error => {console.error('Error adding analysis:', error);});
       dispatch('analysisAdded', newAnalysis);
       closeModal();
     } catch (error) {
@@ -47,6 +57,7 @@
       // Handle error (e.g., show an error message to the user)
     }
   }
+
 
   function closeModal() {
     showModal = false;
@@ -65,11 +76,12 @@
     };
     selectedFormats = []
     selectedParadigms = []
+    runAnalysis_choice = false;
+    added_analysis_id = ""
   }
 
 
   function findValidFiles(){
-    console.log(newAnalysis)
       getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms)
       .then(result => {
             newAnalysis.valid_files = result
@@ -120,11 +132,14 @@
     newAnalysis.valid_paradigms = selectedParadigms.map(paradigm => paradigm.id)
   }
 
-  function dismissAlert() {
-      // Perform any actions needed to dismiss the alert for the given file
-      console.log(`Alert dismissed`);
-      // You can remove the file from the list of validFiles or update its status, etc.
+  function toggleFileSelection(checked:boolean, file){
+    if (checked) {
+        newAnalysis.files = [...newAnalysis.files, file];
+    } else {
+        newAnalysis.files = newAnalysis.files.filter(f => f._id !== file._id);
+    }
   }
+
 </script>
 
 {#if showModal}
@@ -192,21 +207,26 @@
           </div>
           <Button on:click={findValidFiles}>Check for Valid Files</Button>
         </div>
-        <div id="NotificationBox" class="gap-4 bg-slate-300 p-3 rounded-xl h-40">
+        <div id="NotificationBox" class="gap-4 bg-gray-300 p-3 rounded-xl h-40">
           <div class = "rounded-lg bg-white">
             {#each newAnalysis.valid_files as file}
               <div class="border-b-2 border-gray-200 dark:border-gray-700">
-                <Checkbox class="w-full rounder-xl p-2">
+                <Checkbox on:change={(event) => toggleFileSelection(event.target.checked, file)} class="w-full rounder-xl p-2">
                   <span class="pl-2">{file.original_name}</span>
                 </Checkbox>
               </div>
             {/each}
           </div>
         </div>
+        <p>{newAnalysis.files}</p>
 
         <div class="absolute bottom-6 left-6 right-6 flex justify-between gap-2 mt-2">
           <Button class="p-5" variant="outline" on:click={closeModal}>Cancel</Button>
-          <Button class="p-5" type="submit">Save Analysis</Button>
+          <div>
+            <Button class="p-5" type="submit">Save Analysis</Button>
+            <Button class="p-5" on:click={() => runAnalysis_choice = true} type="submit">Save and Run</Button>
+          </div>
+          
         </div>
       </form>
     </dialog>

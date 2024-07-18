@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { Button } from "$lib/components/ui/button";
-  import { addParticipant } from '$lib/services/apiService';
+  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant, addParticipant, getFormOptions} from '$lib/services/apiService';
+  import { getFormats, getParadigms, getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile } from '$lib/services/apiService';
+
 
   export let showModal = false;
   
@@ -20,11 +22,11 @@
   };
 
   // These should be fetched from your API or passed as props
-  let uniqueAgeGroups = ["All", "infant", "pediatric", "adult"];
   let UniqueGender = ["All", "male", "female", "non-binary/non-conforming", "other", "prefer not to respond"];
   let UniqueHandedness = ["All", "right", "left", "ambidextrous", "prefer not to respond"];
   let UniqueSpecies = ["All", "human", "mouse", "rat", "monkey", "dog", "cat", "Other"];
-  let UniqueDiagnoses = ["All", "FXS", "ASD", "DD", "Control", "Blind"];
+  let UniqueAgeGroups: string[]
+  let UniqueDiagnoses: string[]
 
   async function handleSubmit() {
     try {
@@ -54,6 +56,26 @@
       anxiety_level: null
     };
   }
+
+  onMount(() => {
+      getFormOptions("Diagnosis")
+        .then(result => {
+          UniqueDiagnoses = result.form_options
+        })
+        .catch(error => {
+            console.error('Error fetching diagnosies:', error);
+            // Handle the error appropriately
+        });
+
+      getFormOptions("AgeGroup")
+        .then(result => {
+          UniqueAgeGroups = result.form_options
+        })
+        .catch(error => {
+            console.error('Error fetching age groups:', error);
+            // Handle the error appropriately
+        });
+  })
 </script>
 
 {#if showModal}
@@ -73,7 +95,7 @@
           <div>
             <label for="age_group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
             <select id="age_group" bind:value={newParticipant.age_group} required class="w-full p-2 border rounded">
-              {#each uniqueAgeGroups as ageGroup}
+              {#each UniqueAgeGroups as ageGroup}
                 <option value={ageGroup}>{ageGroup}</option>
               {/each}
             </select>
@@ -119,9 +141,9 @@
             <input type="number" id="anxiety_level" bind:value={newParticipant.anxiety_level} class="w-full p-2 border rounded">
           </div>
         </div>
-        <div class="flex justify-end gap-2">
-          <Button type="submit">Add Participant</Button>
-          <Button on:click={closeModal}>Cancel</Button>
+        <div class="absolute bottom-6 left-6 right-6 flex justify-between gap-2 mt-2">
+          <Button class="p-5" variant="outline" on:click={closeModal}>Cancel</Button>
+          <Button class="p-5" type="submit">Save Analysis</Button>
         </div>
       </form>
     </dialog>

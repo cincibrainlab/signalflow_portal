@@ -4,6 +4,7 @@ import json
 import os
 import asyncio
 import time
+from bson import ObjectId
 
 # Third-party library imports
 import mne
@@ -11,10 +12,6 @@ from prefect import task, flow
 
 # Project-specific imports
 import db as flow_db
-# from signalfloweeg.portal.db_connection import get_database
-# from signalfloweeg.portal.import_catalog import copy_import_files
-# from signalfloweeg.portal.portal_utils import load_config
-# from signalfloweeg.viz.heatmap import heatmap_power
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 
@@ -22,19 +19,28 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 # Task Definitions
 # ────────────────────────────────────────────────────────────────────────────────
 
-@task(retries=1)
-async def loadconfig():
-    # Load configuration file
-    config = await flow_db.load_config()
-    return config
 
-@task()
-async def get_file_and_analyses(db: AsyncIOMotorDatabase):
-    loop = asyncio.get_event_loop()
-    file = await loop.run_in_executor(None, db.import_catalog.find_one)
-    analyses = await loop.run_in_executor(None, db.eeg_analyses.find().to_list, None)
-    results = [file._result, analyses._result]
-    return results
+@task(name="get_db", retries=2)
+async def get_db():
+    return await flow_db.get_database()
+
+@task(name="get_file")
+async def get_files(analysis_id):
+    db = await get_db()
+    analysis_id = ObjectId(analysis_id)
+    analysis_data = await db.EegAnalysis.find_one({"_id": analysis_id})
+    file_ids = analysis_data["files"]
+
+    file_dict_list = []
+    for id in file_ids:
+        file = await db.File.find_one({"_id": id})
+        if not file:
+            return {"error": "File not found"}
+        
+        file_dict_list.append(file)
+    if not file_dict_list:
+        raise "no files found"
+    return file_dict_list
 
 @task
 async def getRaw(upload_id: str, upload_path: str):
@@ -115,8 +121,9 @@ async def saveMetaData(fileImport: dict, output_path: str, analysisList: list):
 
 
 @flow(log_prints=True)
-async def AnalysisFlow(filename: str):
+async def AnalysisFlow(analysis_id):
     """
+    OUTDATED DOCUMENTATION
     This is a Prefect 2 flow that schedules all relevant analyses for a given file. 
 
     The function first loads a configuration file and extracts the paths for upload and output directories.
@@ -127,21 +134,26 @@ async def AnalysisFlow(filename: str):
     function is successful, the name of the analysis is added to a list. If any analyses were run, it saves 
     metadata for the file. 
     """
+
+    file_dict_list =[]
+
     
-    config = await loadconfig()  # Load configuration file
-    upload_path = config["folder_paths"]["uploads"]  # Get upload directory path
-    output_path = config["folder_paths"]["output"]  # Get output directory path
-# 1000_6_to_1100_9_aaebci_NS_09-05-2023_20230905_121427.set
-    db = await flow_db.get_database()
-    test_file = await db.OriginalImportFile.find_one({"upload_id": "d737c2416b20da38c42853012e431279"})
-    upload_id = test_file["upload_id"]
-    tasks = []
+    config = await flow_db.get_folder_paths()
+    upload_path = config["uploads"]  # Get upload directory path
+    output_path = config["output"]  # Get output directory path
 
-    raw_eeg = await getRaw(upload_id, upload_path)
-    tasks.append(fakeAnalysis(upload_id, output_path, wait_for=[raw_eeg]))
+    file_dict_list = await get_files(analysis_id)
+    for file in file_dict_list:
+        tasks = []
+        upload_id = file["upload_id"]
 
-    if tasks:
-        await asyncio.gather(*tasks)  # Run all analysis tasks in parallel
+        #TODO create and execute a subflow based on the analysis function and params
+
+        raw_eeg = await getRaw(upload_id, upload_path)
+        tasks.append(fakeAnalysis(upload_id, output_path, wait_for=[raw_eeg]))
+
+        if tasks:
+            await asyncio.gather(*tasks)  # Run all analysis tasks in parallel
 
     # await saveMetaData(file, output_path, ["FakeAnalysis"])  # Save metadata for the file if any analyses were run
 

@@ -116,14 +116,13 @@ $: if (selectedFile) {
   }
   let saveChanges = () => {
     // Save changes to the selected session and participant
-    // console.log("Selected File:", selectedFile);
-    // console.log("Old Paradigm:", selectedParadigmData);
-    // console.log("Old EEG Format:", selectedEEGFormat);
-    // console.log("New Paradigm:", selectedParadigmData_Name);
-    // console.log("New EEG Format:", selectedEEGFormat_Name);
     isEditing = false
+    console.log(selectedEEGFormat_Name)
+    console.log(selectedParadigmData_Name)
     assignEEGFormatToFile(selectedEEGFormat_Name, selectedFile.upload_id);
     assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
+    getSetFiles(); 
+    selectedFile = null;
   }
   let Files: any = []
   let Participants: any = []
@@ -445,6 +444,10 @@ $: if (selectedFile) {
       console.log("Sorted files by EEGID:", filteredFiles.map((f: any) => f.original_name));
     }
   }
+
+  function log(info: any){
+    console.log(info)
+  }
 </script>
 <div class="container mx-auto p-4">
   <div class="mb-6 bg-white p-4 rounded-lg shadow">
@@ -643,7 +646,7 @@ $: if (selectedFile) {
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
           <TableHead class="w-1/8" on:click={() => toggleSort("paradigms")}>
-            Paradigms
+            Paradigm
             <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
           </TableHead>
           <TableHead class="w-1/8">Details</TableHead>
@@ -692,6 +695,7 @@ $: if (selectedFile) {
               <TableCell>{file.equipment_used}</TableCell>
               <TableCell>
                 <div class="flex gap-1">
+                  {log(file)}
                   <!-- TODO Re-activate or change this  -->
                   <!-- {#each file.paradigms as paradigm}
                     <Badge variant="outline" class="flex items-center gap-1">
@@ -817,14 +821,15 @@ $: if (selectedFile) {
               {/await}
             </div>
           </div>
-          
-          {#if !isEditing}
-            <Button on:click={() => isEditing = true}>Make changes</Button>
-          {:else}
-            <Button on:click={saveChanges}>Save</Button>
-          {/if}
-          
-          <Button on:click={() => {selectedFile = null; getSetFiles();}}>Close</Button>
+          <div class="absolute bottom-6 left-6 right-6 flex justify-between gap-2 mt-2">
+            <Button variant="outline" on:click={() => {selectedFile = null; getSetFiles();}}>Close</Button>     
+            {#if !isEditing}
+              <Button on:click={() => isEditing = true}>Make changes</Button>
+            {:else}
+              <Button on:click={saveChanges}>Save</Button>
+            {/if}
+          </div>
+
         </form>
       </dialog>
     </section>
@@ -838,13 +843,33 @@ $: if (selectedFile) {
               <label
                 for="Participant"
                 class="block text-sm font-semibold text-gray-700 mb-1">Participant:</label>
-              <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={Selected_participant_id} >
+              <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={Selected_participant_id} required>
                 {#each Participants as person}
                   <option value={person.participant_id}>{person.participant_id}</option>
                 {/each}
               </select>
             </div>
-            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); selectedFile = null; getSetFiles();}}>Close</Button>
+            <div class="w-full">
+              <label
+                for="Equipment"
+                class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
+              <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name}>
+                {#each UniqueFormats as format}
+                  <option value={format}>{format}</option>
+                {/each}
+              </select>
+            </div>
+            <div class="w-full">
+              <label
+                for="Equipment"
+                class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
+              <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name}>
+                {#each uniqueParadigms as paradigm}
+                  <option value={paradigm}>{paradigm}</option>
+                {/each}
+              </select>
+            </div>
+            <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); saveChanges();}}>Save</Button>
           </form>
       </dialog>
     </section>

@@ -432,34 +432,46 @@ async def assign_eeg_paradigm_to_file(eeg_paradigm_name, file_id):
     return {"success": "EEGParadigm assigned to file"}
     
 #TODO Not finished
-# async def assign_file_to_analysis(analysisId, fileId):
-#     db = await get_database()
+async def create_file_for_analysis(analysisId, OriginalImportFile_id):
+    db = await get_database()
     
-#     # Get the participant
-#     selected_analysis = await db.EegAnalysis.find_one({"_id": "$oid": analysisId})
-#     if not selected_analysis:
-#         return {"error": "Analysis not found"}
+    # Get the participant
+    selected_analysis = await db.EegAnalysis.find_one({"_id": analysisId})
+    if not selected_analysis:
+        return {"error": "Analysis not found"}
     
-#     # Check if the file exists
-#     file = await db.File.find_one({"_id": "$oid": fileId})
-#     if not file:
-#         return {"error": "File not found"}
+    # Check if the file exists
+    originalFile = await db.OriginalImportFile.find_one({"_id": OriginalImportFile_id})
+    if not originalFile:
+        return {"error": "File not found"}
     
-#     # Update the file with the participant reference
-#     result = await db.File.update_one(
-#         {"upload_id": fileId},
-#         {
-#             "$set": {
-#                 "participant": selected_analysis["_id"],
-#                 "status": add_status_code(201)
-#             }
-#         }
-#     )
+    new_file = {}
+    new_file["upload_id"] = originalFile.get("upload_id")    
+    new_file["date_added"] = originalFile.get("date_added")
+    new_file["original_file"] = originalFile.get("_id")
+    new_file["eeg_format"] = originalFile.get("eeg_format")
+    new_file["is_set_file"] = originalFile.get("is_set_file")
+    new_file["has_fdt_file"] = originalFile.get("has_fdt_file")
+    new_file["fdt_filename"] = originalFile.get("fdt_filename")
+    new_file["fdt_upload_id"] = originalFile.get("fdt_upload_id")
+    new_file["hash"] = originalFile.get("hash")
+    new_file["current_status"] = originalFile.get("current_status")
+
+    file_result = await db.File.insert_one(new_file)
+
+    result = await db.EegAnalysis.update_one(
+        {"_id": analysisId},
+        {
+            "$push": {
+                "files": file_result.inserted_id,
+            }
+        }
+    )
     
-#     if result.modified_count == 0:
-#         return {"error": "File not updated. It may already have this participant."}
+    if result.modified_count == 0:
+        return {"error": "File not updated. It may already have this file."}
     
-#     return {"success": "Participant assigned to file"}
+    return {"success": "File assigned to analysis"}
 
 async def get_participant(participant_object_id):
     db = await get_database()
@@ -517,9 +529,13 @@ async def add_analysis(analysis: models.EegAnalysis):
     analysis_dict["valid_formats"] = [ObjectId(format_id) for format_id in analysis_dict["valid_formats"]]
     analysis_dict["valid_paradigms"] = [ObjectId(paradigm_id) for paradigm_id in analysis_dict["valid_paradigms"]]
     analysis_dict["valid_files"] = [ObjectId(orginal_file_id) for orginal_file_id in analysis_dict["valid_files"]]
-
+    selected_files = [ObjectId(orginal_file_id) for orginal_file_id in analysis_dict["files"]]
+    analysis_dict["files"] = []
 
     result = await db.EegAnalysis.insert_one(analysis_dict)
+    for original_file in selected_files:
+        await create_file_for_analysis(result.inserted_id, original_file)
+
     return {
         "id": str(result.inserted_id),
         "analysis_name": analysis_dict["name"]
@@ -799,8 +815,9 @@ async def process_new_uploads(upload_dir):
     
 async def get_upload_and_fdt_upload_id(upload_id):
     db = await get_database()
-    UPLOAD_PATH = config["folder_paths"]["uploads"]
-    IMPORT_PATH = config["folder_paths"]["import"]
+    FOLDER_PATHS = await get_folder_paths()
+    UPLOAD_PATH = FOLDER_PATHS["uploads"]
+    IMPORT_PATH = FOLDER_PATHS["import"]
     file_record = await db.OriginalImportFile.find_one({"upload_id": upload_id})
     if not file_record:
         raise ValueError(f"Upload ID {upload_id} not found in the database.")

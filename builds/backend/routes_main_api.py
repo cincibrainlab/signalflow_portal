@@ -160,6 +160,16 @@ async def assign_eeg_paradigm_to_file(request: FileAssignmentRequest):
     except Exception as e:
         logging.error(f"Error assigning EEG Paradigm to file: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/api/assign-file-to-analysis")
+async def assign_eeg_paradigm_to_file(analysisId, OriginalImportFile_id):
+    try:
+        updated_analysis = await flow_db.assign_eeg_paradigm_to_file(analysisId, OriginalImportFile_id)
+        logging.debug(f"Analysis Updated: {updated_analysis}")
+        return {"success": True, "message": "File assigned to Analysis successfully", "Analysis": updated_analysis}
+    except Exception as e:
+        logging.error(f"Error assigning File to Analysis: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
     
 @router.get("/api/get-participant/{participantObjectId}")
 async def get_participant(participantObjectId: str):
@@ -201,7 +211,7 @@ async def add_participant(participant: models.Participant):
         logging.error(f"Error adding participant: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     
-@router.post("/api/add-analysis", response_model=models.EegAnalysis)
+@router.post("/api/add-analysis")
 async def add_analysis(analysis: models.EegAnalysis):
     try:
         new_analysis = await flow_db.add_analysis(analysis)
@@ -277,54 +287,17 @@ async def process_uploads():
     await flow_db.process_new_uploads(upload_dir=UPLOAD_PATH)
     return {"message": "Uploads processed successfully."}
 
-# @router.get("/api/show_upload_catalog")
-# async def list_upload_catalog():
-#     from rich.console import Console
-#     from rich.table import Table
-
-#     logging.info("Getting Upload Catalog Info")
-#     upload_catalog = await flow_db.get_upload_catalog()
-
-#     console = Console()
-#     table = Table(title="Upload Catalog")
-#     table.add_column("Upload_ID", style="cyan", no_wrap=True)
-#     table.add_column("FDT Upload", style="green", no_wrap=True)
-#     table.add_column("FileName", style="magenta", no_wrap=True)
-#     table.add_column("is_set_file", style="green", no_wrap=True)
-#     table.add_column("has_fdt_file", style="magenta", no_wrap=True)
-#     table.add_column("fdt_filename", style="green", no_wrap=True)
-#     for upload in upload_catalog:
-#         table.add_row(
-#             upload["upload_id"],
-#             upload["fdt_id"],
-#             upload["original_name"],
-#             str(upload["is_set_file"]),
-#             str(upload["has_fdt_file"]),
-#             upload["fdt_filename"],
-#         )
-
-#     console.print(table)
-#     return [
-#         {
-#             "upload_id": upload["upload_id"],
-#             "fdt_id": upload["fdt_id"],
-#             "original_name": upload["original_name"],
-#             "is_set_file": upload["is_set_file"],
-#             "has_fdt_file": upload["has_fdt_file"],
-#             "fdt_filename": upload["fdt_filename"],
-#         }
-#         for upload in upload_catalog
-#     ]
-
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: ANALYSIS ENDPOINT
 # ─────────────────────���──────────────────────────────────────────────────────────
-@router.get("/api/run-analysis")
-async def schedule_analysis(filename: str):
-    await AnalysisFlow(filename=filename)
-    return {"message": f"Analysis scheduled for file: {filename}"}
-
-## Legacy code
+@router.get("/api/run-analysis/{analysis_id}")
+async def schedule_analysis(analysis_id: str):
+    try:
+        await AnalysisFlow(analysis_id=analysis_id)
+    except Exception as e:
+        logging.error(f"Error running analysis: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": f"Analysis scheduled for: {analysis_id}"}
 
 
 def main():

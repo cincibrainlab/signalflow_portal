@@ -64,6 +64,33 @@ export async function getMatchingFiles(valid_formats: any[], valid_paradigms: an
   }
 }
 
+export async function assignFileToAnalysis(analysisId: string, OriginalImportFile_id: string) {
+  try {
+      const url = `${baseUrl}assign-file-to-analysis`;
+      const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ analysisId, OriginalImportFile_id })
+      });
+
+      console.log('Response status:', response.status);
+      // console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      return data;
+  } catch (error) {
+      console.error('Error assinging file to analysis:', error);
+      throw error;
+  }
+}
+
 export async function getFormats() {
   try {
       const response = await fetch(`${baseUrl}list-eeg-formats`);
@@ -268,7 +295,6 @@ export async function addParticipant(participantData: any) {
 }
 
 export async function addAnalysis(analysisData: any) {
-  console.log(JSON.stringify(analysisData))
   const response = await fetch(`${baseUrl}add-analysis`, {
     method: 'POST',
     headers: {
@@ -280,7 +306,6 @@ export async function addAnalysis(analysisData: any) {
   if (!response.ok) {
     throw new Error('Failed to add participant');
   }
-
   return await response.json();
 }
 
@@ -311,6 +336,23 @@ export async function getFormOptions(form_name: string) {
       return data;
   } catch (error) {
       console.error('Error fetching form options:', error);
+      throw error;
+  }
+}
+
+export async function runAnalysis(analysis_id: string) {
+  try {
+      const response = await fetch(`${baseUrl}run-analysis/${analysis_id}`);
+      console.log('Run Analysis Response status:', response.status);
+      
+      const data = await response.json();
+      if (!response.ok) {
+        console.log('Response data:', data);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return data;
+  } catch (error) {
+      console.error('Error running analysis:', error);
       throw error;
   }
 }
