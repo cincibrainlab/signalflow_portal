@@ -1,6 +1,9 @@
 from bson import ObjectId
 from uuid import UUID
 import traceback
+from rich.console import Console
+
+console = Console()
 
 import db as flow_db
 from AnalysisFlow import analysis_flows
@@ -11,19 +14,18 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
     """
     This function is used to deploy an analysis to the Prefect server.
     """
-    print(f"Starting deployment for analysis_id: {analysis_id}, function: {analysis_function}")
+    console.log(f"Starting deployment for analysis_id: {analysis_id}, function: {analysis_function}")
     
     # Get the flow from the dictionary
     flow_func = analysis_flows.get(analysis_function)
     
     if not flow_func:
-        print(f"Error: Analysis function '{analysis_function}' not found in analysis_flows")
+        console.log(f"Error: Analysis function '{analysis_function}' not found in analysis_flows")
         raise ValueError(f"Analysis function '{analysis_function}' not found.")
     
-    print(f"Found flow function: {flow_func.__name__}")
+    console.log(f"Found flow function: {flow_func.__name__}")
     
     try:
-        print("Creating deployment")
         # Create a deployment for the flow using the new method
         
         deployment = await flow_func.to_deployment(
@@ -32,30 +34,28 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
             work_pool_name="analysis-process-pool",
             job_variables={"working_dir": "./"},
         )
-        print(f"Deployment created: {deployment}")
-        
-        print("Applying deployment")
+        console.log(f"Deployment created: [yellow]{deployment.name}[/]")
+
         # Apply the deployment
         deployment_id = await deployment.apply()
-        print(f"Deployment applied with ID: {deployment_id}")
+        console.log(f"Deployment applied with ID: {deployment_id}")
         
-        print("Scheduling runs")
         # Schedule runs for each file in the analysis
-        await schedule_runs(analysis_id, deployment_id, deployment)
-        print("Runs scheduled successfully")
+        result = await schedule_runs(analysis_id, deployment_id, deployment)
+        console.log(result)
         
         return {"success": True, "message": f"Deployed {analysis_function} for analysis_id {analysis_id}", "id": deployment_id}
     except Exception as e:
-        print(f"Error deploying analysis: {str(e)}")
-        print(f"Traceback: {traceback.format_exc()}")
+        console.log(f"Error deploying analysis: {str(e)}")
+        console.log(f"Traceback: {traceback.format_exc()}")
         raise
 
 async def schedule_runs(analysis_id: str, deployment_id: UUID, deployment):
-    print(f"Scheduling runs for analysis_id: {analysis_id}, deployment_id: {deployment_id}")
+    console.log(f"Scheduling runs for analysis_id: {analysis_id}, deployment_id: {deployment_id}")
     db = await flow_db.get_database()
     analysis = await db.EegAnalysis.find_one({"_id": ObjectId(analysis_id)})
     if not analysis:
-        print(f"Error: Analysis with ID {analysis_id} not found.")
+        console.log(f"Error: Analysis with ID {analysis_id} not found.")
         raise ValueError(f"Analysis with ID {analysis_id} not found.")
 
     # Convert UUID to string before storing
@@ -67,18 +67,15 @@ async def schedule_runs(analysis_id: str, deployment_id: UUID, deployment):
         {"$set": {"deployment_id": deployment_id_str}}
     )
     if update_result.modified_count == 0:
-        print(f"Warning: Failed to update deployment_id for analysis {analysis_id}")
-    else:
-        print(f"Updated deployment_id for analysis {analysis_id}")
+        console.log(f"Warning: Failed to update deployment_id for analysis {analysis_id}")
+
 
     for file_id in analysis['valid_files']:
         try:
             file = await db.OriginalImportFile.find_one({"_id": ObjectId(file_id)})
             if not file:
-                print(f"Warning: File with ID {file_id} not found in the database.")
+                console.log(f"[bold red]Warning[/]: File with ID {file_id} not found in the database.")
                 continue
-
-            print(f"Submitting run for file {file_id}")
             
             # await serve(deployment)
             await run_deployment(
@@ -88,11 +85,11 @@ async def schedule_runs(analysis_id: str, deployment_id: UUID, deployment):
                 },
                 timeout=0
             )
-            print(f"Run submitted for file {file_id}")
+            console.log(f"Run submitted for file {file_id}")
         except Exception as e:
-            print(f"Error submitting run for file {file_id}: {str(e)}")
-            print(f"Error type: {type(e).__name__}")
-            print(f"Error details: {e.args}")
+            console.log(f"[bold red]Error[/]: Error submitting run for file {file_id}: {str(e)}")
+            console.log(f"[bold red]Error[/]: Error type: {type(e).__name__}")
+            console.log(f"[bold red]Error[/]: Error details: {e.args}")
             continue
 
-    return f"Submitted runs for all files in analysis {analysis_id}"
+    return f"[bold green]Success[/]: Submitted runs for all files in analysis {analysis_id}"
