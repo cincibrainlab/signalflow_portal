@@ -16,7 +16,6 @@
     ExternalLink,
     ArrowUpDown,
   } from "lucide-svelte"
-  
 
     let analyses: any[] = [];
 
@@ -34,8 +33,8 @@
         // Implement view details functionality
     }
 
-    function openDashboard(deploymentId: string) {
-        goto(`/analysisManager/dashboard/${deploymentId}`);
+    function openDashboard(id: string) {
+        goto(`/dashboard?id=${id}`);
     }
 </script>
 

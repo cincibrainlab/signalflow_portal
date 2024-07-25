@@ -10,9 +10,9 @@ export interface PrefectStats {
     success_rate: number;
 }
 
-export async function fetchPrefectStats(): Promise<PrefectStats> {
+export async function fetchPrefectStats(deploymentId: string): Promise<PrefectStats> {
     try {
-        const response = await fetch(`${baseUrl}prefect-stats`);
+        const response = await fetch(`${baseUrl}prefect-stats/${deploymentId}`);
         const rawText = await response.text();
         console.log("Raw response:", rawText);
         

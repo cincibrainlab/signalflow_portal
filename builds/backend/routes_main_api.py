@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 import logging
 import db as flow_db
 import os
 # from fastapi.responses import JSONResponse
 from prefectFuncs import deploy_analysis
 from prefect.client import get_client
+from prefect.client.schemas.filters import DeploymentFilter
 from datetime import timedelta
 from entrypoint import check_entrypoint
 from typing import List
@@ -22,7 +23,7 @@ router = APIRouter()
 async def test():
     return {"message": "API Test Successful."}
 
-# ──────────────────────────────────────────────────────────────────���─────────────
+# ───────────────────────────────────────────────────────────────────────────────
 # CONFIGURATION CALLS
 # ───────────────────────────────────────────────────────────────────────────────
 @router.get("/api/get-portal-paths")
@@ -294,7 +295,7 @@ async def get_analyses():
 
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: UPLOAD PROCESSING
-# ────────────────────────────────────────────────────────────────────────────────
+# ────��───────────────────────────────────────────────────────────────────────────
 @router.get("/api/process-uploads")
 async def process_uploads():
     logging.info("Processing new uploads...")
@@ -315,24 +316,23 @@ async def process_uploads():
 #         raise HTTPException(status_code=400, detail=str(e))
 #     return {"message": f"Analysis scheduled for: {analysis_id}"}
 
-@router.get("/prefect/prefect-stats")
-async def get_prefect_stats():
+@router.get("/prefect/prefect-stats/{deploymentId}")
+async def get_prefect_stats(deploymentId: str):
     try:
         async with get_client() as client:
-            # Fetch flow runs
-            flow_runs = await client.read_flow_runs()
+            deployment_filter = DeploymentFilter(id={"any_": [deploymentId]})
+            flow_runs = await client.read_flow_runs(deployment_filter=deployment_filter)
             
-            # Calculate stats
             total_runs = len(flow_runs)
             completed_runs = sum(1 for run in flow_runs if run.state.is_completed())
             failed_runs = sum(1 for run in flow_runs if run.state.is_failed())
             pending_runs = total_runs - completed_runs - failed_runs
             
-            # Calculate average runtime
             completed_durations = [run.end_time - run.start_time for run in flow_runs if run.state.is_completed() and run.end_time and run.start_time]
             avg_runtime = sum(completed_durations, timedelta()) / len(completed_durations) if completed_durations else timedelta()
             
             response = {
+                "deployment_id": deploymentId,
                 "total_runs": total_runs,
                 "completed_runs": completed_runs,
                 "failed_runs": failed_runs,
@@ -342,8 +342,8 @@ async def get_prefect_stats():
                 "success_rate": (completed_runs / (completed_runs + failed_runs)) * 100 if (completed_runs + failed_runs) > 0 else 0
             }
             
-            logging.info(f"Prefect stats response: {response}")
+            logging.info(f"Prefect stats response for deployment {deploymentId}: {response}")
             return response
     except Exception as e:
-        logging.error(f"Error in get_prefect_stats: {str(e)}")
+        logging.error(f"Error in get_prefect_stats for deployment {deploymentId}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

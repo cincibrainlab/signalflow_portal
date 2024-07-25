@@ -1,7 +1,7 @@
 <script lang="ts">
     // Import necessary components and data
 
-    import { createEventDispatcher, onMount } from 'svelte';
+    import { createEventDispatcher, onMount, onDestroy } from 'svelte';
     import { flip } from 'svelte/animate';
     import { dndzone } from 'svelte-dnd-action';
     import { fetchPrefectStats, type PrefectStats } from '$lib/services/prefectAPI';
@@ -41,6 +41,26 @@
         }]
     };
 
+    let intervalId: number;
+
+    async function updatePrefectStats() {
+        try {
+            const data: PrefectStats = await fetchPrefectStats(deploymentId);
+            
+            // Update chart data
+            chartData.datasets[0].data = [data.failed_runs, data.pending_runs, data.completed_runs];
+            chart.update();
+
+            // Update other stats
+            averageRuntime = data.avg_runtime;
+            runsCompleted = data.completed_runs;
+            totalRunsScheduled = data.total_runs;
+            successRate = data.success_rate.toFixed(2);
+        } catch (error) {
+            console.error('Error updating Prefect stats:', error);
+        }
+    }
+
     onMount(async () => {
         const ctx = (document.getElementById('runsChart') as HTMLCanvasElement)!.getContext('2d');
         if (ctx) {
@@ -64,33 +84,22 @@
         await updatePrefectStats();
 
         // Set up periodic refresh (e.g., every 30 seconds)
-        setInterval(updatePrefectStats, 30000);
+        intervalId = setInterval(updatePrefectStats, 15000);
+    });
+
+    onDestroy(() => {
+        // Clear the interval when the component is destroyed
+        if (intervalId) {
+            clearInterval(intervalId);
+        }
     });
 
     // Stats data
     let averageRuntime = null;
-    let completionPercentage = null;
-    let totalFilesProcessed = null;
+    let runsCompleted = null;
+    let totalRunsScheduled = null;
     let successRate = null;
     let performanceTrend = null;
-
-    async function updatePrefectStats() {
-        try {
-            const data: PrefectStats = await fetchPrefectStats();
-            
-            // Update chart data
-            chartData.datasets[0].data = [data.failed_runs, data.pending_runs, data.completed_runs];
-            chart.update();
-
-            // Update other stats
-            averageRuntime = data.avg_runtime;
-            completionPercentage = data.completion_rate.toFixed(2);
-            totalFilesProcessed = data.total_runs;
-            successRate = data.success_rate.toFixed(2);
-        } catch (error) {
-            console.error('Error updating Prefect stats:', error);
-        }
-    }
 
     // Files dummy data
     let files = [
@@ -146,21 +155,21 @@
             <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-700">Stats</h2>
                 <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <p class="text-sm text-purple-600 mb-1">Total Runs Scheduled</p>
+                        <p class="text-2xl font-bold text-purple-800">{totalRunsScheduled}</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <p class="text-sm text-yellow-600 mb-1">Runs Completed</p>
+                        <p class="text-2xl font-bold text-yellow-800">{runsCompleted}</p>
+                    </div>
                     <div class="bg-blue-50 p-4 rounded-lg">
                         <p class="text-sm text-blue-600 mb-1">Average Runtime</p>
                         <p class="text-2xl font-bold text-blue-800">{averageRuntime}</p>
                     </div>
                     <div class="bg-green-50 p-4 rounded-lg">
-                        <p class="text-sm text-green-600 mb-1">Completion Rate</p>
-                        <p class="text-2xl font-bold text-green-800">{completionPercentage}%</p>
-                    </div>
-                    <div class="bg-purple-50 p-4 rounded-lg">
-                        <p class="text-sm text-purple-600 mb-1">Total Files Processed</p>
-                        <p class="text-2xl font-bold text-purple-800">{totalFilesProcessed}</p>
-                    </div>
-                    <div class="bg-yellow-50 p-4 rounded-lg">
-                        <p class="text-sm text-yellow-600 mb-1">Success Rate</p>
-                        <p class="text-2xl font-bold text-yellow-800">{successRate}%</p>
+                        <p class="text-sm text-green-600 mb-1">Success Rate</p>
+                        <p class="text-2xl font-bold text-green-800">{successRate}%</p>
                     </div>
                 </div>
                 <div class="mt-6 bg-gray-50 p-4 rounded-lg">

@@ -3,10 +3,10 @@
     import { goto } from '$app/navigation';
     import AnalysisDashboard from '$lib/components/AnalysisDashboard.svelte';
 
-    const deploymentId = $page.params.id;
+    $: deploymentId = $page.url.searchParams.get('id');
 
     function goBack() {
-        goto('/runmanager');
+        goto('/analysisManager');
     }
 </script>
 
@@ -14,5 +14,9 @@
     <button on:click={goBack} class="mb-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
         Back to Analysis Manager
     </button>
-    <AnalysisDashboard {deploymentId} />
+    {#if deploymentId}
+        <AnalysisDashboard {deploymentId} />
+    {:else}
+        <p>No deployment ID provided.</p>
+    {/if}
 </div>
