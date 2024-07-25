@@ -9,17 +9,6 @@ from flows.AnalysisFlow import analysis_flows
 from prefect.deployments import run_deployment
 from prefect import serve, flow
 
-
-@flow(log_prints=True)
-async def get_repo_info(repo_name: str = "PrefectHQ/prefect"):
-    url = f"https://api.github.com/repos/{repo_name}"
-    response = httpx.get(url)
-    response.raise_for_status()
-    repo = response.json()
-    print(f"{repo_name} repository statistics 🤓:")
-    print(f"Stars 🌠 : {repo['stargazers_count']}")
-    print(f"Forks 🍴 : {repo['forks_count']}")
-
 async def deploy_analysis(analysis_id: str, analysis_function: str):
     """
     This function is used to deploy an analysis to the Prefect server.
@@ -39,15 +28,11 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
         print("Creating deployment")
         # Create a deployment for the flow using the new method
         
-        my_flow = await flow.from_source(
-            source="https://github.com/PrefectHQ/prefect.git",
-            entrypoint="flows/hello_world.py:hello"
-        )
-        
-        deployment = await my_flow.to_deployment(
+        deployment = await flow_func.to_deployment(
             name=f"{analysis_function}_deployment_{analysis_id}",
             parameters={"analysis_id": analysis_id},
-            work_pool_name="analysis-process-pool"
+            work_pool_name="analysis-process-pool",
+            job_variables={"working_dir": "./"},
         )
         print(f"Deployment created: {deployment}")
         

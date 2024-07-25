@@ -1,5 +1,5 @@
 # Standard library imports
-
+import os
 # Third-party library imports
 from prefect import flow
 
@@ -13,11 +13,11 @@ async def fakeAnalysis(importID: str, analysis_id: str):
     # TODO: 
 
     analysisName = "Fake Analysis"
-    # savePath = os.path.join(output_path, (analysisName + "_" + importID))
+    savePath = os.path.join(output_path, (analysisName + "_" + importID))
     print(f"Running analysis on file {importID}")
 
-    # with open(savePath, 'a') as file:
-    #     file.write(f"Ran {analysisName} on {importID}\n")
+    with open(savePath, 'a') as file:
+        file.write(f"Ran {analysisName} on {importID}\n")
 
 analysis_flows = {
     "fakeAnalysis": fakeAnalysis,
