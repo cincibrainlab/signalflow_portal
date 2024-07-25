@@ -8,11 +8,17 @@ import traceback
 # Third-party library imports
 from prefect import flow
 from prefect.deployments import run_deployment
-from flows import AnalysisTasks as tasks
+import AnalysisTasks as tasks
 import db as flow_db
 
+output_path: str = "portal_files/output"
+# prefect work-pool create analysis-process-pool
+# prefect worker start --pool analysis-process-pool
+
 @flow(name="FakeAnalysis", description="Run a fake analysis on the file.")
-async def fakeAnalysis(importID: str, output_path: str = "portal_files/output"):
+async def fakeAnalysis(importID: str, analysis_id: str):
+    
+    # TODO: 
 
     analysisName = "Fake Analysis"
     savePath = os.path.join(output_path, (analysisName + "_" + importID))
@@ -120,7 +126,7 @@ if __name__ == "__main__":
     import AnalysisTasks as tasks
     
     async def main():
-        result = await deploy_analysis("some_analysis_id", "fakeAnalysis", {"example_num": 42})
+        result = await deploy_analysis("some_analysis_id", "fakeAnalysis")
         print(result)
     
     asyncio.run(main())
