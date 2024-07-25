@@ -29,6 +29,20 @@ async def fakeAnalysis(importID: str, analysis_id: str):
     raw_eeg = await getRaw(upload_id, upload_path)
     print(raw_eeg)
     
+    if raw_eeg is not None:
+        raw = raw_eeg
+        # Perform analysis here
+        raw.notch_filter(freqs=20, filter_length='auto', phase='zero') # just so its super obvious 
+        
+        psd = raw.compute_psd(fmin=1, fmax=50)
+        
+        fig = psd.plot(show=False)
+        
+        fig.savefig(f"{output_path}/psd_{importID}.png")
+        
+        
+        # Save output to output directory
+    
 
     if tasks:
         await asyncio.gather(*tasks)  # Run all analysis tasks in parallel
