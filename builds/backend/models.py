@@ -135,12 +135,12 @@ class Session(BaseModel):
     
 class EegAnalysis(BaseModel):
     name: Optional[str] = Field(default="")
-    analysis_function: Optional[str] = Field(default="")
+    analysis_function: Optional[PyObjectId] = Field(default=None)
     description: Optional[str] = Field(default="")
     category: Optional[str] = Field(default="")
     valid_formats: Optional[list[PyObjectId]] = Field(default=None)
     valid_paradigms: Optional[list[PyObjectId]] = Field(default=None)
-    valid_files: Optional[list[str]] = Field(default=None) #List of mongo Obj ID's for compatible originalImportFiles
+    valid_files: Optional[list[PyObjectId]] = Field(default=None) #List of mongo Obj ID's for compatible originalImportFiles
     deployment_id: Optional[str] = Field(default=None)
     parameters: Optional[str] = Field(default="")
 

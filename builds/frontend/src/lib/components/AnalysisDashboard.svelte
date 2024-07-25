@@ -1,9 +1,12 @@
 <script lang="ts">
     // Import necessary components and data
 
+    import { createEventDispatcher, onMount } from 'svelte';
     import { flip } from 'svelte/animate';
     import { dndzone } from 'svelte-dnd-action';
     import { fetchPrefectStats, type PrefectStats } from '$lib/services/prefectAPI';
+
+    export let deploymentId: string;
 
     let pendingFiles = [
         { id: 1, name: "document1.pdf" },
@@ -28,7 +31,6 @@
 
     // Runs dummy data
     import { Chart } from 'chart.js/auto';
-    import { onMount } from 'svelte';
 
     let chart;
     let chartData = {

@@ -224,7 +224,7 @@ async def add_analysis(analysis: models.EegAnalysis):
     except Exception as e:
         logging.error(f"Error adding analysis: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    
+
 @router.get("/api/get-analyses")
 async def get_analyses():
     try:

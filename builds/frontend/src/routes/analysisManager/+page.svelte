@@ -1,7 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { Button } from "$lib/components/ui/button";
-    import { getAnalyses} from '$lib/services/apiService';
+    import { getAnalyses } from '$lib/services/apiService';
+    import { goto } from '$app/navigation';
 
     import {
     Table,
@@ -22,8 +23,9 @@
     onMount(async () => {
         try {
             analyses = await getAnalyses();
+            console.log(analyses);
         } catch (error) {
-            console.error('Error fetching analyses:', error);
+            console.error('Error fetching analyses (page):', error);
         }
     });
 
@@ -32,9 +34,8 @@
         // Implement view details functionality
     }
 
-    function runAnalysis(id: string) {
-        console.log(`Run analysis ${id}`);
-        // Implement run analysis functionality
+    function openDashboard(deploymentId: string) {
+        goto(`/analysisManager/dashboard/${deploymentId}`);
     }
 </script>
 
@@ -49,10 +50,16 @@
                     Function
                 </TableHead>
                 <TableHead>
-                    Name
+                    Category
                 </TableHead>
                 <TableHead>
-                    Name
+                    Valid Formats
+                </TableHead>
+                <TableHead>
+                    Valid Paradigms
+                </TableHead>
+                <TableHead>
+                    Valid Files
                 </TableHead>
             </TableRow>
         </TableHeader>
@@ -61,8 +68,13 @@
                 <TableRow>
                     <TableCell>{analysis.name}</TableCell>
                     <TableCell>{analysis.analysis_function}</TableCell>
-                    <TableCell>{analysis.description}</TableCell>
                     <TableCell>{analysis.category}</TableCell>
+                    <TableCell>{analysis.valid_formats.join(', ')}</TableCell>
+                    <TableCell>{analysis.valid_paradigms.join(', ')}</TableCell>
+                    <TableCell>{analysis.valid_files.join(', ')}</TableCell>
+                    <TableCell>
+                        <Button on:click={() => openDashboard(analysis.deployment_id)}>Open Dashboard</Button>
+                    </TableCell>
                 </TableRow>
             {/each}
         </TableBody>

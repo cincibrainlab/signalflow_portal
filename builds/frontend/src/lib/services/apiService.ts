@@ -343,13 +343,7 @@ export async function getFormOptions(form_name: string) {
 
 export async function getAnalyses() {
   try {
-    const response = await fetch(`${baseUrl}get-analyses`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
+    const response = await fetch(`${baseUrl}get-analyses`);
     console.log('Get Analyses Response status:', response.status);
     
     const data = await response.json();

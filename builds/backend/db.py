@@ -526,6 +526,7 @@ async def add_analysis(analysis: models.EegAnalysis):
     db = await get_database()
     # Convert the Pydantic model to a dictionary
     analysis_dict = analysis.model_dump()
+    analysis_dict["analysis_function"] = ObjectId(analysis_dict["analysis_function"])
     analysis_dict["valid_formats"] = [ObjectId(format_id) for format_id in analysis_dict["valid_formats"]]
     analysis_dict["valid_paradigms"] = [ObjectId(paradigm_id) for paradigm_id in analysis_dict["valid_paradigms"]]
     analysis_dict["valid_files"] = [ObjectId(orginal_file_id) for orginal_file_id in analysis_dict["valid_files"]]
@@ -544,24 +545,16 @@ async def add_analysis(analysis: models.EegAnalysis):
 async def get_analyses():
     db = await get_database()
     analyses = await db.EegAnalysis.find().to_list(length=None)
-    
-    formatted_analyses = []
     for analysis in analyses:
-        formatted_analysis = {
-            "id": str(analysis["_id"]),
-            "name": analysis.get("name", ""),
-            "analysis_function": analysis.get("analysis_function", ""),
-            "description": analysis.get("description", ""),
-            "category": analysis.get("category", ""),
-            "valid_formats": [str(format_id) for format_id in analysis.get("valid_formats", [])],
-            "valid_paradigms": [str(paradigm_id) for paradigm_id in analysis.get("valid_paradigms", [])],
-            "valid_files": analysis.get("valid_files", []),
-            "deployment_id": analysis.get("deployment_id"),
-            "parameters": analysis.get("parameters", "")
-        }
-        formatted_analyses.append(formatted_analysis)
-    
-    return formatted_analyses
+        analysis['_id'] = str(analysis['_id'])  # Convert ObjectId to string
+        analysis['analysis_function'] = (await db.AnalysisFunction.find_one({"_id": analysis['analysis_function']}))['name']
+        format_names = await db.EEGFormat.find({"_id": {"$in": analysis.get("valid_formats", [])}}).distinct("name")
+        paradigm_names = await db.EEGParadigm.find({"_id": {"$in": analysis.get("valid_paradigms", [])}}).distinct("name")
+        file_names = await db.OriginalImportFile.find({"_id": {"$in": analysis.get("valid_files", [])}}).distinct("original_name")
+        analysis["valid_formats"] = format_names
+        analysis["valid_paradigms"] = paradigm_names
+        analysis["valid_files"] = file_names
+    return analyses
     
             
     
