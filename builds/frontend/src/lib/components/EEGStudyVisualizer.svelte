@@ -417,7 +417,6 @@ $: if (selectedFile) {
   }
 
   let showAddParticipantModal = false;
-  let showAddAnalysisModal = false;
 
   function handleParticipantAdded() {
     // Refresh your participants list here
@@ -471,14 +470,6 @@ $: if (selectedFile) {
         />
         <Button variant="outline" on:click={() => showAddParticipantModal = true}>
           Add New Participant
-        </Button>
-
-        <AddAnalysis 
-          bind:showModal={showAddAnalysisModal} 
-          on:close={() => showAddAnalysisModal = false}
-        />
-        <Button variant="outline" on:click={() => showAddAnalysisModal = true}>
-          Add New Analysis
         </Button>
 
         <Button
