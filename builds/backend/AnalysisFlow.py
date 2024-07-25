@@ -26,8 +26,8 @@ async def fakeAnalysis(importID: str, analysis_id: str):
     upload_id = test_file["upload_id"]
     tasks = []
 
-    # raw_eeg = await getRaw(upload_id, upload_path)
-    
+    raw_eeg = await getRaw(upload_id, upload_path)
+    print(raw_eeg)
     
 
     if tasks:

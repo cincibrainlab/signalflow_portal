@@ -830,7 +830,7 @@ async def process_new_uploads(upload_dir):
     await update_file_catalog(info_files)
     logging.info("Upload and import catalogs updated.")
     
-async def get_upload_and_fdt_upload_id(upload_id):
+async def get_upload_paths(upload_id):
     db = await get_database()
     FOLDER_PATHS = await get_folder_paths()
     UPLOAD_PATH = FOLDER_PATHS["uploads"]
@@ -844,7 +844,6 @@ async def get_upload_and_fdt_upload_id(upload_id):
     fdt_import_path = os.path.join(IMPORT_PATH, file_record['fdt_filename']) if file_record.get('fdt_filename') else None
     return {
         "upload_id": upload_id,
-        "fdt_upload_id": file_record['fdt_upload_id'],
         "set_upload_path": set_upload_path,
         "fdt_upload_path": fdt_upload_path,
         "set_import_path": set_import_path,
@@ -852,7 +851,7 @@ async def get_upload_and_fdt_upload_id(upload_id):
     }
     
 async def clean_import_files(upload_id):
-    import_file_paths = await get_upload_and_fdt_upload_id(upload_id)
+    import_file_paths = await get_upload_paths(upload_id)
     set_dest_path = import_file_paths['set_import_path']
     fdt_dest_path = import_file_paths['fdt_import_path']
 
@@ -865,7 +864,7 @@ async def clean_import_files(upload_id):
 
 async def copy_import_files(upload_id):
     # Copy the SET and FDT files to the import path
-    import_file_paths = await get_upload_and_fdt_upload_id(upload_id)
+    import_file_paths = await get_upload_paths(upload_id)
     set_dest_path = import_file_paths['set_import_path']
     fdt_dest_path = import_file_paths['fdt_import_path']
     set_src_path = import_file_paths['set_upload_path']
