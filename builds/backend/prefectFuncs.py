@@ -1,37 +1,24 @@
-# Standard library imports
-import os
-import asyncio
 from bson import ObjectId
 from uuid import UUID
 import traceback
+import httpx
 
-# Third-party library imports
-from prefect import flow
-from prefect.deployments import run_deployment
-import AnalysisTasks as tasks
 import db as flow_db
+from flows.AnalysisFlow import analysis_flows
 
-output_path: str = "portal_files/output"
-# prefect work-pool create analysis-process-pool
-# prefect worker start --pool analysis-process-pool
+from prefect.deployments import run_deployment
+from prefect import serve, flow
 
-@flow(name="FakeAnalysis", description="Run a fake analysis on the file.")
-async def fakeAnalysis(importID: str, analysis_id: str):
-    
-    # TODO: 
 
-    analysisName = "Fake Analysis"
-    savePath = os.path.join(output_path, (analysisName + "_" + importID))
-    print(f"Running analysis on file {importID}")
-
-    with open(savePath, 'a') as file:
-        file.write(f"Ran {analysisName} on {importID}\n")
-
-analysis_flows = {
-    "fakeAnalysis": fakeAnalysis,
-    "fakeAnalysis2": fakeAnalysis,
-    # Add more flows here as needed
-}
+@flow(log_prints=True)
+async def get_repo_info(repo_name: str = "PrefectHQ/prefect"):
+    url = f"https://api.github.com/repos/{repo_name}"
+    response = httpx.get(url)
+    response.raise_for_status()
+    repo = response.json()
+    print(f"{repo_name} repository statistics 🤓:")
+    print(f"Stars 🌠 : {repo['stargazers_count']}")
+    print(f"Forks 🍴 : {repo['forks_count']}")
 
 async def deploy_analysis(analysis_id: str, analysis_function: str):
     """
@@ -51,10 +38,16 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
     try:
         print("Creating deployment")
         # Create a deployment for the flow using the new method
-        deployment = await flow_func.to_deployment(
+        
+        my_flow = await flow.from_source(
+            source="https://github.com/PrefectHQ/prefect.git",
+            entrypoint="flows/hello_world.py:hello"
+        )
+        
+        deployment = await my_flow.to_deployment(
             name=f"{analysis_function}_deployment_{analysis_id}",
             parameters={"analysis_id": analysis_id},
-            work_pool_name="analysis-process-pool",
+            work_pool_name="analysis-process-pool"
         )
         print(f"Deployment created: {deployment}")
         
@@ -65,7 +58,7 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
         
         print("Scheduling runs")
         # Schedule runs for each file in the analysis
-        await schedule_runs(analysis_id, deployment_id)
+        await schedule_runs(analysis_id, deployment_id, deployment)
         print("Runs scheduled successfully")
         
         return {"success": True, "message": f"Deployed {analysis_function} for analysis_id {analysis_id}", "id": deployment_id}
@@ -74,9 +67,7 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
         print(f"Traceback: {traceback.format_exc()}")
         raise
 
-
-
-async def schedule_runs(analysis_id: str, deployment_id: UUID):
+async def schedule_runs(analysis_id: str, deployment_id: UUID, deployment):
     print(f"Scheduling runs for analysis_id: {analysis_id}, deployment_id: {deployment_id}")
     db = await flow_db.get_database()
     analysis = await db.EegAnalysis.find_one({"_id": ObjectId(analysis_id)})
@@ -105,6 +96,8 @@ async def schedule_runs(analysis_id: str, deployment_id: UUID):
                 continue
 
             print(f"Submitting run for file {file_id}")
+            
+            # await serve(deployment)
             await run_deployment(
                 name=deployment_id,
                 parameters={
@@ -120,13 +113,3 @@ async def schedule_runs(analysis_id: str, deployment_id: UUID):
             continue
 
     return f"Submitted runs for all files in analysis {analysis_id}"
-
-if __name__ == "__main__":
-    import asyncio
-    import AnalysisTasks as tasks
-    
-    async def main():
-        result = await deploy_analysis("some_analysis_id", "fakeAnalysis")
-        print(result)
-    
-    asyncio.run(main())
