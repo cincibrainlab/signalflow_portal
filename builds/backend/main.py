@@ -40,7 +40,7 @@ origins = ["http://localhost:5173"]  # Add your development URL
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -48,7 +48,7 @@ app.add_middleware(
 
 
 async def run_startup_process():
-    restart_database = True
+    restart_database = False
     if restart_database:
         initialize_database()
         if not await check_entrypoint(console):

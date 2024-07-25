@@ -28,10 +28,8 @@ services:
       - eeg-network
 
 volumes:
-  postgres-db-volume:
   tusd:
   sfdb-db-volume:
-  pgadmin_data:
 
 networks:
   eeg-network:

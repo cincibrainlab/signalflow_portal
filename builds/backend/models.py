@@ -3,6 +3,7 @@ from typing import Optional, Any
 from bson import ObjectId
 from pydantic_core import core_schema
 from datetime import datetime
+from uuid import UUID
 
 class PyObjectId(str):
     @classmethod
@@ -134,13 +135,13 @@ class Session(BaseModel):
     
 class EegAnalysis(BaseModel):
     name: Optional[str] = Field(default="")
-    function_name: Optional[str] = Field(default="")
+    analysis_function: Optional[str] = Field(default="")
     description: Optional[str] = Field(default="")
     category: Optional[str] = Field(default="")
     valid_formats: Optional[list[PyObjectId]] = Field(default=None)
     valid_paradigms: Optional[list[PyObjectId]] = Field(default=None)
     valid_files: Optional[list[str]] = Field(default=None) #List of mongo Obj ID's for compatible originalImportFiles
-    files: Optional[list[str]] = Field(default=None) #List of obj Id's for 
+    deployment_id: Optional[str] = Field(default=None)
     parameters: Optional[str] = Field(default="")
 
 class AnalysisFunction(BaseModel):
@@ -163,4 +164,3 @@ class UserGroup(BaseModel):
     sessions: Optional[list[PyObjectId]] = Field(default=None)
     
     
-

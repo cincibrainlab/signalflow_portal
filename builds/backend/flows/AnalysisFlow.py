@@ -1,88 +1,18 @@
 # Standard library imports
-from datetime import datetime
-import json
 import os
 import asyncio
-import time
 from bson import ObjectId
+from uuid import UUID
+import traceback
 
 # Third-party library imports
-import mne
-from prefect import task, flow
-
-# Project-specific imports
+from prefect import flow
+from prefect.deployments import run_deployment
+from flows import AnalysisTasks as tasks
 import db as flow_db
-from motor.motor_asyncio import AsyncIOMotorDatabase
 
-
-# ────────────────────────────────────────────────────────────────────────────────
-# Task Definitions
-# ────────────────────────────────────────────────────────────────────────────────
-
-
-@task(name="get_db", retries=2)
-async def get_db():
-    return await flow_db.get_database()
-
-@task(name="get_file")
-async def get_files(analysis_id):
-    db = await get_db()
-    analysis_id = ObjectId(analysis_id)
-    analysis_data = await db.EegAnalysis.find_one({"_id": analysis_id})
-    file_ids = analysis_data["files"]
-
-    file_dict_list = []
-    for id in file_ids:
-        file = await db.File.find_one({"_id": id})
-        if not file:
-            return {"error": "File not found"}
-        
-        file_dict_list.append(file)
-    if not file_dict_list:
-        raise "no files found"
-    return file_dict_list
-
-@task
-async def getRaw(upload_id: str, upload_path: str):
-    """
-    This function is used to get the raw EEG data from the specified upload path. 
-
-    Parameters:
-    upload_id (str): The ID of the upload.
-    upload_path (str): The path where the upload is located.
-
-    Returns:
-    raw_eeg: The raw EEG data.
-    """
-
-    try: 
-        set_dest_path, fdt_dest_path = await flow_db.copy_import_files(upload_id)
-        
-        # Use asyncio.to_thread for CPU-bound operations
-        raw_eeg = await asyncio.to_thread(mne.io.read_raw_eeglab, set_dest_path, preload=True, verbose=False)
-                                                                                                
-        if os.path.exists(set_dest_path):
-            await asyncio.to_thread(os.remove, set_dest_path)
-            print(f"Removed SET file {set_dest_path}")
-        if fdt_dest_path and os.path.exists(fdt_dest_path):
-            await asyncio.to_thread(os.remove, fdt_dest_path)
-            print(f"Removed FDT file {fdt_dest_path}")
-        return raw_eeg
-    
-    except Exception as e:
-        print("Exception Occurred when creating Raw Obj: " + str(e))
-        raise
-
-
-@task(name="FakeAnalysis", description="Run a fake analysis on the file.")
-async def fakeAnalysis(importID: str, output_path: str):
-    """
-    This function is used to run a fake analysis on the file and save the result in the specified output path.
-
-    Parameters:
-    importID (str): The ID of the import.
-    output_path (str): The path where the result of the analysis will be saved.
-    """
+@flow(name="FakeAnalysis", description="Run a fake analysis on the file.")
+async def fakeAnalysis(importID: str, output_path: str = "portal_files/output"):
 
     analysisName = "Fake Analysis"
     savePath = os.path.join(output_path, (analysisName + "_" + importID))
@@ -91,74 +21,106 @@ async def fakeAnalysis(importID: str, output_path: str):
     with open(savePath, 'a') as file:
         file.write(f"Ran {analysisName} on {importID}\n")
 
-@task(name="CreateMetaData", description="Save metadata of the file and what analyses were run on it to a .info file.")
-async def saveMetaData(fileImport: dict, output_path: str, analysisList: list):
+analysis_flows = {
+    "fakeAnalysis": fakeAnalysis,
+    "fakeAnalysis2": fakeAnalysis,
+    # Add more flows here as needed
+}
+
+async def deploy_analysis(analysis_id: str, analysis_function: str):
     """
-    This function is used to save the metadata of the file and the analyses that were run on it to a .info file.
-
-    Parameters:
-    fileImport (dict): The import catalog entry of the file.
-    output_path (str): The path where the .info file will be saved.
-    analysisList (list): The list of analyses that were run on the file.
+    This function is used to deploy an analysis to the Prefect server.
     """
-
-    savePath = os.path.join(output_path, (fileImport['upload_id'] + ".info"))
-
-    metadata = {
-        'ID': fileImport['upload_id'],
-        'analyses_attempted': analysisList,
-        'eeg_format': fileImport['eeg_format'],
-        'eeg_paradigm': fileImport['eeg_paradigm'],
-        'execution_date': datetime.now().isoformat()
-    }
-
-    with open(savePath, 'a') as file:
-        file.write(json.dumps(metadata, indent=4) + "\n")
-
-# ────────────────────────────────────────────────────────────────────────────────
-# Analysis Flow
-# ────────────────────────────────────────────────────────────────────────────────
-
-
-@flow(log_prints=True)
-async def AnalysisFlow(analysis_id):
-    """
-    OUTDATED DOCUMENTATION
-    This is a Prefect 2 flow that schedules all relevant analyses for a given file. 
-
-    The function first loads a configuration file and extracts the paths for upload and output directories.
-    It then establishes a connection with the database and retrieves the first file from the ImportCatalog collection 
-    and all records from the EegAnalyses collection. For each analysis in the EegAnalyses collection, it checks if the 
-    file's EEG format and paradigm match the valid formats and paradigms for the analysis. If a match is found, 
-    it retrieves the raw EEG data for the file and runs the corresponding analysis functions. If the analysis 
-    function is successful, the name of the analysis is added to a list. If any analyses were run, it saves 
-    metadata for the file. 
-    """
-
-    file_dict_list =[]
-
+    print(f"Starting deployment for analysis_id: {analysis_id}, function: {analysis_function}")
     
-    config = await flow_db.get_folder_paths()
-    upload_path = config["uploads"]  # Get upload directory path
-    output_path = config["output"]  # Get output directory path
+    # Get the flow from the dictionary
+    flow_func = analysis_flows.get(analysis_function)
+    
+    if not flow_func:
+        print(f"Error: Analysis function '{analysis_function}' not found in analysis_flows")
+        raise ValueError(f"Analysis function '{analysis_function}' not found.")
+    
+    print(f"Found flow function: {flow_func.__name__}")
+    
+    try:
+        print("Creating deployment")
+        # Create a deployment for the flow using the new method
+        deployment = await flow_func.to_deployment(
+            name=f"{analysis_function}_deployment_{analysis_id}",
+            parameters={"analysis_id": analysis_id},
+            work_pool_name="analysis-process-pool",
+        )
+        print(f"Deployment created: {deployment}")
+        
+        print("Applying deployment")
+        # Apply the deployment
+        deployment_id = await deployment.apply()
+        print(f"Deployment applied with ID: {deployment_id}")
+        
+        print("Scheduling runs")
+        # Schedule runs for each file in the analysis
+        await schedule_runs(analysis_id, deployment_id)
+        print("Runs scheduled successfully")
+        
+        return {"success": True, "message": f"Deployed {analysis_function} for analysis_id {analysis_id}", "id": deployment_id}
+    except Exception as e:
+        print(f"Error deploying analysis: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
+        raise
 
-    file_dict_list = await get_files(analysis_id)
-    for file in file_dict_list:
-        tasks = []
-        upload_id = file["upload_id"]
 
-        #TODO create and execute a subflow based on the analysis function and params
 
-        raw_eeg = await getRaw(upload_id, upload_path)
-        tasks.append(fakeAnalysis(upload_id, output_path, wait_for=[raw_eeg]))
+async def schedule_runs(analysis_id: str, deployment_id: UUID):
+    print(f"Scheduling runs for analysis_id: {analysis_id}, deployment_id: {deployment_id}")
+    db = await flow_db.get_database()
+    analysis = await db.EegAnalysis.find_one({"_id": ObjectId(analysis_id)})
+    if not analysis:
+        print(f"Error: Analysis with ID {analysis_id} not found.")
+        raise ValueError(f"Analysis with ID {analysis_id} not found.")
 
-        if tasks:
-            await asyncio.gather(*tasks)  # Run all analysis tasks in parallel
+    # Convert UUID to string before storing
+    deployment_id_str = str(deployment_id)
 
-    # await saveMetaData(file, output_path, ["FakeAnalysis"])  # Save metadata for the file if any analyses were run
+    # Update the deployment_id in the EegAnalysis document
+    update_result = await db.EegAnalysis.update_one(
+        {"_id": ObjectId(analysis_id)},
+        {"$set": {"deployment_id": deployment_id_str}}
+    )
+    if update_result.modified_count == 0:
+        print(f"Warning: Failed to update deployment_id for analysis {analysis_id}")
+    else:
+        print(f"Updated deployment_id for analysis {analysis_id}")
 
-    return "Success"
+    for file_id in analysis['valid_files']:
+        try:
+            file = await db.OriginalImportFile.find_one({"_id": ObjectId(file_id)})
+            if not file:
+                print(f"Warning: File with ID {file_id} not found in the database.")
+                continue
 
+            print(f"Submitting run for file {file_id}")
+            await run_deployment(
+                name=deployment_id,
+                parameters={
+                    "importID": file["upload_id"],
+                },
+                timeout=0
+            )
+            print(f"Run submitted for file {file_id}")
+        except Exception as e:
+            print(f"Error submitting run for file {file_id}: {str(e)}")
+            print(f"Error type: {type(e).__name__}")
+            print(f"Error details: {e.args}")
+            continue
+
+    return f"Submitted runs for all files in analysis {analysis_id}"
 
 if __name__ == "__main__":
-    AnalysisFlow()
+    import asyncio
+    import AnalysisTasks as tasks
+    
+    async def main():
+        result = await deploy_analysis("some_analysis_id", "fakeAnalysis", {"example_num": 42})
+        print(result)
+    
+    asyncio.run(main())

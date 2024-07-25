@@ -36,7 +36,7 @@
 				showProgressDetails: true,
 				proudlyDisplayPoweredByUppy: true,
 				hideUploadButton: true,
-				height: 200
+				height: 400
 			})
 			.use(Compressor)
 			.use(Tus, { endpoint: TUS_ENDPOINT, limit: 6 })
@@ -47,7 +47,22 @@
 				addResultToForm: true,
 				submitOnSuccess: false,
 				triggerUploadOnSubmit: false
-			});
+			})
+			.use(GoldenRetriever, { serviceWorker: true });
+		
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker
+					.register('/sw.js') // path to your bundled service worker with GoldenRetriever service worker
+					.then((registration) => {
+						console.log(
+							'ServiceWorker registration successful with scope: ',
+							registration.scope,
+						);
+					})
+					.catch((error) => {
+						console.log(`Registration failed with ${error}`);
+					});
+			}
 
 		uppy.on('complete', (result) => {
 			if (result.successful.length > 0) {
@@ -78,4 +93,5 @@
 
 <style>
 	/* Add any necessary styles for the Uppy dashboard container */
+	
 </style>

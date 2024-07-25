@@ -529,17 +529,39 @@ async def add_analysis(analysis: models.EegAnalysis):
     analysis_dict["valid_formats"] = [ObjectId(format_id) for format_id in analysis_dict["valid_formats"]]
     analysis_dict["valid_paradigms"] = [ObjectId(paradigm_id) for paradigm_id in analysis_dict["valid_paradigms"]]
     analysis_dict["valid_files"] = [ObjectId(orginal_file_id) for orginal_file_id in analysis_dict["valid_files"]]
-    selected_files = [ObjectId(orginal_file_id) for orginal_file_id in analysis_dict["files"]]
-    analysis_dict["files"] = []
+
 
     result = await db.EegAnalysis.insert_one(analysis_dict)
-    for original_file in selected_files:
-        await create_file_for_analysis(result.inserted_id, original_file)
+
+    function = await db.AnalysisFunction.find_one({"_id": ObjectId(analysis_dict["analysis_function"])})
 
     return {
         "id": str(result.inserted_id),
-        "analysis_name": analysis_dict["name"]
+        "analysis_name": analysis_dict["name"],
+        "analysis_function": function["name"]
     }
+
+async def get_analyses():
+    db = await get_database()
+    analyses = await db.EegAnalysis.find().to_list(length=None)
+    
+    formatted_analyses = []
+    for analysis in analyses:
+        formatted_analysis = {
+            "id": str(analysis["_id"]),
+            "name": analysis.get("name", ""),
+            "analysis_function": analysis.get("analysis_function", ""),
+            "description": analysis.get("description", ""),
+            "category": analysis.get("category", ""),
+            "valid_formats": [str(format_id) for format_id in analysis.get("valid_formats", [])],
+            "valid_paradigms": [str(paradigm_id) for paradigm_id in analysis.get("valid_paradigms", [])],
+            "valid_files": analysis.get("valid_files", []),
+            "deployment_id": analysis.get("deployment_id"),
+            "parameters": analysis.get("parameters", "")
+        }
+        formatted_analyses.append(formatted_analysis)
+    
+    return formatted_analyses
     
             
     
@@ -745,8 +767,9 @@ async def align_fdt_files():
         await db.OriginalImportFile.update_one({"_id": row['_id']}, {"$set": update_data})
             
 async def delete_uploads_and_save_info_files():
-    UPLOAD_PATH = config["folder_paths"]["uploads"]
-    INFO_PATH = config["folder_paths"]["info_archive"]
+    FOLDER_PATHS = await get_folder_paths()
+    UPLOAD_PATH = FOLDER_PATHS["uploads"]
+    INFO_PATH = FOLDER_PATHS["info_archive"]
     db = await get_database()
     async for row in db.OriginalImportFile.find({"remove_upload": True}):
         os.remove(os.path.join(UPLOAD_PATH, row['original_name']))
@@ -758,7 +781,8 @@ async def delete_uploads_and_save_info_files():
 async def ingest_info_files(info_files):
     async def extract_metadata(info_file):
         db = await get_database()
-        folder_path = config["folder_paths"]["uploads"]
+        folder_path = await get_folder_paths()
+        folder_path = folder_path["uploads"]
         participant = await db.Participant.find_one({"participant_id": "Empty"})
         paradigm = await db.EEGParadigm.find_one({"name": "Unassigned"})
         EEGFormat = await db.EEGFormat.find_one({"name": "Unassigned"})

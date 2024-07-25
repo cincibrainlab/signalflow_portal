@@ -3,7 +3,9 @@ import logging
 import db as flow_db
 import os
 # from fastapi.responses import JSONResponse
-from flows.AnalysisFlow import AnalysisFlow
+from flows.AnalysisFlow import deploy_analysis
+from prefect.client import get_client
+from datetime import timedelta
 from entrypoint import check_entrypoint
 from typing import List
 import models
@@ -18,15 +20,15 @@ router = APIRouter()
 async def test():
     return {"message": "API Test Successful."}
 
-# ────────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────���─────────────
 # CONFIGURATION CALLS
-# ───────────────────────────────────────────────────────────────────────���────────
+# ───────────────────────────────────────────────────────────────────────────────
 @router.get("/api/get-portal-paths")
 async def get_portal_paths():
     paths = await flow_db.get_folder_paths()
     return {"message": paths}
 
-# ────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────────
 # DATABASE: SERVICE UTILITIES
 # ────────────────────────────────────────────────────────────────────────────────
   
@@ -79,9 +81,9 @@ async def api_reset_portal():
 
     return {"message": "Uploads Removed and Portal Reset Successfully."}
 
-# ────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: UPLOAD TAB
-# ────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────────
 @router.get("/api/list-eeg-formats", response_model=List[models.EEGFormat])
 async def list_eeg_formats():
     formats = await flow_db.get_eeg_formats()
@@ -100,7 +102,7 @@ async def list_analysis_functions():
     logging.debug(f"Analysis Functions: {functions}")
     return [models.AnalysisFunction(**function) for function in functions]
 
-# ────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: FILES TAB
 # ────────────────────────────────────────────────────────────────────────────────
 @router.get("/api/get-original-file-catalog")
@@ -215,11 +217,23 @@ async def add_participant(participant: models.Participant):
 async def add_analysis(analysis: models.EegAnalysis):
     try:
         new_analysis = await flow_db.add_analysis(analysis)
-        logging.debug(f"New analysis Added: {new_analysis}")
-        return {"success": True, "message": "Analysis added successfully", "analysis": analysis, "analysisId" : new_analysis["id"]}
+        logging.debug(f"New analysis Added to db: {new_analysis}")
+        deployment = await deploy_analysis(new_analysis["id"], new_analysis["analysis_function"])
+        logging.debug(f"New analysis Deployed: {deployment}")
+        return {"success": True, "message": "Analysis added and deployed successfully", "analysisId" : new_analysis["id"], "deployment_id": deployment["id"]}
     except Exception as e:
         logging.error(f"Error adding analysis: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/api/get-analyses")
+async def get_analyses():
+    try:
+        analyses = await flow_db.get_analyses()
+        logging.info(f"Retrieved {len(analyses)} analyses")
+        return analyses
+    except Exception as e:
+        logging.error(f"Error in get_analyses: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # @router.get("/api/get-import-catalog")
 # async def get_import_catalog():
@@ -249,9 +263,9 @@ async def add_analysis(analysis: models.EegAnalysis):
 #         logging.error(f"Error merging datasets: {str(e)}")
 #         raise HTTPException(status_code=500, detail=str(e))
 
-# ────────────────────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────────────────────────────────────
 # FUNCTION: DATASET CRUD
-# ───────────────────────────────────────────────────────────────────────────────���
+# ────────────────────────────────────────────────────────────────────────────────
 # @router.post("/api/add-dataset", response_model=models.Dataset)
 # async def add_dataset(dataset_entry: models.Dataset):
 #     try:
@@ -276,7 +290,7 @@ async def add_analysis(analysis: models.EegAnalysis):
 #         logging.error(f"Error updating dataset: {str(e)}")
 #         raise HTTPException(status_code=400, detail=str(e))
 
-# ────────────────���───────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: UPLOAD PROCESSING
 # ────────────────────────────────────────────────────────────────────────────────
 @router.get("/api/process-uploads")
@@ -288,62 +302,46 @@ async def process_uploads():
     return {"message": "Uploads processed successfully."}
 
 # ────────────────────────────────────────────────────────────────────────────────
-# FUNCTION: ANALYSIS ENDPOINT
-# ─────────────────────���──────────────────────────────────────────────────────────
-@router.get("/api/run-analysis/{analysis_id}")
-async def schedule_analysis(analysis_id: str):
+# FUNCTION: PREFECT
+# ────────────────────────────────────────────────────────────────────────────────
+# @router.get("/prefect/create-analysis/{analysis_id}")
+# async def create_analysis(analysis_id: str):
+#     try:
+#         await AnalysisFlow(analysis_id=analysis_id)
+#     except Exception as e:
+#         logging.error(f"Error running analysis: {str(e)}")
+#         raise HTTPException(status_code=400, detail=str(e))
+#     return {"message": f"Analysis scheduled for: {analysis_id}"}
+
+@router.get("/prefect/prefect-stats")
+async def get_prefect_stats():
     try:
-        await AnalysisFlow(analysis_id=analysis_id)
-    except Exception as e:
-        logging.error(f"Error running analysis: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-    return {"message": f"Analysis scheduled for: {analysis_id}"}
-
-
-def main():
-    from rich.console import Console
-    from rich.prompt import Prompt
-    import subprocess
-
-    console = Console()
-
-    port_number = 3005
-    api_base_url = f"http://localhost:{port_number}/api"
-    api_commands = {
-        "0": {
-            "description": "Universal Test API",
-            "command": f"curl {api_base_url}/test",
-            "prompts": [],
-        },
-        "1": {
-            "description": "Load Database Summary",
-            "command": f"curl {api_base_url}/load-database-summary",
-            "prompts": [],
-        },
-    }
-    while True:
-        console.clear()
-        console.print("SignalFlow Portal API Menu", style="bold green")
-        for choice, command in api_commands.items():
-            console.print(f"{choice}. {command['description']}")
-        console.print("q. Exit")
-
-        choice = Prompt.ask("Enter your choice (or 'q' to quit)", choices=list(api_commands.keys()) + ['q'])
-
-        if choice == 'q':
-            break
-
-        if api_commands[choice]["command"]:
-            prompts = api_commands[choice]["prompts"]
-            command_args = {}
-            for prompt in prompts:
-                command_args[prompt.split()[-1].lower()] = Prompt.ask(prompt)
-
-            command = api_commands[choice]["command"].format(**command_args)
-            result = subprocess.run(command, shell=True, capture_output=True, text=True)
-            console.print(result.stdout)
-            console.print("API command executed. Press any key to return to the menu...")
-            input()  # Wait for user input before continuing
+        async with get_client() as client:
+            # Fetch flow runs
+            flow_runs = await client.read_flow_runs()
             
-if __name__ == "__main__":
-    main()
+            # Calculate stats
+            total_runs = len(flow_runs)
+            completed_runs = sum(1 for run in flow_runs if run.state.is_completed())
+            failed_runs = sum(1 for run in flow_runs if run.state.is_failed())
+            pending_runs = total_runs - completed_runs - failed_runs
+            
+            # Calculate average runtime
+            completed_durations = [run.end_time - run.start_time for run in flow_runs if run.state.is_completed() and run.end_time and run.start_time]
+            avg_runtime = sum(completed_durations, timedelta()) / len(completed_durations) if completed_durations else timedelta()
+            
+            response = {
+                "total_runs": total_runs,
+                "completed_runs": completed_runs,
+                "failed_runs": failed_runs,
+                "pending_runs": pending_runs,
+                "avg_runtime": str(avg_runtime),
+                "completion_rate": (completed_runs / total_runs) * 100 if total_runs > 0 else 0,
+                "success_rate": (completed_runs / (completed_runs + failed_runs)) * 100 if (completed_runs + failed_runs) > 0 else 0
+            }
+            
+            logging.info(f"Prefect stats response: {response}")
+            return response
+    except Exception as e:
+        logging.error(f"Error in get_prefect_stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

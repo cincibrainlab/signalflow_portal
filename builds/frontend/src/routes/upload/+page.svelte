@@ -1,14 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { SvelteComponent } from 'svelte';
-
-	import { TabGroup, Tab } from '@skeletonlabs/skeleton';
-	import { writable } from 'svelte/store';
 	import UppyDashboard from '$lib/components/UppyDashboard.svelte';
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { v4 as uuidv4 } from 'uuid';
 	import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
-	import type { Config } from 'unique-names-generator'
 
 	let uppyDashboardComponent: UppyDashboard;
 	const toastStore = getToastStore();
@@ -76,11 +71,11 @@
 	}
 </script>
 
-<div class="container mx-auto p-4">
+<div class="container mx-auto p-4 max-w-2xl">
+	<h1 class="text-2xl font-bold mb-4">Upload Your Session Files</h1>
+	<p class="mb-4">Drag and drop your files or click to browse. Once you've selected your files, click "Submit Job" to start the upload.</p>
+	
 	<form id="upload_form" on:submit|preventDefault={submitForm}>
-		<input type="hidden" name="datasetName" value="" />
-		<input type="hidden" name="datasetId" value="" />
-		<br>
 		<UppyDashboard
 			bind:this={uppyDashboardComponent}
 			on:upload-success={(event) => {
@@ -99,5 +94,5 @@
 </div>
 
 <style>
-
+	/* Add any custom styles here */
 </style>

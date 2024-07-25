@@ -1,7 +1,7 @@
 // src/services/apiService.ts
-import type { DatasetRow } from '../types';
 
-const baseUrl = "http://localhost:3005/api/";
+
+export const baseUrl = "http://localhost:3005/api/";
 
 
 export async function checkDbConnection() {
@@ -304,7 +304,7 @@ export async function addAnalysis(analysisData: any) {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to add participant');
+    throw new Error('Failed to add analysis: ');
   }
   return await response.json();
 }
@@ -340,19 +340,27 @@ export async function getFormOptions(form_name: string) {
   }
 }
 
-export async function runAnalysis(analysis_id: string) {
+
+export async function getAnalyses() {
   try {
-      const response = await fetch(`${baseUrl}run-analysis/${analysis_id}`);
-      console.log('Run Analysis Response status:', response.status);
-      
-      const data = await response.json();
-      if (!response.ok) {
-        console.log('Response data:', data);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return data;
+    const response = await fetch(`${baseUrl}get-analyses`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+    console.log('Get Analyses Response status:', response.status);
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.log('Error response data:', data);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return data;
   } catch (error) {
-      console.error('Error running analysis:', error);
-      throw error;
+    console.error('Error fetching analyses:', error);
+    throw error;
   }
 }

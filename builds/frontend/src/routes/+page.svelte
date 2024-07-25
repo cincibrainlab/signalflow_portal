@@ -52,7 +52,7 @@
 		  and sharing neuroimaging data.
 		</div>
 		<div class="mt-6 md:mt-2">
-		  	<a href="/vault">
+		  	<a href="/upload">
 				<button class="btn btn-primary btn-sm px-6">Start</button>
 		  	</a>
 		  	<a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">
