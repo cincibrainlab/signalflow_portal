@@ -3,7 +3,7 @@ import logging
 import db as flow_db
 import os
 # from fastapi.responses import JSONResponse
-from builds.backend.AnalysisFlow import deploy_analysis
+from AnalysisFlow import deploy_analysis
 from prefect.client import get_client
 from datetime import timedelta
 from entrypoint import check_entrypoint
