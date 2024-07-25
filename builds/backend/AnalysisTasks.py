@@ -50,17 +50,20 @@ async def getRaw(upload_id: str, upload_path: str):
     try: 
         set_dest_path, fdt_dest_path = await flow_db.copy_import_files(upload_id)
         
-        # Read EEGLAB file info 
-        eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, set_dest_path, preload=True, verbose=True)
-        
-        if os.path.exists(set_dest_path):
-            await asyncio.to_thread(os.remove, set_dest_path)
-            logging.info(f"Removed SET file {set_dest_path}")
-        if fdt_dest_path and os.path.exists(fdt_dest_path):
-            await asyncio.to_thread(os.remove, fdt_dest_path)
-            logging.info(f"Removed FDT file {fdt_dest_path}")
-        
-        return eeg_data
+        print(f"SET file path: {set_dest_path}")
+        print(f"FDT file path: {fdt_dest_path}")
+        if fdt_dest_path is not None:
+            # Read EEGLAB file info 
+            eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, set_dest_path, preload=True, verbose=True)
+            
+            if os.path.exists(set_dest_path):
+                await asyncio.to_thread(os.remove, set_dest_path)
+                logging.info(f"Removed SET file {set_dest_path}")
+            if fdt_dest_path and os.path.exists(fdt_dest_path):
+                await asyncio.to_thread(os.remove, fdt_dest_path)
+                logging.info(f"Removed FDT file {fdt_dest_path}")
+            
+            return eeg_data
     
     except Exception as e:
         logging.error(f"Exception occurred when creating EEG Obj: {str(e)}")
