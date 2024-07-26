@@ -8,8 +8,8 @@
   import MultiSelect from 'svelte-multiselect'
 
 
-  let selectedFormats = []
-  let selectedParadigms = []
+  let selectedFormats: any[] = []
+  let selectedParadigms: any[] = []
 
   export let showModal = false;
   let runAnalysis_choice = false;
@@ -17,14 +17,25 @@
   
   const dispatch = createEventDispatcher();
 
-  let newAnalysis = {
+  interface Analysis {
+    name: string;
+    analysis_function: string;
+    description: string;
+    category: string;
+    valid_formats: string[]; // or any other specific type
+    valid_paradigms: string[]; // or any other specific type
+    valid_files: string[]; // or any other specific type
+    parameters: string;
+  }
+
+  let newAnalysis: Analysis = {
     name: '',
     analysis_function: '',
     description: '',
     category: '',
-    valid_formats: [],
-    valid_paradigms: [],
-    valid_files: [],
+    valid_formats: [] as string[], // specify the type here
+    valid_paradigms: [] as string[], // specify the type here
+    valid_files: [] as string[], // specify the type here
     parameters: ''
   };
 
@@ -38,14 +49,14 @@
   async function handleSubmit() {
     try {
       await getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms)
-      .then(result => {
-            console.log(result)
-            newAnalysis.valid_files = result.map(file => file._id)
-        })
-        .catch(error => {
-            console.error('Error fetching files:', error);
-            // Handle the error appropriately
-        });
+        .then(result => {
+              console.log(result)
+              newAnalysis.valid_files = result.map((file: any) => file._id)
+          })
+          .catch(error => {
+              console.error('Error fetching files:', error);
+              // Handle the error appropriately
+          });
       console.log("Trying to add: ", newAnalysis)
       await addAnalysis(newAnalysis)
       .then(result => {
@@ -60,6 +71,8 @@
     }
   }
 
+  
+
 
   function closeModal() {
     showModal = false;
@@ -70,9 +83,9 @@
       analysis_function: '',
       description: '',
       category: '',
-      valid_formats: [],
-      valid_paradigms: [],
-      valid_files: [],
+      valid_formats: [] as string[], // specify the type here
+      valid_paradigms: [] as string[], // specify the type here
+      valid_files: [] as string[], // specify the type here
       parameters: ''
     };
     selectedFormats = []
@@ -87,7 +100,7 @@
     getParadigms()
         .then(result => {
             console.log(result)
-            uniqueParadigms = result.map(item => ({ id: item._id, label: item.name }));
+            uniqueParadigms = result.map((item: any) => ({ id: item._id, label: item.name }));
         })
         .catch(error => {
             console.error('Error fetching paradigms:', error);
@@ -96,7 +109,7 @@
 
     getFormats()
         .then(result => {
-            UniqueFormats = result.map(item => ({ id: item._id, label: item.name }));
+            UniqueFormats = result.map((item: any) => ({ id: item._id, label: item.name }));
         })
         .catch(error => {
             console.error('Error fetching formats:', error);
@@ -114,12 +127,12 @@
         });
   })
 
-  function handleFormatSelection(event){
+  function handleFormatSelection(event: any){
     newAnalysis.valid_formats = selectedFormats.map(format => format.id )
   }
 
 
-  function handleParadigmSelection(event) {
+  function handleParadigmSelection(event: any) {
     newAnalysis.valid_paradigms = selectedParadigms.map(paradigm => paradigm.id)
   }
 
@@ -128,7 +141,7 @@
 </script>
 
 {#if showModal}
-  <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+  <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-10" role="dialog" aria-modal="true">
     <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" open>
       <h2 class="text-2xl font-bold mb-4">Add New Analysis</h2>
       <form on:submit|preventDefault={handleSubmit}>

@@ -143,6 +143,7 @@ class EegAnalysis(BaseModel):
     valid_files: Optional[list[PyObjectId]] = Field(default=None) #List of mongo Obj ID's for compatible originalImportFiles
     deployment_id: Optional[str] = Field(default=None)
     parameters: Optional[str] = Field(default="")
+    output_path: Optional[str] = Field(default="")
 
 class AnalysisFunction(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")

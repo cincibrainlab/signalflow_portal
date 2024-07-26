@@ -3,12 +3,11 @@ from uuid import UUID
 import traceback
 from rich.console import Console
 
-console = Console()
-
 import db as flow_db
-from AnalysisFlow import analysis_flows
-
+from .AnalysisFlow import analysis_flows
 from prefect.deployments import run_deployment
+
+console = Console()
 
 async def deploy_analysis(analysis_id: str, analysis_function: str):
     """
@@ -30,7 +29,7 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
         
         deployment = await flow_func.to_deployment(
             name=f"{analysis_function}_deployment_{analysis_id}",
-            parameters={"analysis_id": analysis_id},
+            parameters={"analysis_id": analysis_id, "analysis_function": analysis_function},
             work_pool_name="analysis-process-pool",
             job_variables={"working_dir": "./"},
         )

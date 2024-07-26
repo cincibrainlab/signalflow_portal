@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 import logging
 import db as flow_db
 import os
 # from fastapi.responses import JSONResponse
-from prefectFuncs import deploy_analysis
+from PrefectCode.UtilityFuncs import deploy_analysis
 from prefect.client import get_client
 from prefect.client.schemas.filters import DeploymentFilter
 from datetime import timedelta
@@ -164,16 +164,6 @@ async def assign_eeg_paradigm_to_file(request: FileAssignmentRequest):
         return {"success": True, "message": "EEG Paradigm assigned to file successfully", "file": updated_file}
     except Exception as e:
         logging.error(f"Error assigning EEG Paradigm to file: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-
-@router.post("/api/assign-file-to-analysis")
-async def assign_eeg_paradigm_to_file(analysisId, OriginalImportFile_id):
-    try:
-        updated_analysis = await flow_db.assign_eeg_paradigm_to_file(analysisId, OriginalImportFile_id)
-        logging.debug(f"Analysis Updated: {updated_analysis}")
-        return {"success": True, "message": "File assigned to Analysis successfully", "Analysis": updated_analysis}
-    except Exception as e:
-        logging.error(f"Error assigning File to Analysis: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     
 @router.get("/api/get-participant/{participantObjectId}")

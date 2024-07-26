@@ -10,12 +10,17 @@ import logging
 from datetime import datetime
 import asyncio
 
+@task(name="loadconfig", retries=1, description="")
+async def loadconfig():
+    # Load configuration file
+    config = await flow_db.load_config()
+    return config
 
-@task(name="get_db", retries=2)
+@task(name="get_db", retries=1, description="")
 async def get_db():
     return await flow_db.get_database()
 
-@task(name="get_file")
+@task(name="get_files", retries=1, description="")
 async def get_files(analysis_id):
     db = await get_db()
     analysis_id = ObjectId(analysis_id)
@@ -34,7 +39,7 @@ async def get_files(analysis_id):
         raise "no files found"
     return file_dict_list
 
-@task
+@task(name="getRaw", retries=1, description="")
 async def getRaw(upload_id: str, upload_path: str):
     """
     This function is used to get the EEG data from the specified upload path. 
@@ -75,7 +80,7 @@ async def getRaw(upload_id: str, upload_path: str):
         raise
 
 
-@task(name="CreateMetaData", description="Save metadata of the file and what analyses were run on it to a .info file.")
+@task(name="saveMetaData", retries=1, description="Save metadata of the file and what analyses were run on it to a .info file.")
 async def saveMetaData(fileImport: dict, output_path: str, analysisList: list):
     """
     This function is used to save the metadata of the file and the analyses that were run on it to a .info file.

@@ -80,12 +80,14 @@ User:
     is_superuser: False
 
 AnalysisFunction:
-  - name: "fakeAnalysis"
+  - name: "TemplateAnalysis"
     description: "placeholder analysis for development"
+    output_path: "portal_files/output"
     parameters:
       - 'example_num'
-  - name: "fakeAnalysis2"
+  - name: "ComputePsdAnalysis"
     description: "placeholder analysis for development"
+    output_path: "portal_files/output"
     parameters:
       - 'example_num'
 

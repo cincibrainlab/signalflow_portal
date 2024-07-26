@@ -79,7 +79,7 @@
 </script>
 
 {#if showModal}
-  <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+  <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-10" role="dialog" aria-modal="true">
     <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" open>
       <h2 class="text-2xl font-bold mb-4">Add New Participant</h2>
       <form on:submit|preventDefault={handleSubmit}>
