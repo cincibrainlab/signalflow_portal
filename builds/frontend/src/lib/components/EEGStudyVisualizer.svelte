@@ -189,6 +189,7 @@
       getParadigms()
         .then(result => {
             uniqueParadigms = result.map((item: any) => item.name);
+            uniqueParadigms.unshift("All")
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
@@ -208,6 +209,7 @@
       getFormOptions("Diagnosis")
         .then(result => {
             uniqueDiagnoses = result.form_options
+            uniqueDiagnoses.unshift("All")
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
@@ -217,6 +219,7 @@
       getFormOptions("AgeGroup")
         .then(result => {
             uniqueAgeGroups = result.form_options
+            uniqueAgeGroups.unshift("All");
         })
         .catch(error => {
             console.error('Error fetching participants:', error);
