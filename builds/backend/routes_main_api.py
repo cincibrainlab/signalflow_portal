@@ -329,7 +329,8 @@ async def get_prefect_stats(deploymentId: str):
                 "pending_runs": pending_runs,
                 "avg_runtime": str(avg_runtime),
                 "completion_rate": (completed_runs / total_runs) * 100 if total_runs > 0 else 0,
-                "success_rate": (completed_runs / (completed_runs + failed_runs)) * 100 if (completed_runs + failed_runs) > 0 else 0
+                "success_rate": (completed_runs / (completed_runs + failed_runs)) * 1000 if (completed_runs + failed_runs) > 0 else 0,
+                "runs": [{"id": run.state_id, "status": run.state_type, "name": run.name} for run in flow_runs]
             }
             
             logging.info(f"Prefect stats response for deployment {deploymentId}: {response}")

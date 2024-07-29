@@ -8,13 +8,6 @@
 
     export let deploymentId: string;
 
-    let pendingFiles = [
-        { id: 1, name: "document1.pdf" },
-        { id: 2, name: "image1.jpg" },
-        { id: 3, name: "spreadsheet1.xlsx" },
-        { id: 4, name: "presentation1.pptx" }
-    ];
-
     function handleDndConsider(e: CustomEvent) {
         pendingFiles = e.detail.items;
     }
@@ -56,6 +49,11 @@
             runsCompleted = data.completed_runs;
             totalRunsScheduled = data.total_runs;
             successRate = data.success_rate.toFixed(2);
+            failedFiles = data.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name }));
+            pendingFiles = data.runs.filter(run => run.status === 'PENDING').map(run => ({id: run.id, name: run.name }));
+            files = data.runs
+                .filter(run => !removedFileIds.has(run.id))
+                .map(run => ({id: run.id, name: run.name, status: run.status}));
         } catch (error) {
             console.error('Error updating Prefect stats:', error);
         }
@@ -102,13 +100,13 @@
     let performanceTrend = null;
 
     // Files dummy data
-    let files = [
-        { id: 1, name: 'file1.txt', status: 'completed' },
-        { id: 2, name: 'file2.txt', status: 'pending' },
-        { id: 3, name: 'file3.txt', status: 'completed' },
-    ];
+    let files: { id: string; name: string; status: string }[] = [];
+    let pendingFiles: { id: string; name: string; status: string }[] = [];
+    let failedFiles: { id: string; name: string; status: string }[] = [];
+    let removedFileIds: Set<string> = new Set();
 
-    function removeFile(id: number) {
+    function removeFile(id: string) {
+        removedFileIds.add(id);
         files = files.filter(file => file.id !== id);
     }
 
@@ -116,12 +114,6 @@
         // Implement view details functionality
         console.log(`Viewing details for file ${id}`);
     }
-
-    // Failed files dummy data
-    let failedFiles = [
-        { id: 1, name: 'failed1.txt' },
-        { id: 2, name: 'failed2.txt' },
-    ];
 
     function retryFile(id: number) {
         // Implement retry functionality
@@ -131,8 +123,6 @@
     // Possible files dummy data
     let possibleFiles = [
         { id: 1, name: 'possible1.txt' },
-        { id: 2, name: 'possible2.txt' },
-        { id: 3, name: 'possible3.txt' },
     ];
 
     function addFile(id: number) {
@@ -154,39 +144,23 @@
             </section>
             <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-6 text-gray-700">Stats</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-purple-50 p-4 rounded-lg">
+                <div class="grid grid-cols-2 gap-4 h-64">
+                    <div class="bg-purple-50 p-4 rounded-lg flex flex-col justify-between">
                         <p class="text-sm text-purple-600 mb-1">Total Runs Scheduled</p>
                         <p class="text-2xl font-bold text-purple-800">{totalRunsScheduled}</p>
                     </div>
-                    <div class="bg-yellow-50 p-4 rounded-lg">
+                    <div class="bg-yellow-50 p-4 rounded-lg flex flex-col justify-between">
                         <p class="text-sm text-yellow-600 mb-1">Runs Completed</p>
                         <p class="text-2xl font-bold text-yellow-800">{runsCompleted}</p>
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="bg-blue-50 p-4 rounded-lg flex flex-col justify-between">
                         <p class="text-sm text-blue-600 mb-1">Average Runtime</p>
                         <p class="text-2xl font-bold text-blue-800">{averageRuntime}</p>
                     </div>
-                    <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="bg-green-50 p-4 rounded-lg flex flex-col justify-between">
                         <p class="text-sm text-green-600 mb-1">Success Rate</p>
                         <p class="text-2xl font-bold text-green-800">{successRate}%</p>
                     </div>
-                </div>
-                <div class="mt-6 bg-gray-50 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-700">Performance Trend</h3>
-                    <div class="flex items-center">
-                        <span class="text-2xl font-bold text-gray-800 mr-2">{performanceTrend}</span>
-                        {#if performanceTrend > 0}
-                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        {:else}
-                            <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        {/if}
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1">Compared to last week</p>
                 </div>
             </section>
             <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">

@@ -82,6 +82,7 @@ async def schedule_runs(analysis_id: str, deployment_id: UUID, deployment):
                 parameters={
                     "importID": file["upload_id"],
                 },
+                flow_run_name=file.get("original_name"),
                 timeout=0
             )
             console.log(f"Run submitted for file {file_id}")

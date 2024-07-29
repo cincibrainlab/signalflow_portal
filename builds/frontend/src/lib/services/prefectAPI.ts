@@ -1,5 +1,11 @@
 export const baseUrl = "http://localhost:3005/prefect/";
 
+export interface PrefectRun {
+    id: string;
+    name: string;
+    status: string;
+}
+
 export interface PrefectStats {
     failed_runs: number;
     pending_runs: number;
@@ -8,6 +14,7 @@ export interface PrefectStats {
     completion_rate: number;
     total_runs: number;
     success_rate: number;
+    runs: PrefectRun[];
 }
 
 export async function fetchPrefectStats(deploymentId: string): Promise<PrefectStats> {

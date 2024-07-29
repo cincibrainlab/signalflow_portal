@@ -448,11 +448,9 @@
   let selectedFiles: string[] = [];
 
   function toggleFileSelection(fileName: string) {
-    if (selectedFiles.includes(fileName)) {
-      selectedFiles = selectedFiles.filter(f => f !== fileName);
-    } else {
-      selectedFiles = [...selectedFiles, fileName];
-    }
+    selectedFiles = selectedFiles.includes(fileName)
+      ? selectedFiles.filter(f => f !== fileName)
+      : [...selectedFiles, fileName];
   }
 </script>
 <div class="container mx-auto p-4">
@@ -541,7 +539,7 @@
       </div>
     </div>
     {#if selectedFiles.length > 0}
-      <div class="mb-4 bg-white p-4 rounded-lg shadow">
+      <div class="mb-4 bg-white p-4 rounded-lg shadow max-h-36 overflow-y-scroll">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">Selected Files</h3>
           <Button on:click={() => openBatchEditModal(Files.filter(f => selectedFiles.includes(f.original_name)))}>
@@ -568,80 +566,76 @@
         {#each filteredFiles as file}
           {#await getParticipant(file.participant) then participant}
             <Card
-              class="hover:shadow-lg transition-shadow duration-300 relative"
+              class="hover:shadow-lg transition-shadow duration-300 relative cursor-pointer"
+              on:click={() => toggleFileSelection(file.original_name)}
             >
               <div class="absolute top-2 right-2">
                 <input
                   type="checkbox"
-                  class="form-checkbox h-5 w-5 text-blue-600 rounded-full transition duration-150 ease-in-out"
+                  class="custom-checkbox appearance-none h-5 w-5 border border-gray-300 rounded-full checked:bg-green-500 checked:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                   checked={selectedFiles.includes(file.original_name)}
-                  on:change={(event) => {
-                    event.stopPropagation();
-                    toggleFileSelection(file.original_name);
-                  }}
+                  on:click={(event) => event.stopPropagation()}
+                  on:change={() => toggleFileSelection(file.original_name)}
                 />
               </div>
-              <button
-                class="w-full text-left cursor-pointer focus:outline-none"
-                on:click={() => openFileModal(file)}
-                on:keydown={(e) => e.key === 'Enter' && openFileModal(file)}
-              >
-                <div>
-                  <CardHeader>
-                    <CardTitle class="flex items-center justify-between">
-                      <span>Name: {file.original_name}</span>
-                      <div class="flex gap-2">
-                        <Badge
-                          class={getDiagnosisBadgeClasses(
-                            participant.diagnosis,
-                          )}
-                        >
-                          {participant.diagnosis || "Unknown"}
-                        </Badge>
-                        <Badge
-                          class={getAgeBadgeClasses(
-                            participant?.age_group,
-                          )}
-                        >
-                          <svelte:component
-                            this={getAgeIcon(participant?.age_group)}
-                            class="w-4 h-4 mr-1"
-                          />
-                          {participant?.age_group || "Unknown"}
-                        </Badge>
-                        <Badge variant="outline" class="flex items-center gap-1">
-                          <svelte:component
-                            this={getSpeciesIcon(participant?.species)}
-                            class="w-4 h-4 mr-1"
-                          />
-                          {participant?.species || "Unknown"}
-                        </Badge>
-                      </div>
-                    </CardTitle>
-                    <CardDescription>
-                      Date: {new Date(file.date_added).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p class="text-sm text-gray-600">
-                      Participant ID: {participant?.participant_id}
-                    </p>
-                    <p class="text-sm text-gray-600">
-                      Status: {file.status}
-                    </p>
-                  </CardContent>
-                  <CardFooter>
-                    <a
-                      href={getDetailedRecordLink(file.eegid)}
-                      class="text-blue-500 hover:text-blue-700 flex items-center"
-                      on:click|stopPropagation
-                    >
-                      View Details
-                      <ExternalLink class="w-4 h-4 ml-1" />
-                    </a>
-                  </CardFooter>
-                </div>
-              </button>
+              <div>
+                <CardHeader>
+                  <CardTitle class="flex items-center justify-between">
+                    <span>Name: {file.original_name}</span>
+                    <div class="flex gap-2">
+                      <Badge
+                        class={getDiagnosisBadgeClasses(
+                          participant.diagnosis,
+                        )}
+                      >
+                        {participant.diagnosis || "Unknown"}
+                      </Badge>
+                      <Badge
+                        class={getAgeBadgeClasses(
+                          participant?.age_group,
+                        )}
+                      >
+                        <svelte:component
+                          this={getAgeIcon(participant?.age_group)}
+                          class="w-4 h-4 mr-1"
+                        />
+                        {participant?.age_group || "Unknown"}
+                      </Badge>
+                      <Badge variant="outline" class="flex items-center gap-1">
+                        <svelte:component
+                          this={getSpeciesIcon(participant?.species)}
+                          class="w-4 h-4 mr-1"
+                        />
+                        {participant?.species || "Unknown"}
+                      </Badge>
+                    </div>
+                  </CardTitle>
+                  <CardDescription>
+                    Date: {new Date(file.date_added).toLocaleDateString()}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p class="text-sm text-gray-600">
+                    Participant ID: {participant?.participant_id}
+                  </p>
+                  <p class="text-sm text-gray-600">
+                    Status: {file.status}
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Button
+                    variant="outline"
+                    class="text-blue-500 hover:text-blue-700 flex items-center"
+                    on:click={(event) => {
+                      event.stopPropagation();
+                      openFileModal(file);
+                    }}
+                  >
+                    View Details
+                    <ExternalLink class="w-4 h-4 ml-1" />
+                  </Button>
+                </CardFooter>
+              </div>
             </Card>
           {/await}
         {/each}
@@ -683,16 +677,20 @@
               <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
             </TableHead>
             <TableHead class="w-1/8">Details</TableHead>
+            <TableHead class="w-[100px]">Select</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {#if isFiltering}
             <TableRow>
-              <TableCell colspan={9} class="text-center">Loading...</TableCell>
+              <TableCell colspan={10} class="text-center">Loading...</TableCell>
             </TableRow>
           {:else}
             {#each filteredFiles as file (file.original_name)}
-              <TableRow class="table-row-transition">
+              <TableRow 
+                class="table-row-transition cursor-pointer hover:bg-gray-100"
+                on:click={() => toggleFileSelection(file.original_name)}
+              >
                 <TableCell>{file.original_name}</TableCell>
                 <TableCell>{file.participantData?.participant_id}</TableCell>
                 <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
@@ -725,21 +723,29 @@
                     {file.participantData?.species || "Unknown"}
                   </Badge>
                 </TableCell>
-                <TableCell>{file.equipment_used}</TableCell>
+                <TableCell><!-- format --></TableCell>
+                <TableCell><!-- paradigm --></TableCell>
                 <TableCell>
-                  <div class="flex gap-1">
-                    {log(file)}
-                  </div>
+                  <Button
+                    variant="outline"
+                    class="text-blue-500 hover:text-blue-700 flex items-center"
+                    on:click={(event) => {
+                      event.stopPropagation();
+                      openFileModal(file);
+                    }}
+                  >
+                  View/Edit
+                  <ExternalLink class="w-4 h-4 ml-1" />
+                </Button>
                 </TableCell>
                 <TableCell>
-                  <a
-                    href="#"
-                    class="text-blue-500 hover:text-blue-700 flex items-center"
-                    on:click|preventDefault={() => openFileModal(file)}
-                  >
-                    View/Edit
-                    <ExternalLink class="w-4 h-4 ml-1" />
-                  </a>
+                  <input
+                    type="checkbox"
+                    class="custom-checkbox appearance-none h-5 w-5 border border-gray-300 rounded-full checked:bg-green-500 checked:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    checked={selectedFiles.includes(file.original_name)}
+                    on:click|stopPropagation
+                    on:change={() => toggleFileSelection(file.original_name)}
+                  />
                 </TableCell>
               </TableRow>
             {/each}
@@ -878,3 +884,12 @@
     {/if}
   {/if}
 </div>
+
+<style>
+  .custom-checkbox:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23fff'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-size: 100% 100%;
+    background-position: 50%;
+    background-repeat: no-repeat;
+  }
+</style>
