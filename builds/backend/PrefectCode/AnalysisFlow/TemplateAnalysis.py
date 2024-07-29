@@ -68,10 +68,10 @@ async def TemplateAnalysis_Flow(importID: str, analysis_function: str, analysis_
     
     # Get data from the database about the analysis
     EEGAnalysis = await db.EegAnalysis.find_one({"_id": ObjectId(analysis_id)})
+    output_path = EEGAnalysis["output_path"]
     
     # Get the analysis function from the database
     AnalysisFunction = await db.AnalysisFunction.find_one({"name": analysis_function})
-    output_path = AnalysisFunction["output_path"]
     
     # Get the file from the database
     original_file = await db.OriginalImportFile.find_one({"upload_id": importID})

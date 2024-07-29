@@ -59,6 +59,9 @@
               // Handle the error appropriately
           });
       console.log("Trying to add: ", newAnalysis)
+      if (newAnalysis.output_path == "") {
+        newAnalysis.output_path = "portal_files/output/"
+      }
       await addAnalysis(newAnalysis)
       .then(result => {
         console.log(result)

@@ -34,6 +34,7 @@ async def getRawMatlab(eng ,upload_id: str, upload_path: str):
         
         if fdt_dest_path is not None:
             eng.eval('EEG = pop_loadset(\''+ set_dest_path +'\');', nargout=0)
+            return set_dest_path, fdt_dest_path
             
     except Exception as e:
         logging.error(f"Exception occurred when creating EEG Obj: {str(e)}")
@@ -53,10 +54,10 @@ async def ComputePsdAnalysisMatlab_Flow(importID: str, analysis_function: str, a
     
     # Get data from the database about the analysis
     EEGAnalysis = await db.EegAnalysis.find_one({"_id": ObjectId(analysis_id)})
+    output_path = EEGAnalysis["output_path"]
     
     # Get the analysis function from the database
     AnalysisFunction = await db.AnalysisFunction.find_one({"name": analysis_function})
-    output_path = AnalysisFunction["output_path"]
     
     # Get the file from the database
     original_file = await db.OriginalImportFile.find_one({"upload_id": importID})
@@ -68,16 +69,17 @@ async def ComputePsdAnalysisMatlab_Flow(importID: str, analysis_function: str, a
     eng.eval("eeglab('nogui')")
     
     # Import the file - Will save as 'EEG' in the Matlab workspace
-    await getRawMatlab(eng, upload_id, upload_path)
+    set_dest_path, fdt_dest_path = await getRawMatlab(eng, upload_id, upload_path)
 
+    if fdt_dest_path is not None:
     # Perform Preprocessing here
-    eng.eval('[spectra, freqs] = spectopo(EEG.data, 0, EEG.srate);', nargout=0)
-    eng.eval("fig = figure('visible', 'off');", nargout=0)
-    eng.eval('plot(freqs, spectra);', nargout=0)
-    eng.eval('title("Power Spectral Density");', nargout=0)
-    eng.eval('xlabel("Frequency (Hz)");', nargout=0)
-    eng.eval('ylabel("Power/Frequency (dB/Hz)");', nargout=0)
-    eng.eval('saveas(fig, "portal_files/output/'+ upload_id +'_psd.png");', nargout=0)
+        eng.eval('[spectra, freqs] = spectopo(EEG.data, 0, EEG.srate);', nargout=0)
+        eng.eval("fig = figure('visible', 'off');", nargout=0)
+        eng.eval('plot(freqs, spectra);', nargout=0)
+        eng.eval('title("Power Spectral Density");', nargout=0)
+        eng.eval('xlabel("Frequency (Hz)");', nargout=0)
+        eng.eval('ylabel("Power/Frequency (dB/Hz)");', nargout=0)
+        eng.eval('saveas(fig, "' + output_path + upload_id +'_psd.png");', nargout=0)
     
 
     # This will run all the tasks listed in parallel. Vastly speeds up code execution.
