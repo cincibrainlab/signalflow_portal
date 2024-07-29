@@ -25,6 +25,7 @@
     valid_formats: string[]; // or any other specific type
     valid_paradigms: string[]; // or any other specific type
     valid_files: string[]; // or any other specific type
+    output_path: string;
     parameters: string;
   }
 
@@ -36,6 +37,7 @@
     valid_formats: [] as string[], // specify the type here
     valid_paradigms: [] as string[], // specify the type here
     valid_files: [] as string[], // specify the type here
+    output_path: '',
     parameters: ''
   };
 
@@ -44,7 +46,6 @@
   let UniqueCategopries = ["Connectivity", "test", "test2"];
   let UniqueFormats: any[] = [];
   let uniqueParadigms: any[] = [];
-  let UniqueFiles: any[] = [];
 
   async function handleSubmit() {
     try {
@@ -86,6 +87,7 @@
       valid_formats: [] as string[], // specify the type here
       valid_paradigms: [] as string[], // specify the type here
       valid_files: [] as string[], // specify the type here
+      output_path: '',
       parameters: ''
     };
     selectedFormats = []
@@ -136,8 +138,6 @@
     newAnalysis.valid_paradigms = selectedParadigms.map(paradigm => paradigm.id)
   }
 
-
-
 </script>
 
 {#if showModal}
@@ -187,6 +187,16 @@
                 <option value={category}>{category}</option>
               {/each}
             </select>
+          </div>
+          <div>
+            <label for="output_path" class="block text-md font-semibold text-gray-700 mb-1">Output Path:</label>
+            <input 
+              type="text" 
+              id="output_path" 
+              bind:value={newAnalysis.output_path}
+              placeholder="Default: portal_files/output"
+              class="w-full p-2 border rounded"
+            >
           </div>
           <div>
             <label for="description" class="block text-md font-semibold text-gray-700 mb-1">Description:</label>

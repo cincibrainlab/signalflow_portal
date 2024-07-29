@@ -36,7 +36,7 @@
     let chartData = {
         labels: ['Failed', 'Pending', 'Completed'],
         datasets: [{
-            data: [3, 5, 10],
+            data: [0, 0, 0],
             backgroundColor: ['#ff6b6b', '#feca57', '#48dbfb']
         }]
     };
@@ -95,10 +95,10 @@
     });
 
     // Stats data
-    let averageRuntime = null;
-    let runsCompleted = null;
-    let totalRunsScheduled = null;
-    let successRate = null;
+    let averageRuntime = 0;
+    let runsCompleted = 0;
+    let totalRunsScheduled = 0;
+    let successRate = 0;
     let performanceTrend = null;
 
     // Files dummy data

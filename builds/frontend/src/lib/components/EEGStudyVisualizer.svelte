@@ -30,6 +30,7 @@
     Calculator as FileAnalytics,
     ExternalLink,
     ArrowUpDown,
+    X,
   } from "lucide-svelte"
   import { Input } from "$lib/components/ui/input"
   import {
@@ -48,9 +49,59 @@
   import { getFormats, getParadigms, getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile } from '$lib/services/apiService';
   
 
-  let selectedFile: any = null
-  let NewFile: boolean = false
-  // On the change of selectedFile, we want to fetch the participant data
+  let selectedFile: any = null;
+  let isEditing = false;
+  let isBatchEditing = false;
+  let editingFiles: any[] = [];
+  let selectedEEGFormat_Name: string = "";
+  let selectedParadigmData_Name: string = "";
+  let Selected_participant_id: string = "";
+
+  function openFileModal(file: any) {
+    selectedFile = file;
+    selectedEEGFormat_Name = file.formatData?.name || "";
+    selectedParadigmData_Name = file.paradigmData?.name || "";
+    isEditing = false;
+  }
+
+  function openBatchEditModal(files: any[]) {
+    editingFiles = files;
+    isBatchEditing = true;
+    selectedEEGFormat_Name = "";
+    selectedParadigmData_Name = "";
+    Selected_participant_id = "";
+  }
+
+  function toggleEditing() {
+    isEditing = !isEditing;
+  }
+
+  function saveChanges() {
+    if (selectedFile) {
+      if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, selectedFile.upload_id);
+      if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
+    }
+    isEditing = false;
+    selectedFile = null;
+    getSetFiles();
+  }
+
+  function saveBatchChanges(event: Event) {
+    event.preventDefault(); // Prevent default form submission
+    if (!Selected_participant_id) {
+      alert("Please select a participant before saving changes.");
+      return;
+    }
+    editingFiles.forEach(file => {
+      if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, file.upload_id);
+      if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, file.upload_id);
+      assignParticipantToFile(Selected_participant_id, file.upload_id);
+    });
+    isBatchEditing = false;
+    editingFiles = [];
+    getSetFiles();
+  }
+
   let searchTerm = ""
   let debouncedSearchTerm = ""
   let selectedDiagnosis: string = "All"
@@ -67,63 +118,6 @@
   let sortColumn: string = ""
   let sortDirection: "asc" | "desc" = "asc"
 
-  let isEditing = false
-  let selectedEEGFormat: any;
-  let selectedParadigmData: any;
-  let selectedEEGFormat_Name: string = ""
-  let selectedParadigmData_Name: string = ""
-
-
-  async function getSelectedFileData() {
-  if (selectedFile) {
-    try {
-      // Fetching data
-      selectedParadigmData = await getParadigm(selectedFile.eeg_paradigm);
-      selectedEEGFormat = await getEEGFormat(selectedFile.eeg_format);
-
-      selectedEEGFormat_Name = selectedEEGFormat?.name;
-      selectedParadigmData_Name = selectedParadigmData?.name;
-
-      // Log updated values
-      console.log("Selected File:", selectedFile);
-      console.log("Selected Paradigm:", selectedParadigmData);
-      console.log("Selected EEG Format:", selectedEEGFormat);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      // Handle the error appropriately
-    }
-  }
-}
-
-$: if (selectedFile) {
-  if (selectedFile.status === "NEW") {
-    NewFile = true;
-  } else {
-    NewFile = false;
-    getSelectedFileData();
-  }
-}
-  
-  let Selected_participant_id: string = ""
-  $: if (NewFile) {
-    console.log("New File")
-    console.log(Participants)
-
-  }
-  
-  function formatDateForInput(dateString: string) {
-    return new Date(dateString); // Returns YYYY-MM-DDTHH:mm
-  }
-  let saveChanges = () => {
-    // Save changes to the selected session and participant
-    isEditing = false
-    console.log(selectedEEGFormat_Name)
-    console.log(selectedParadigmData_Name)
-    assignEEGFormatToFile(selectedEEGFormat_Name, selectedFile.upload_id);
-    assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
-    getSetFiles(); 
-    selectedFile = null;
-  }
   let Files: any = []
   let Participants: any = []
 
@@ -447,6 +441,16 @@ $: if (selectedFile) {
   function log(info: any){
     console.log(info)
   }
+
+  let selectedFiles: string[] = [];
+
+  function toggleFileSelection(fileName: string) {
+    if (selectedFiles.includes(fileName)) {
+      selectedFiles = selectedFiles.filter(f => f !== fileName);
+    } else {
+      selectedFiles = [...selectedFiles, fileName];
+    }
+  }
 </script>
 <div class="container mx-auto p-4">
   {#if Files.length === 0}
@@ -533,80 +537,108 @@ $: if (selectedFile) {
         </div>
       </div>
     </div>
-
+    {#if selectedFiles.length > 0}
+      <div class="mb-4 bg-white p-4 rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold">Selected Files</h3>
+          <Button on:click={() => openBatchEditModal(Files.filter(f => selectedFiles.includes(f.original_name)))}>
+            Make Changes
+          </Button>
+        </div>
+        <ul>
+          {#each selectedFiles as fileName}
+            <li class="mb-2 flex items-center justify-between">
+              <span>{fileName}</span>
+              <button
+                class="text-red-500 hover:text-red-700"
+                on:click={() => toggleFileSelection(fileName)}
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    {/if}
     {#if viewMode === "card"}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {#each filteredFiles as file}
           {#await getParticipant(file.participant) then participant}
             <Card
-              class="hover:shadow-lg transition-shadow duration-300 cursor-pointer"
-              on:click={() =>
-                (selectedFile = selectedFile === file ? null : file)}
+              class="hover:shadow-lg transition-shadow duration-300 relative"
             >
-              <CardHeader>
-                <CardTitle class="flex items-center justify-between">
-                  <span>Name: {file.original_name}</span>
-                  <div class="flex gap-2">
-                    <Badge
-                      class={getDiagnosisBadgeClasses(
-                        participant.diagnosis,
-                      )}
+              <div class="absolute top-2 right-2">
+                <input
+                  type="checkbox"
+                  class="form-checkbox h-5 w-5 text-blue-600 rounded-full transition duration-150 ease-in-out"
+                  checked={selectedFiles.includes(file.original_name)}
+                  on:change={(event) => {
+                    event.stopPropagation();
+                    toggleFileSelection(file.original_name);
+                  }}
+                />
+              </div>
+              <button
+                class="w-full text-left cursor-pointer focus:outline-none"
+                on:click={() => openFileModal(file)}
+                on:keydown={(e) => e.key === 'Enter' && openFileModal(file)}
+              >
+                <div>
+                  <CardHeader>
+                    <CardTitle class="flex items-center justify-between">
+                      <span>Name: {file.original_name}</span>
+                      <div class="flex gap-2">
+                        <Badge
+                          class={getDiagnosisBadgeClasses(
+                            participant.diagnosis,
+                          )}
+                        >
+                          {participant.diagnosis || "Unknown"}
+                        </Badge>
+                        <Badge
+                          class={getAgeBadgeClasses(
+                            participant?.age_group,
+                          )}
+                        >
+                          <svelte:component
+                            this={getAgeIcon(participant?.age_group)}
+                            class="w-4 h-4 mr-1"
+                          />
+                          {participant?.age_group || "Unknown"}
+                        </Badge>
+                        <Badge variant="outline" class="flex items-center gap-1">
+                          <svelte:component
+                            this={getSpeciesIcon(participant?.species)}
+                            class="w-4 h-4 mr-1"
+                          />
+                          {participant?.species || "Unknown"}
+                        </Badge>
+                      </div>
+                    </CardTitle>
+                    <CardDescription>
+                      Date: {new Date(file.date_added).toLocaleDateString()}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p class="text-sm text-gray-600">
+                      Participant ID: {participant?.participant_id}
+                    </p>
+                    <p class="text-sm text-gray-600">
+                      Status: {file.status}
+                    </p>
+                  </CardContent>
+                  <CardFooter>
+                    <a
+                      href={getDetailedRecordLink(file.eegid)}
+                      class="text-blue-500 hover:text-blue-700 flex items-center"
+                      on:click|stopPropagation
                     >
-                      {participant.diagnosis || "Unknown"}
-                    </Badge>
-                    <Badge
-                      class={getAgeBadgeClasses(
-                        participant?.age_group,
-                      )}
-                    >
-                      <svelte:component
-                        this={getAgeIcon(participant?.age_group)}
-                        class="w-4 h-4 mr-1"
-                      />
-                      {participant?.age_group || "Unknown"}
-                    </Badge>
-                    <Badge variant="outline" class="flex items-center gap-1">
-                      <svelte:component
-                        this={getSpeciesIcon(participant?.species)}
-                        class="w-4 h-4 mr-1"
-                      />
-                      {participant?.species || "Unknown"}
-                    </Badge>
-                  </div>
-                </CardTitle>
-                <CardDescription>
-                  Date: {new Date(file.date_added).toLocaleDateString()}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p class="text-sm text-gray-600">
-                  Participant ID: {participant?.participant_id}
-                </p>
-                <p class="text-sm text-gray-600">
-                  Status: {file.status}
-                </p>
-              </CardContent>
-              <!-- TODO Make this into showing something else -->
-              <!-- <CardFooter class="flex justify-between">
-                {#each file.paradigms as paradigm}
-                  <Badge variant="outline" class="flex items-center gap-1">
-                    <svelte:component
-                      this={getParadigmIcon(paradigm.type)}
-                      class="w-4 h-4"
-                    />
-                    {paradigm.type.replace("_", " ")}
-                  </Badge>
-                {/each}
-              </CardFooter> -->
-              <CardFooter>
-                <a
-                  href={getDetailedRecordLink(file.eegid)}
-                  class="text-blue-500 hover:text-blue-700 flex items-center"
-                >
-                  View Details
-                  <ExternalLink class="w-4 h-4 ml-1" />
-                </a>
-              </CardFooter>
+                      View Details
+                      <ExternalLink class="w-4 h-4 ml-1" />
+                    </a>
+                  </CardFooter>
+                </div>
+              </button>
             </Card>
           {/await}
         {/each}
@@ -694,24 +726,15 @@ $: if (selectedFile) {
                 <TableCell>
                   <div class="flex gap-1">
                     {log(file)}
-                    <!-- TODO Re-activate or change this  -->
-                    <!-- {#each file.paradigms as paradigm}
-                      <Badge variant="outline" class="flex items-center gap-1">
-                        <svelte:component
-                          this={getParadigmIcon(paradigm.type)}
-                          class="w-4 h-4"
-                        />
-                        {paradigm.type.replace("_", " ")}
-                      </Badge>
-                    {/each} -->
                   </div>
                 </TableCell>
                 <TableCell>
                   <a
-                    href={getDetailedRecordLink(file.eegid)}
+                    href="#"
                     class="text-blue-500 hover:text-blue-700 flex items-center"
+                    on:click|preventDefault={() => openFileModal(file)}
                   >
-                    View
+                    View/Edit
                     <ExternalLink class="w-4 h-4 ml-1" />
                   </a>
                 </TableCell>
@@ -721,154 +744,132 @@ $: if (selectedFile) {
         </TableBody>
       </Table>
     {/if}
-    {#if NewFile === false && selectedFile}
-      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" transition:fade open>
-          <h2 class="text-2xl font-bold mb-4">Session Details: {selectedFile.eegid}</h2>
-          <form>
-            <div class="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <!-- TODO add sessions -->
-                <h3 class="font-semibold">Session Info</h3>
-                <div class="w-full">
-                  <label
-                    for="Date"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Date:</label>
-                  <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{new Date(selectedFile.date_added).toLocaleDateString()}</p>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="Equipment"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name} disabled={!isEditing}>
-                    {#each UniqueFormats as format}
-                      <option value={format}>{format}</option>
-                    {/each}
-                  </select>
-                </div>
-                <div class="w-full">
-                  <label
-                    for="Equipment"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
-                  <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name} disabled={!isEditing}>
-                    {#each uniqueParadigms as paradigm}
-                      <option value={paradigm}>{paradigm}</option>
-                    {/each}
-                  </select>
-                </div>
-                <div class="w-full h-4/6">
-                  <label
-                    for="Notes"
-                    class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
-                  <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes}</p>
-                </div>
-              </div>
-              <div>
-                <h3 class="font-semibold">Participant Info</h3>
-                {#await getParticipant(selectedFile.participant) then selectedParticipant}
-                  {#if selectedParticipant}
-                    <div class="w-full">
-                      <label
-                        for="Age"
-                        class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
-                      <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age}</p>
-                    </div>
-                    <div class="w-full">
-                      <label
-                        for="Age Group"
-                        class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
-                      <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group}</p>
-                    </div>
-                    <div class="w-full">
-                      <label
-                        for="Gender"
-                        class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
-                      <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender}</p>
-                    </div>
-                    <div class="w-full">
-                      <label
-                        for="Handedness"
-                        class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
-                      <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness}</p>
-                    </div>
-                    <div class="w-full">
-                      <label
-                        for="Species"
-                        class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
-                      <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
-                    </div>
-                    <div class="w-full">
-                      <label
-                        for="Diagnosis"
-                        class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
-                      <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.diagnosis}</p>
-                    </div>
-                    <div class="w-full">
-                      <label
-                        for="IQ Score"
-                        class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
-                      <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score}</p>
-                    </div>
-                    <div class="w-full">
-                      <label
-                        for="Anxiety Level"
-                        class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
-                      <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level}</p>
-                    </div>
-                  {/if}
-                {/await}
-              </div>
-            </div>
-            <div class="absolute bottom-6 left-6 right-6 flex justify-between gap-2 mt-2">
-              <Button variant="outline" on:click={() => {selectedFile = null; getSetFiles();}}>Close</Button>     
-              {#if !isEditing}
-                <Button on:click={() => isEditing = true}>Make changes</Button>
-              {:else}
-                <Button on:click={saveChanges}>Save</Button>
-              {/if}
-            </div>
-
-          </form>
-        </dialog>
-      </section>
-    {/if}
-    {#if NewFile === true && selectedFile}
-      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" transition:fade open>
-          <h2 class="text-2xl font-bold mb-4">Select Participant</h2>
-            <form>
+    {#if selectedFile}
+      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-10" role="dialog" aria-modal="true">
+        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-10" transition:fade open>
+          <h2 class="text-2xl font-bold mb-4">File Details</h2>
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <h3 class="font-semibold">Session Info</h3>
               <div class="w-full">
-                <label
-                  for="Participant"
-                  class="block text-sm font-semibold text-gray-700 mb-1">Participant:</label>
-                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={Selected_participant_id} required>
-                  {#each Participants as person}
-                    <option value={person.participant_id}>{person.participant_id}</option>
-                  {/each}
-                </select>
+                <label for="Date" class="block text-sm font-semibold text-gray-700 mb-1">Date:</label>
+                <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{new Date(selectedFile.date_added).toLocaleDateString()}</p>
               </div>
               <div class="w-full">
-                <label
-                  for="Equipment"
-                  class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
-                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name}>
+                <label for="Format" class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
+                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name} disabled={!isEditing}>
                   {#each UniqueFormats as format}
                     <option value={format}>{format}</option>
                   {/each}
                 </select>
               </div>
               <div class="w-full">
-                <label
-                  for="Equipment"
-                  class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
-                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name}>
+                <label for="Paradigm" class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
+                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name} disabled={!isEditing}>
                   {#each uniqueParadigms as paradigm}
                     <option value={paradigm}>{paradigm}</option>
                   {/each}
                 </select>
               </div>
-              <Button on:click={() => { assignParticipantToFile(Selected_participant_id,selectedFile.upload_id); saveChanges();}}>Save</Button>
-            </form>
+              <div class="w-full h-4/6">
+                <label for="Notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
+                <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes}</p>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold">Participant Info</h3>
+              {#await getParticipant(selectedFile.participant) then selectedParticipant}
+                {#if selectedParticipant}
+                  <div class="w-full">
+                    <label for="Age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age}</p>
+                  </div>
+                  <div class="w-full">
+                    <label for="Age Group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group}</p>
+                  </div>
+                  <div class="w-full">
+                    <label for="Gender" class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender}</p>
+                  </div>
+                  <div class="w-full">
+                    <label for="Handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness}</p>
+                  </div>
+                  <div class="w-full">
+                    <label for="Species" class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
+                  </div>
+                  <div class="w-full">
+                    <label for="Diagnosis" class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.diagnosis}</p>
+                  </div>
+                  <div class="w-full">
+                    <label for="IQ Score" class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score}</p>
+                  </div>
+                  <div class="w-full">
+                    <label for="Anxiety Level" class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
+                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level}</p>
+                  </div>
+                {/if}
+              {/await}
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 mt-2">
+            <Button variant="outline" on:click={() => { selectedFile = null; }}>Close</Button>
+            {#if !isEditing}
+              <Button on:click={toggleEditing}>Edit</Button>
+            {:else}
+              <Button variant="outline" on:click={toggleEditing}>Cancel</Button>
+              <Button on:click={saveChanges}>Save Changes</Button>
+            {/if}
+          </div>
+        </dialog>
+      </section>
+    {/if}
+    {#if isBatchEditing}
+      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-10" role="dialog" aria-modal="true">
+        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-10" transition:fade open>
+          <h2 class="text-2xl font-bold mb-4">Batch Edit Files</h2>
+          <form on:submit={saveBatchChanges}>
+            <div class="w-full mb-4">
+              <label for="Participant" class="block text-sm font-semibold text-gray-700 mb-1">Participant:</label>
+              <select 
+                id="Participant"
+                class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" 
+                bind:value={Selected_participant_id}
+                required
+              >
+                <option value="">Select a participant</option>
+                {#each Participants as participant}
+                  <option value={participant.participant_id}>{participant.participant_id}</option>
+                {/each}
+              </select>
+            </div>
+            <div class="w-full mb-4">
+              <label for="Format" class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
+              <select id="Format" class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name}>
+                <option value="">Select a format</option>
+                {#each UniqueFormats as format}
+                  <option value={format}>{format}</option>
+                {/each}
+              </select>
+            </div>
+            <div class="w-full mb-4">
+              <label for="Paradigm" class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
+              <select id="Paradigm" class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name}>
+                <option value="">Select a paradigm</option>
+                {#each uniqueParadigms as paradigm}
+                  <option value={paradigm}>{paradigm}</option>
+                {/each}
+              </select>
+            </div>
+            <div class="flex justify-end gap-2 mt-2">
+              <Button type="button" variant="outline" on:click={() => { isBatchEditing = false; editingFiles = []; }}>Cancel</Button>
+              <Button type="submit">Save Changes</Button>
+            </div>
+          </form>
         </dialog>
       </section>
     {/if}

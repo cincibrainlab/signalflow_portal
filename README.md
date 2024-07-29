@@ -58,7 +58,7 @@ docker compose up sf_db sf_uploader
 #* How to start prefect
 # These should only be needed once on the first run
 prefect cloud login
-prefect work-pool create analysis-process-pool
+prefect work-pool create analysis-process-pool --type process
 # Run this every time you want to start the worker
 prefect worker start --pool analysis-process-pool
 ```
