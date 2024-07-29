@@ -77,7 +77,7 @@ async def ComputePsdAnalysisMatlab_Flow(importID: str, analysis_function: str, a
     eng.eval('title("Power Spectral Density");', nargout=0)
     eng.eval('xlabel("Frequency (Hz)");', nargout=0)
     eng.eval('ylabel("Power/Frequency (dB/Hz)");', nargout=0)
-    eng.eval('saveas(fig, "portal_files/output/psd.png");', nargout=0)
+    eng.eval('saveas(fig, "portal_files/output/'+ upload_id +'_psd.png");', nargout=0)
     
 
     # This will run all the tasks listed in parallel. Vastly speeds up code execution.
