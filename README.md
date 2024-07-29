@@ -35,6 +35,8 @@ To get started with the `signalflow_portal`, please refer to the detailed instal
 We welcome contributions from the community to enhance the functionality and capabilities of the `signalflow_portal`. If you're interested in contributing, please review the project's guidelines and submit your proposals or pull requests.
 
 ## To install the project locally
+
+## You NEED Python 3.10
 ```bash
 docker compose up sf_db sf_uploader
 
@@ -59,6 +61,7 @@ prefect work-pool create analysis-process-pool --type process
 .\start_services.bat
 
 # For Linux
+./start_services.sh
 
 ```
 
