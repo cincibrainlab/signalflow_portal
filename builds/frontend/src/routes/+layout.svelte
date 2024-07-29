@@ -53,6 +53,13 @@
 	});
 </script>
 
+<svelte:head>
+  <style>
+    body {
+      overflow-y: scroll;
+    }
+  </style>
+</svelte:head>
 
 <div class="flex flex-col min-h-screen">
   <div class="navbar container mx-auto">
@@ -99,10 +106,10 @@
             ★ us on Github
           </a>
         </li>
-        <li class="md:mx-2"><a href="/vault">Vault</a></li>
         <li class="md:mx-2"><a href="/upload">Upload</a></li>
-        <li class="md:mx-2"><a href="/runmanager">RunManager</a></li>
-        <li class="md:mx-2"><a href="/docs">Docs</a></li>
+        <li class="md:mx-2"><a href="/vault">Vault</a></li>
+        <li class="md:mx-2"><a href="/analysisManager">Analysis Manager</a></li>
+        <li class="md:mx-2"><a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">Docs</a></li>
         <li class="md:mx-2"><a href="/contact">Contact</a></li>
         <li class="md:mx-2"><a href="/account">Account</a></li>
       </ul>

@@ -1,0 +1,3 @@
+[submodule "builds/backend/PrefectCode/matlab/eeglab"]
+	path = builds/backend/PrefectCode/matlab/eeglab
+	url = https://github.com/sccn/eeglab.git

@@ -1,0 +1,191 @@
+# Configuration settings
+database:
+  url: mongodb://localhost:3002/sfportal
+  reset: False
+
+frontend:
+  url: http://localhost:5173
+
+api:
+  port: 3005
+  # 8001
+
+# This file is used to configure the portal
+folder_paths:
+  root: portal_files
+  uploads: portal_files/uploads
+  import: portal_files/import
+  info_archive: portal_files/info_archive
+  output: portal_files/output
+  logs: portal_files/logs
+  
+# List of EEG formats
+EEGFormat:
+  - name: 'Unassigned'
+    description: 'Unassigned EEG format'
+  - name: 'EGI128/Adult'
+    description: 'EGI Hydrocel 128 (Adult)'
+  - name: 'EGI128/Infant'
+    description: 'EGI Hydrocel 128 (Infant)'
+  - name: 'EGI32/Adult'
+    description: 'EGI Hydrocel 32 (Infant)'
+  - name: 'MEA30'
+    description: 'NeuroNexus MEA 30'
+  - name: 'MEA30V2'
+    description: 'NeuroNexus MEA 30 (v2)'
+
+# These will be dleted later and are just for testing ----------------------------------------------
+# List of EEG paradigms
+EEGParadigm:
+  - name: 'Unassigned'
+    description: 'Unassigned EEG paradigm'
+  - name: 'Resting'
+    description: 'Subject is at rest with eyes open or closed'
+  - name: 'Visual'
+    description: 'Subject is presented with visual stimuli'
+  - name: 'Auditory Chirp'
+    description: 'Version B Click-Train 2023+'
+
+# List of Fake Users
+User:
+  - username: 'erniepedapati'
+    email: 'ernest.pedapati@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: True
+  - username: 'gracewesterkamp'
+    email: 'grace.westerkamp@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: False
+  - username: 'carrie.randle'
+    email: 'carrie.randle@ucr.edu'
+    password: 'password'
+    is_active: True
+    is_superuser: False
+  - username: 'nathansuer'
+    email: 'nathan.suer@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: True
+  - username: 'yanchenliu'
+    email: 'yanchen.liu@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: False
+  - username: 'gavingammoh'
+    email: 'gavin.gammoh@cchmc.org'
+    password: 'password'
+    is_active: True
+    is_superuser: False
+
+AnalysisFunction:
+  - name: "TemplateAnalysis"
+    description: "placeholder analysis for development"
+    output_path: "portal_files/output"
+    parameters:
+      - 'example_num'
+  - name: "ComputePsdAnalysis"
+    description: "placeholder analysis for development"
+    output_path: "portal_files/output"
+    parameters:
+      - 'example_num'
+
+# List of fake Participants
+Participant:
+  - participant_id: 'Empty'
+    species: 'All'
+    age: -1
+    age_group: 'All'
+    gender: 'All'
+    handedness: 'All'
+    diagnosis: 'All'
+    iq_score: -1
+    anxiety_level: -1
+    paradigm: 'All'
+    equipment: 'All'
+  - participant_id: '0012'
+    species: 'mouse'
+    age: 25
+    age_group: 'infant'
+    gender: 'Male'
+    handedness: 'Right'
+    diagnosis: 'FXS'
+    iq_score: 100
+    anxiety_level: 5
+    paradigm: 'resting_state'
+    equipment: 'EGI Hydrocel 128'
+  - participant_id: '0274'
+    species: 'cat'
+    age: 25
+    age_group: 'infant'
+    gender: 'Female'
+    handedness: 'Right'
+    diagnosis: 'ASD'
+    iq_score: 100
+    anxiety_level: 5
+    paradigm: 'chirp'
+    equipment: 'EGI Hydrocel 128 infant'
+  - participant_id: '0280'
+    species: 'mouse'
+    age: 25
+    age_group: 'pediatric'
+    gender: 'Female'
+    handedness: 'Right'
+    diagnosis: 'DD'
+    iq_score: 100
+    anxiety_level: 5
+    paradigm: 'cognitive_flexibility'
+    equipment: 'BioSemi ActiveTwo 32 infant'
+  - participant_id: '0418'
+    species: 'mouse'
+    age: 25
+    age_group: 'pediatric'
+    gender: 'Female'
+    handedness: 'Right'
+    diagnosis: 'Control'
+    iq_score: 100
+    anxiety_level: 5
+    paradigm: 'other'
+    equipment: 'EGI Hydrocel 128'
+
+
+FormInfo:
+- name: Equipment
+  description: Options for EEG equipment used
+  form_options: 
+    - 'n/a'
+    - 'S Lab Front Booth'
+    - 'S Lab Back Booth'
+    - 'T Clinic'
+- name: Gender
+  description: Options for gender in selections 
+  form_options:
+    - 'n/a'
+    - 'Male'
+    - 'Female'
+    - 'Non-Binary/Other'
+- name: Handedness
+  description: Options for handedness in selections
+  form_options:
+    - 'n/a'
+    - 'Right'
+    - 'Left'
+    - 'Ambidextrous'
+- name: Diagnosis
+  description: Options for diagnosis in selections
+  form_options:
+    - 'n/a'
+    - 'FXS'
+    - 'ASD'
+    - 'DD'
+    - 'Control'
+    - 'Blind'
+    - 'Other'
+- name: AgeGroup
+  description: Options for age group in selections
+  form_options:
+    - 'n/a'
+    - 'Infant'
+    - 'Pediatric'
+    - 'Adult'

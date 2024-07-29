@@ -1,0 +1,56 @@
+        <!-- <div class = "flex justify-between">
+          <div>
+            <label for="valid_files" class="block text-md font-semibold text-gray-700">Valid Files:</label>
+            <p class="text-sm font-medium text-gray-500 mb-1">Select the desired files for the analysis to run on</p>            
+          </div>
+          <Button on:click={findValidFiles}>Check for Valid Files</Button>
+        </div>
+        <div id="NotificationBox" class="gap-4 bg-gray-300 p-3 rounded-xl h-40">
+          <div class = "rounded-lg bg-white">
+            {#each newAnalysis.valid_files as file}
+              <div class="border-b-2 border-gray-200 dark:border-gray-700">
+                <Checkbox on:change={(event) => toggleFileSelection(event.target.checked, file)} class="w-full rounder-xl p-2">
+                  <span class="pl-2">{file.original_name}</span>
+                </Checkbox>
+              </div>
+            {/each}
+          </div>
+        </div>
+        <p>{newAnalysis.files}</p> -->
+
+
+# CREATE WORK POOL
+
+import asyncio
+import os
+import subprocess
+from prefect import get_client
+from prefect.client.schemas.actions import WorkPoolCreate
+
+current_dir = os.getcwd()
+work_pool_name = "analysis-process-pool"
+
+async def create_work_pool(flow_script="AnalysisFlow.py"):
+    async with get_client() as client:
+        work_pool = await client.create_work_pool(
+            WorkPoolCreate(
+                name=work_pool_name,
+                type="process",
+                base_job_template={
+                    "job_configuration": {
+                        "working_dir": current_dir
+                    },
+                    "variables": {
+                        "flow_script": {"type": "string", "default": flow_script}
+                    }
+                }
+            )
+        )
+        
+    print(f"Work pool '{work_pool.name}' created successfully.")
+
+# Run the async function
+asyncio.run(create_work_pool())
+
+# Start the worker
+subprocess.run(["prefect", "worker", "start", "--pool", work_pool_name, "--type", "process"])

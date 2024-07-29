@@ -1,17 +1,4 @@
 services:
-  sf_portal:
-    container_name: sf_portal
-    image: cbl/sf_portal
-    ports:
-      - "3004:1234"
-    volumes:
-      - ./portal_files/uploads:/uploads
-      - ./portal_files/import:/import
-      - ./portal_files/info_archive:/info_archive
-      - ./portal_files/output:/output
-    restart: always
-    networks:
-      - eeg-network
 
   sf_uploader:
     container_name: sf_uploader
@@ -29,93 +16,20 @@ services:
     networks:
       - eeg-network
 
-  sf_backend:
-    container_name: sf_backend
-    build: 
-      context: ./builds/backend/
-      dockerfile: Dockerfile
-    image: cbl/sf_backend
-    volumes:
-      - ./portal_files/uploads:/uploads
-      - ./portal_files/import:/import
-      - ./portal_files/info_archive:/info_archive
-      - ./portal_files/output:/output
-    ports:
-      - "3005:80"
-    restart: always
-    networks:
-      - eeg-network
-    depends_on:
-      - sf_db
-
   sf_db:
     container_name: sf_db
-    image: postgres:13
+    image: mongo:latest
     ports:
-      - "3002:5432"
-    environment:
-      POSTGRES_USER: sfportal
-      POSTGRES_PASSWORD: sfportal
-      POSTGRES_DB: sfportal
+      - "3002:27017"
     volumes:
-      - sfdb-db-volume:/var/lib/postgresql/data
+      - sfdb-db-volume:/data/db
     restart: always
     networks:
       - eeg-network
-
-  sf_homepage:
-    image: ghcr.io/gethomepage/homepage:latest
-    container_name: sf_homepage
-    environment:
-      PUID: ${AIRFLOW_UID:-501}
-      PGID: ${AIRFLOW_GID:-20}
-    ports:
-      - 3000:3000
-    volumes:
-      - ./portal_files/config/homepage_config/:/app/config/ # Make sure your local config directory exists
-    restart: unless-stopped
-    networks:
-      - eeg-network
-
-  # pgAdmin 4 service
-  sf_pgadmin:
-    image: dpage/pgadmin4:latest
-    environment:
-      # Default email for pgAdmin 4
-      PGADMIN_DEFAULT_EMAIL: admin@email.com
-      # Password for pgAdmin 4
-      PGADMIN_DEFAULT_PASSWORD: adminpassword
-    ports:
-      # Map host port 5050 to container port 80
-      - "3006:80"
-    volumes:
-      # Mount a volume to persist pgAdmin 4 data
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      # Ensure that this service starts after 'db'
-      - sf_db
-    networks:
-      - eeg-network
-    restart: always
-
-  sf_filebrowser:
-    image: hurlenko/filebrowser
-    user: "${AIRFLOW_UID:-501}:${AIRFLOW_GID:-20}"
-    ports:
-      - 3007:8080
-    volumes:
-      - ./portal_files/:/data/
-      - ./portal_files/config/:/config/
-    environment:
-      - FB_BASEURL=/filebrowser
-      - FB_AUTH_METHOD=noauth
-    restart: always
 
 volumes:
-  postgres-db-volume:
   tusd:
   sfdb-db-volume:
-  pgadmin_data:
 
 networks:
   eeg-network:

@@ -1,3 +1,5 @@
-<div class="text">
-    Vault page
-</div>
+<script>
+    import EEGStudyVisualizer from '$lib/components/EEGStudyVisualizer.svelte'
+</script>
+
+<EEGStudyVisualizer/>
