@@ -85,6 +85,24 @@ async def api_reset_portal():
     return {"message": "Uploads Removed and Portal Reset Successfully."}
 
 # ───────────────────────────────────────────────────────────────────────────────
+# WEBFORMS: CONTACT TAB
+# ───────────────────────────────────────────────────────────────────────────────'
+
+class FileAssignmentRequest(BaseModel):
+    name: str
+    email: str
+    message: str
+
+@router.post("/api/sendContactMessage")
+async def send_contact_message(request: FileAssignmentRequest):
+    # We either need to setup a smtp server, use a third party service like sendgrid, or make it a github issue
+    # For now, we will just log the message
+    name = request.name
+    email = request.email
+    message = request.message
+    print(f"Contact Message: {name} - {email} - {message}")
+
+# ───────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: UPLOAD TAB
 # ───────────────────────────────────────────────────────────────────────────────
 @router.get("/api/list-eeg-formats", response_model=List[models.EEGFormat])

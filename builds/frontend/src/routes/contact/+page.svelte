@@ -1,17 +1,39 @@
-<script>
-    let name = '';
-    let email = '';
-    let message = '';
-  
-    function handleSubmit() {
-      // Handle form submission logic here
-      console.log('Form submitted:', { name, email, message });
-      // Reset form fields
-      name = '';
-      email = '';
-      message = '';
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { writable } from 'svelte/store';
+  import { sendContactMessage } from '$lib/services/apiService';
+
+  let name = '';
+  let email = '';
+  let message = '';
+
+  let successMessage = '';
+
+  const handleSubmit = async (event: Event) => {
+    event.preventDefault();
+
+    const formData = {
+      name,
+      email,
+      message,
+    };
+
+    try {
+      const response = await sendContactMessage(formData);
+
+      if (response.ok) {
+        successMessage = 'Your message has been sent successfully!';
+        name = '';
+        email = '';
+        message = '';
+      } else {
+        successMessage = 'Failed to send your message. Please try again later.';
+      }
+    } catch (error) {
+      successMessage = 'An error occurred. Please try again later.';
     }
-  </script>
+  };
+</script>
   
   <main class="container mx-auto p-4">
     <h1 class="text-3xl font-bold mb-6">Contact Us</h1>
@@ -54,4 +76,7 @@
         <p>Saturday - Sunday: Closed</p>
       </div>
     </div>
+    {#if successMessage}
+      <p>{successMessage}</p>
+    {/if}
   </main>

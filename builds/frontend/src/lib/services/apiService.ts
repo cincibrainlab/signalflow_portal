@@ -358,3 +358,21 @@ export async function getAnalyses() {
     throw error;
   }
 }
+
+export async function sendContactMessage(formData: any) {
+  console.log(JSON.stringify(formData))
+  const response = await fetch(`${baseUrl}sendContactMessage`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(formData),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to send contact message');
+  }
+
+  return await response.json();
+
+}
