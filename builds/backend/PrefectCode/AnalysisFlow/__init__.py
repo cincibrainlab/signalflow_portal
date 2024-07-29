@@ -8,7 +8,7 @@
 # Import all modules in the package
 #* You will need to import each analysis flow here
 from .TemplateAnalysis import TemplateAnalysis_Flow
-from .ComputePsdAnalysis import ComputePsdAnalysis_Flow
+from .ComputePsdAnalysisMatlab import ComputePsdAnalysisMatlab_Flow
 
 
 # Define package-level variables
@@ -16,7 +16,7 @@ from .ComputePsdAnalysis import ComputePsdAnalysis_Flow
 #* The key needs to put both in this dictionary and in the portal_config.yaml file
 analysis_flows = {
     "TemplateAnalysis": TemplateAnalysis_Flow,
-    "ComputePsdAnalysis": ComputePsdAnalysis_Flow,
+    "ComputePsdAnalysis": ComputePsdAnalysisMatlab_Flow,
     # Add more flows here as needed
 }
 

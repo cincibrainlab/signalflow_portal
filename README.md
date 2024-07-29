@@ -49,7 +49,17 @@ pip install -e .
 
 run builds\backend\app\main.py
 ```bash
+# First Terminal
 cd builds\frontend
 npm run dev
+# Second Terminal
+docker compose up sf_db sf_uploader
+# Third Terminal
+#* How to start prefect
+# These should only be needed once on the first run
+prefect cloud login
+prefect work-pool create analysis-process-pool
+# Run this every time you want to start the worker
+prefect worker start --pool analysis-process-pool
 ```
 
