@@ -110,8 +110,6 @@
         <li class="md:mx-2"><a href="/vault">Vault</a></li>
         <li class="md:mx-2"><a href="/analysisManager">Analysis Manager</a></li>
         <li class="md:mx-2"><a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">Docs</a></li>
-        <li class="md:mx-2"><a href="/contact">Contact</a></li>
-        <li class="md:mx-2"><a href="/account">Account</a></li>
       </ul>
       <div class="dropdown dropdown-end sm:hidden">
         <!-- svelte-ignore a11y-label-has-associated-control -->
