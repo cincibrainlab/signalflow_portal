@@ -450,10 +450,10 @@ async def create_file_for_analysis(analysisId, OriginalImportFile_id):
     new_file["date_added"] = originalFile.get("date_added")
     new_file["original_file"] = originalFile.get("_id")
     new_file["eeg_format"] = originalFile.get("eeg_format")
-    new_file["is_set_file"] = originalFile.get("is_set_file")
-    new_file["has_fdt_file"] = originalFile.get("has_fdt_file")
-    new_file["fdt_filename"] = originalFile.get("fdt_filename")
-    new_file["fdt_upload_id"] = originalFile.get("fdt_upload_id")
+    new_file["is_primary_file"] = originalFile.get("is_primary_file")
+    new_file["has_secondary_file"] = originalFile.get("has_secondary_file")
+    new_file["secondary_filename"] = originalFile.get("secondary_filename")
+    new_file["secondary_upload_id"] = originalFile.get("secondary_upload_id")
     new_file["hash"] = originalFile.get("hash")
     new_file["current_status"] = originalFile.get("current_status")
 
@@ -564,12 +564,12 @@ async def get_OriginalImportFile():
     return [
         {
             "upload_id": upload_record["upload_id"],
-            "fdt_upload_id": upload_record.get("fdt_upload_id"),
+            "secondary_upload_id": upload_record.get("secondary_upload_id"),
             "original_name": upload_record["original_name"],
             "eeg_format": upload_record.get("eeg_format"),
-            "is_set_file": upload_record.get("is_set_file"),
-            "has_fdt_file": upload_record.get("has_fdt_file"),
-            "fdt_filename": upload_record.get("fdt_filename"),
+            "is_primary_file": upload_record.get("is_primary_file"),
+            "has_secondary_file": upload_record.get("has_secondary_file"),
+            "secondary_filename": upload_record.get("secondary_filename"),
             "dataset_id": upload_record.get("dataset_id"),
             "dataset_name": upload_record.get("dataset_name"),
             "dataset_description": upload_record.get("dataset_description"),
@@ -614,10 +614,10 @@ async def get_import_catalog():
         {
             "upload_id": import_record["upload_id"],
             "original_name": import_record["original_name"],
-            "is_set_file": import_record.get("is_set_file"),
-            "has_fdt_file": import_record.get("has_fdt_file"),
-            "fdt_filename": import_record.get("fdt_filename"),
-            "fdt_upload_id": import_record.get("fdt_upload_id"),
+            "is_primary_file": import_record.get("is_primary_file"),
+            "has_secondary_file": import_record.get("has_secondary_file"),
+            "secondary_filename": import_record.get("secondary_filename"),
+            "secondary_upload_id": import_record.get("secondary_upload_id"),
             "dataset_id": import_record.get("dataset_id"),
             "dataset_name": import_record.get("dataset_name"),
             "dataset_description": import_record.get("dataset_description"),
@@ -735,27 +735,27 @@ async def add_original_import_file_catalog(original_import_file_catalog_entry):
         raise e
     return original_import_file_catalog_entry
 
-async def align_fdt_files():
+async def align_secondary_files():
     db = await get_database()
     async for row in db.OriginalImportFile.find():
         if row['original_name'].endswith(".set"):
-            update_data = {"is_set_file": True}
-            fdt_filename = row['original_name'].replace(".set", ".fdt")
-            fdt_file = await db.OriginalImportFile.find_one({"original_name": {"$regex": f"^{fdt_filename}$", "$options": "i"}})
-            if fdt_file:
+            update_data = {"is_primary_file": True}
+            secondary_filename = row['original_name'].replace(".set", ".fdt")
+            secondary_file = await db.OriginalImportFile.find_one({"original_name": {"$regex": f"^{secondary_filename}$", "$options": "i"}})
+            if secondary_file:
                 update_data.update({
-                    "has_fdt_file": True,
-                    "fdt_filename": fdt_filename,
-                    "fdt_upload_id": fdt_file['upload_id']
+                    "has_secondary_file": True,
+                    "secondary_filename": secondary_filename,
+                    "secondary_upload_id": secondary_file['upload_id']
                 })
             else:
                 update_data.update({
-                    "has_fdt_file": False,
-                    "fdt_filename": fdt_filename,
-                    "fdt_upload_id": None
+                    "has_secondary_file": False,
+                    "secondary_filename": secondary_filename,
+                    "secondary_upload_id": None
                 })
         else:
-            update_data = {"is_set_file": False}
+            update_data = {"is_primary_file": False}
 
         await db.OriginalImportFile.update_one({"_id": row['_id']}, {"$set": update_data})
             
@@ -817,7 +817,7 @@ async def ingest_info_files(info_files):
 async def process_new_uploads(upload_dir):
     async def update_file_catalog(info_files):
         await ingest_info_files(info_files)
-        await align_fdt_files()
+        await align_secondary_files()
         await delete_uploads_and_save_info_files()
 
     def find_info_files(upload_dir):
@@ -838,53 +838,53 @@ async def get_upload_paths(upload_id):
     file_record = await db.OriginalImportFile.find_one({"upload_id": upload_id})
     if not file_record:
         raise ValueError(f"Upload ID {upload_id} not found in the database.")
-    set_upload_path = os.path.join(UPLOAD_PATH, upload_id)
-    fdt_upload_path = os.path.join(UPLOAD_PATH, file_record['fdt_upload_id']) if file_record.get('fdt_upload_id') else None
-    set_import_path = os.path.join(IMPORT_PATH, file_record['original_name'])
-    fdt_import_path = os.path.join(IMPORT_PATH, file_record['fdt_filename']) if file_record.get('fdt_filename') else None
+    primary_upload_path = os.path.join(UPLOAD_PATH, upload_id)
+    secondary_upload_path = os.path.join(UPLOAD_PATH, file_record['secondary_upload_id']) if file_record.get('secondary_upload_id') else None
+    primary_import_path = os.path.join(IMPORT_PATH, file_record['original_name'])
+    secondary_import_path = os.path.join(IMPORT_PATH, file_record['secondary_filename']) if file_record.get('secondary_filename') else None
     return {
         "upload_id": upload_id,
-        "set_upload_path": set_upload_path,
-        "fdt_upload_path": fdt_upload_path,
-        "set_import_path": set_import_path,
-        "fdt_import_path": fdt_import_path
+        "primary_upload_path": primary_upload_path,
+        "secondary_upload_path": secondary_upload_path,
+        "primary_import_path": primary_import_path,
+        "secondary_import_path": secondary_import_path
     }
     
 async def clean_import_files(upload_id):
     import_file_paths = await get_upload_paths(upload_id)
-    set_dest_path = import_file_paths['set_import_path']
-    fdt_dest_path = import_file_paths['fdt_import_path']
+    primary_dest_path = import_file_paths['primary_import_path']
+    secondary_dest_path = import_file_paths['secondary_import_path']
 
-    if os.path.exists(set_dest_path):
-        os.remove(set_dest_path)
-        print(f"Removed SET file {set_dest_path}")
-    if fdt_dest_path and os.path.exists(fdt_dest_path):
-        os.remove(fdt_dest_path)
-        print(f"Removed FDT file {fdt_dest_path}")
+    if os.path.exists(primary_dest_path):
+        os.remove(primary_dest_path)
+        print(f"Removed SET file {primary_dest_path}")
+    if secondary_dest_path and os.path.exists(secondary_dest_path):
+        os.remove(secondary_dest_path)
+        print(f"Removed secondary file {secondary_dest_path}")
 
 async def copy_import_files(upload_id):
-    # Copy the SET and FDT files to the import path
+    # Copy the SET and secondary files to the import path
     import_file_paths = await get_upload_paths(upload_id)
-    set_dest_path = import_file_paths['set_import_path']
-    fdt_dest_path = import_file_paths['fdt_import_path']
-    set_src_path = import_file_paths['set_upload_path']
-    fdt_src_path = import_file_paths['fdt_upload_path']
+    primary_dest_path = import_file_paths['primary_import_path']
+    secondary_dest_path = import_file_paths['secondary_import_path']
+    primary_src_path = import_file_paths['primary_upload_path']
+    secondary_src_path = import_file_paths['secondary_upload_path']
 
-    if set_src_path:
-        copy(set_src_path, set_dest_path)
-        print(f"Copied SET file {set_src_path} to {set_dest_path}")
+    if primary_src_path:
+        copy(primary_src_path, primary_dest_path)
+        print(f"Copied SET file {primary_src_path} to {primary_dest_path}")
     
-    if fdt_src_path:
-        copy(fdt_src_path, fdt_dest_path)
-        print(f"Copied FDT file {fdt_src_path} to {fdt_dest_path}")
-    return set_dest_path, fdt_dest_path
+    if secondary_src_path:
+        copy(secondary_src_path, secondary_dest_path)
+        print(f"Copied secondary file {secondary_src_path} to {secondary_dest_path}")
+    return primary_dest_path, secondary_dest_path
 
-def get_core_eeg_info( set_file_path ):
+def get_core_eeg_info( primary_file_path ):
     """
     Extracts metadata from an EEG file.
 
     Args:
-        set_file_path (str): The path to the EEG file.
+        primary_file_path (str): The path to the EEG file.
 
     Returns:
         dict: A dictionary containing the metadata of the EEG file.
@@ -893,7 +893,7 @@ def get_core_eeg_info( set_file_path ):
     try:
         # Load the EEG data using MNE
         try:
-            EEG = mne.io.read_raw_eeglab(set_file_path, preload=True)
+            EEG = mne.io.read_raw_eeglab(primary_file_path, preload=True)
             info = EEG.info
             eeg_core_info = {
                 'mne_load_error': False,  # This key can be used to track the error in the database
@@ -905,7 +905,7 @@ def get_core_eeg_info( set_file_path ):
             }
         except Exception as e:
             print(f"Error loading as raw_eeglab: {e}")
-            EEG = mne.io.read_epochs_eeglab(set_file_path)
+            EEG = mne.io.read_epochs_eeglab(primary_file_path)
             info = EEG.info
             eeg_core_info = {
                 'mne_load_error': False,  # This key can be used to track the error in the database
@@ -929,39 +929,3 @@ def get_core_eeg_info( set_file_path ):
         # Optionally log the error or handle it as needed
 
     return eeg_core_info
-
-    
-# async def update_file_catalog():
-#     db = await get_database()
-#     set_files = await db.OriginalImportFile.find({"is_set_file": True}).to_list(None)
-#     for file in set_files:
-#         # Check if the record already exists in the ImportCatalog
-#         existing_record = await db.File.find_one({"upload_id": file["upload_id"]})
-#         if existing_record:
-#             print(f"\033[93mRecord already exists in ImportCatalog with ID: {existing_record['upload_id']}\033[0m")
-#         else:
-#             set_dest_path, fdt_dest_path = await copy_import_files(file["upload_id"])
-#             core_info = get_core_eeg_info(set_dest_path)
-#             print(f"Before ImportCatalog creation: eeg_format={file['eeg_format']}, eeg_paradigm={file['eeg_paradigm']}")
-            
-#             participant = await db.Participant.find_one({"participant_id": "Empty"})
-#             file_record = {
-#                 "status": add_status_code(201),
-#                 "upload_id": file["upload_id"],
-#                 "date_added": file["date_added"],
-#                 "original_file": file,
-#                 "eeg_format": file["eeg_format"],
-#                 "is_set_file": file["is_set_file"],
-#                 "has_fdt_file": file["has_fdt_file"],
-#                 "fdt_filename": file["fdt_filename"],
-#                 "fdt_upload_id": file["fdt_upload_id"],
-#                 "hash": file["hash"],
-#                 "metadata": json.dumps(core_info),
-#                 "participant": participant["_id"]
-#             }
-        
-#             await db.OriginalImportFile.insert_one(file_record)
-#             print(f"\033[92mRecord added in ImportCatalog with ID: {file_record['upload_id']}\033[0m")
-#             await clean_import_files(file["upload_id"])
-
-#     print(f"Transferred {len(set_files)} SET files from UploadCatalog to ImportCatalog.")

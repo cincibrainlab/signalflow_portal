@@ -27,21 +27,21 @@ async def getRawMatlab(eng ,upload_id: str, upload_path: str):
     """
 
     try: 
-        set_dest_path, fdt_dest_path = await flow_db.copy_import_files(upload_id)
+        primary_dest_path, secondary_dest_path = await flow_db.copy_import_files(upload_id)
         
-        print(f"SET file path: {set_dest_path}")
-        print(f"FDT file path: {fdt_dest_path}")
+        print(f"SET file path: {primary_dest_path}")
+        print(f"FDT file path: {secondary_dest_path}")
         
-        if fdt_dest_path is not None:
-            eng.eval('EEG = pop_loadset(\''+ set_dest_path +'\');', nargout=0)
-            return set_dest_path, fdt_dest_path
+        if secondary_dest_path is not None:
+            eng.eval('EEG = pop_loadset(\''+ primary_dest_path +'\');', nargout=0)
+            return primary_dest_path, secondary_dest_path
             
     except Exception as e:
         logging.error(f"Exception occurred when creating EEG Obj: {str(e)}")
-        logging.error(f"File path: {set_dest_path}")
-        logging.error(f"File exists: {os.path.exists(set_dest_path)}")
-        if os.path.exists(set_dest_path):
-            with open(set_dest_path, 'rb') as f:
+        logging.error(f"File path: {primary_dest_path}")
+        logging.error(f"File exists: {os.path.exists(primary_dest_path)}")
+        if os.path.exists(primary_dest_path):
+            with open(primary_dest_path, 'rb') as f:
                 logging.error(f"File size: {len(f.read())} bytes")
         raise
 
@@ -69,9 +69,9 @@ async def ComputePsdAnalysisMatlab_Flow(importID: str, analysis_function: str, a
     eng.eval("eeglab('nogui')")
     
     # Import the file - Will save as 'EEG' in the Matlab workspace
-    set_dest_path, fdt_dest_path = await getRawMatlab(eng, upload_id, upload_path)
+    primary_dest_path, secondary_dest_path = await getRawMatlab(eng, upload_id, upload_path)
 
-    if fdt_dest_path is not None:
+    if secondary_dest_path is not None:
     # Perform Preprocessing here
         eng.eval('[spectra, freqs] = spectopo(EEG.data, 0, EEG.srate);', nargout=0)
         eng.eval("fig = figure('visible', 'off');", nargout=0)

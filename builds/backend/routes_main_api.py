@@ -246,60 +246,11 @@ async def get_analyses():
         logging.error(f"Error in get_analyses: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# @router.get("/api/get-import-catalog")
-# async def get_import_catalog():
-#     logging.info("Getting import table...")
-#     import_catalog = await flow_db.get_import_catalog()
-#     return [models.ImportCatalog(**import_record) for import_record in import_catalog]
-
-# @router.get("/api/get-dataset-catalog")
-# async def get_dataset_catalog():
-#     logging.info("Getting dataset table...")
-#     dataset_catalog = await flow_db.get_dataset_catalog()
-#     return [models.DatasetCatalog(**dataset) for dataset in dataset_catalog]
-
-# @router.get("/api/get-dataset-stats")
-# async def get_dataset_stats():
-#     logging.info("Getting dataset stats...")
-#     dataset_stats = await flow_db.get_dataset_stats()
-#     return dataset_stats
-
-# @router.post("/api/merge-datasets")
-# async def merge_datasets(dataset_id1: str, dataset_id2: str):
-#     try:
-#         merged_count = await flow_db.merge_datasets(dataset_id1, dataset_id2)
-#         logging.info(f"Merged {merged_count} records from dataset {dataset_id2} into dataset {dataset_id1}")
-#         return {"success": True, "message": f"Merged {merged_count} records successfully from dataset {dataset_id2} into dataset {dataset_id1}"}
-#     except Exception as e:
-#         logging.error(f"Error merging datasets: {str(e)}")
-#         raise HTTPException(status_code=500, detail=str(e))
 
 # ───────────────────────────────────────────────────────────────────────────────
 # FUNCTION: DATASET CRUD
 # ────────────────────────────────────────────────────────────────────────────────
-# @router.post("/api/add-dataset", response_model=models.Dataset)
-# async def add_dataset(dataset_entry: models.Dataset):
-#     try:
-#         new_dataset = await flow_db.add_dataset(dataset_entry)
-#         logging.debug(f"New Dataset Added: {new_dataset}")
-#         return {"success": True, "message": "Dataset added successfully", "dataset": new_dataset}
-#     except Exception as e:
-#         logging.error(f"Error adding dataset: {str(e)}")
-#         raise HTTPException(status_code=400, detail=str(e))
 
-# @router.post("/api/update-dataset", response_model=models.Dataset)
-# async def update_dataset(dataset_entry: models.Dataset):
-#     try:
-#         updated_dataset = await flow_db.update_dataset(dataset_entry)
-#         logging.debug(f"Dataset Updated: {updated_dataset}")
-#         print(f"Dataset Updated: {updated_dataset}")
-#         if updated_dataset:
-#             return JSONResponse(status_code=200, content={"success": True, "message": "Dataset updated successfully"})
-#         else:
-#             return JSONResponse(status_code=404, content={"success": False, "message": "Dataset not found"})
-#     except Exception as e:
-#         logging.error(f"Error updating dataset: {str(e)}")
-#         raise HTTPException(status_code=400, detail=str(e))
 
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: UPLOAD PROCESSING
@@ -315,14 +266,6 @@ async def process_uploads():
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: PREFECT
 # ────────────────────────────────────────────────────────────────────────────────
-# @router.get("/prefect/create-analysis/{analysis_id}")
-# async def create_analysis(analysis_id: str):
-#     try:
-#         await AnalysisFlow(analysis_id=analysis_id)
-#     except Exception as e:
-#         logging.error(f"Error running analysis: {str(e)}")
-#         raise HTTPException(status_code=400, detail=str(e))
-#     return {"message": f"Analysis scheduled for: {analysis_id}"}
 
 @router.get("/prefect/prefect-stats/{deploymentId}")
 async def get_prefect_stats(deploymentId: str):

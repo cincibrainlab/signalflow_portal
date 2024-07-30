@@ -53,29 +53,29 @@ async def getRaw(upload_id: str, upload_path: str):
     """
 
     try: 
-        set_dest_path, fdt_dest_path = await flow_db.copy_import_files(upload_id)
+        primary_dest_path, secondary_dest_path = await flow_db.copy_import_files(upload_id)
         
-        print(f"SET file path: {set_dest_path}")
-        print(f"FDT file path: {fdt_dest_path}")
-        if fdt_dest_path is not None:
+        print(f"SET file path: {primary_dest_path}")
+        print(f"FDT file path: {secondary_dest_path}")
+        if secondary_dest_path is not None:
             # Read EEGLAB file info 
-            eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, set_dest_path, preload=True, verbose=True)
+            eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, primary_dest_path, preload=True, verbose=True)
             
-            if os.path.exists(set_dest_path):
-                await asyncio.to_thread(os.remove, set_dest_path)
-                logging.info(f"Removed SET file {set_dest_path}")
-            if fdt_dest_path and os.path.exists(fdt_dest_path):
-                await asyncio.to_thread(os.remove, fdt_dest_path)
-                logging.info(f"Removed FDT file {fdt_dest_path}")
+            if os.path.exists(primary_dest_path):
+                await asyncio.to_thread(os.remove, primary_dest_path)
+                logging.info(f"Removed SET file {primary_dest_path}")
+            if secondary_dest_path and os.path.exists(secondary_dest_path):
+                await asyncio.to_thread(os.remove, secondary_dest_path)
+                logging.info(f"Removed FDT file {secondary_dest_path}")
             
             return eeg_data
     
     except Exception as e:
         logging.error(f"Exception occurred when creating EEG Obj: {str(e)}")
-        logging.error(f"File path: {set_dest_path}")
-        logging.error(f"File exists: {os.path.exists(set_dest_path)}")
-        if os.path.exists(set_dest_path):
-            with open(set_dest_path, 'rb') as f:
+        logging.error(f"File path: {primary_dest_path}")
+        logging.error(f"File exists: {os.path.exists(primary_dest_path)}")
+        if os.path.exists(primary_dest_path):
+            with open(primary_dest_path, 'rb') as f:
                 logging.error(f"File size: {len(f.read())} bytes")
         raise
 
