@@ -39,8 +39,8 @@ async def get_files(analysis_id):
         raise "no files found"
     return file_dict_list
 
-@task(name="getRaw", retries=1, description="")
-async def getRaw(upload_id: str, upload_path: str):
+@task(name="getRawMatlab", retries=1, description="")
+async def getRawMatlab(eng ,upload_id: str, upload_path: str):
     """
     This function is used to get the EEG data from the specified upload path. 
 
@@ -57,9 +57,48 @@ async def getRaw(upload_id: str, upload_path: str):
         
         print(f"SET file path: {primary_dest_path}")
         print(f"FDT file path: {secondary_dest_path}")
+        
         if secondary_dest_path is not None:
-            # Read EEGLAB file info 
-            eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, primary_dest_path, preload=True, verbose=True)
+            eng.eval('EEG = pop_loadset(\''+ primary_dest_path +'\');', nargout=0)
+            return primary_dest_path, secondary_dest_path
+            
+    except Exception as e:
+        logging.error(f"Exception occurred when creating EEG Obj: {str(e)}")
+        logging.error(f"File path: {primary_dest_path}")
+        logging.error(f"File exists: {os.path.exists(primary_dest_path)}")
+        if os.path.exists(primary_dest_path):
+            with open(primary_dest_path, 'rb') as f:
+                logging.error(f"File size: {len(f.read())} bytes")
+        raise
+
+@task(name="getRawPython", retries=1, description="")
+async def getRawPython(upload_id: str, upload_path: str):
+    """
+    This function is used to get the EEG data from the specified upload path. 
+
+    Parameters:
+    upload_id (str): The ID of the upload.
+    upload_path (str): The path where the upload is located.
+
+    Returns:
+    eeg_data: The EEG data (either raw or epoched).
+    """
+
+    try: 
+        primary_dest_path, secondary_dest_path = await flow_db.copy_import_files(upload_id)
+        
+        print(f"Primary file path: {primary_dest_path}")
+        print(f"Seconday file path: {secondary_dest_path}")
+        if secondary_dest_path is not None:
+            try:
+                if primary_dest_path.endswith(".set"):
+                    # Read EEGLAB file info 
+                    eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, primary_dest_path, preload=True, verbose=True)
+                else:
+                    eeg_data = await asyncio.to_thread(mne.io.read_raw, primary_dest_path, preload=True, verbose=True)
+            except Exception as e:
+                logging.error(f"Error reading EEG data: {str(e)}")
+                raise
             
             if os.path.exists(primary_dest_path):
                 await asyncio.to_thread(os.remove, primary_dest_path)

@@ -78,7 +78,7 @@ async def TemplateAnalysis_Flow(importID: str, analysis_function: str, analysis_
     upload_id = original_file["upload_id"]
     
     # Import the file
-    raw_eeg = await UtilityTasks.getRaw(upload_id, upload_path)
+    raw_eeg = await UtilityTasks.getRawPython(upload_id, upload_path)
     
     if raw_eeg is not None:
         raw = raw_eeg
