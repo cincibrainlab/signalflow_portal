@@ -5,6 +5,7 @@
     import { flip } from 'svelte/animate';
     import { dndzone } from 'svelte-dnd-action';
     import { fetchPrefectStats, type PrefectStats } from '$lib/services/prefectAPI';
+    import { getMatchingFiles } from '$lib/services/apiService';
 
     export let deploymentId: string;
 
@@ -80,6 +81,7 @@
             });
         }
         await updatePrefectStats();
+        // newFiles = await getMatchingFiles();
 
         // Set up periodic refresh (e.g., every 30 seconds)
         intervalId = setInterval(updatePrefectStats, 15000);
@@ -104,6 +106,7 @@
     let pendingFiles: { id: string; name: string; status: string }[] = [];
     let failedFiles: { id: string; name: string; status: string }[] = [];
     let removedFileIds: Set<string> = new Set();
+    let newFiles;
 
     function removeFile(id: string) {
         removedFileIds.add(id);

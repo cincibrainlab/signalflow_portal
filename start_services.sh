@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Start the Postgres database in a new terminal
-gnome-terminal -- bash -c "docker compose up sf_db sf_uploader; exec bash"
+# Start the mongo database in a new terminal
+gnome-terminal -- bash -c "docker compose up -d sf_db sf_uploader; exec bash"
 
 # Start the Python backend in a new terminal
 gnome-terminal -- bash -c "cd builds/backend && python main.py; exec bash"

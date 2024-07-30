@@ -96,8 +96,10 @@
       </a>
     </div>
     <div class="flex-none">
-      <ul class="menu menu-horizontal px-1 hidden sm:flex font-bold text-lg">
-        <li class={dbStatusClass}>{dbStatus}</li>
+      <ul class="menu menu-horizontal px-1 hidden sm:flex items-center font-bold text-lg">
+        <li class="flex items-center">
+          <span class={dbStatusClass}>{dbStatus}</span>
+        </li>
         <li class="md:mx-4">
           <a
             href="https://github.com/cincibrainlab/sfvault"
@@ -106,8 +108,8 @@
             ★ us on Github
           </a>
         </li>
-        <li class="md:mx-2"><a href="/upload">Upload</a></li>
-        <li class="md:mx-2"><a href="/vault">Vault</a></li>
+        <li class="md:mx-2"><a href="/upload" data-sveltekit-preload-data>Upload</a></li>
+        <li class="md:mx-2"><a href="/vault" data-sveltekit-preload-data>Vault</a></li>
         <li class="md:mx-2"><a href="/analysisManager">Analysis Manager</a></li>
         <li class="md:mx-2"><a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">Docs</a></li>
         <li class="md:mx-2"><a href="/contact">Contact</a></li>

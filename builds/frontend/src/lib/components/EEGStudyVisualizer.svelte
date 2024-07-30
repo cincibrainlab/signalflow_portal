@@ -41,13 +41,26 @@
     TableHeader,
     TableRow,
   } from "$lib/components/ui/table"
-  import { DateInput } from 'date-picker-svelte'
-  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant, addParticipant, getFormOptions} from '$lib/services/apiService';
+  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant} from '$lib/services/apiService';
   import AddParticipant from './AddParticipant.svelte';
-  import AddAnalysis from "./AddAnalysis.svelte";
   import { debounce } from 'lodash-es';
-  import { getFormats, getParadigms, getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile } from '$lib/services/apiService';
-  
+  import {getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile } from '$lib/services/apiService';
+    /** @type {import('./$types').PageData} */
+    export let data;
+
+  let Files = data.files || [];
+  let Participants = data.participants || [];
+  let uniqueParadigms = data.uniqueParadigms || ["All"];
+  let UniqueFormats = data.uniqueFormats || ["All"];
+  let uniqueDiagnoses = data.uniqueDiagnoses || ["All"];
+  let uniqueAgeGroups = data.uniqueAgeGroups || ["All"];
+
+  // ... rest of your existing variables ...
+
+  onMount(() => {
+    console.log("Files:", Files);
+    console.log("Participants:", Participants);
+  });
 
   let selectedFile: any = null;
   let isEditing = false;
@@ -109,17 +122,8 @@
   let selectedParadigm: string = "All"
   let viewMode: "card" | "table" = "card"
 
-  let uniqueDiagnoses: string[] = []
-  let uniqueAgeGroups: string[] = []
-  let uniqueParadigms: string[] = []
-  let UniqueFormats: string[] = []
-
-
   let sortColumn: string = ""
   let sortDirection: "asc" | "desc" = "asc"
-
-  let Files: any = []
-  let Participants: any = []
 
   function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -164,68 +168,6 @@
     })
   }
 
-  onMount(() => {
-    getOriginalFileCatalog()
-          .then(async (result) => {
-            const setFiles = result.filter((file: any) => file.is_set_file === true);
-            const filesWithObjects = await getObjectsInFiles(setFiles);
-            Files = filesWithObjects;
-            console.log("Files with Objects:", Files);
-          })
-          .catch(error => {
-            console.error('Error fetching file catalog:', error);
-              // Handle the error appropriately
-          });
-
-    getParticipants()
-        .then(result => {
-            Participants = result;
-        })
-        .catch(error => {
-            console.error('Error fetching participants:', error);
-            // Handle the error appropriately
-        });
-
-      getParadigms()
-        .then(result => {
-            uniqueParadigms = result.map((item: any) => item.name);
-            uniqueParadigms.unshift("All")
-        })
-        .catch(error => {
-            console.error('Error fetching participants:', error);
-            // Handle the error appropriately
-        });
-
-      getFormats()
-        .then(result => {
-            UniqueFormats = result.map((item: any) => item.name);
-        })
-        .catch(error => {
-            console.error('Error fetching participants:', error);
-            // Handle the error appropriately
-        });
-
-        
-      getFormOptions("Diagnosis")
-        .then(result => {
-            uniqueDiagnoses = result.form_options
-            uniqueDiagnoses.unshift("All")
-        })
-        .catch(error => {
-            console.error('Error fetching participants:', error);
-            // Handle the error appropriately
-        });
-
-      getFormOptions("AgeGroup")
-        .then(result => {
-            uniqueAgeGroups = result.form_options
-            uniqueAgeGroups.unshift("All");
-        })
-        .catch(error => {
-            console.error('Error fetching participants:', error);
-            // Handle the error appropriately
-        });
-  })
 
   let filteredFiles: any = []
   let isFiltering = false;
@@ -569,7 +511,7 @@
               class="hover:shadow-lg transition-shadow duration-300 relative cursor-pointer"
               on:click={() => toggleFileSelection(file.original_name)}
             >
-              <div class="absolute top-2 right-2">
+              <div class="absolute top-2 right-2 z-10">
                 <input
                   type="checkbox"
                   class="custom-checkbox appearance-none h-5 w-5 border border-gray-300 rounded-full checked:bg-green-500 checked:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
@@ -578,11 +520,11 @@
                   on:change={() => toggleFileSelection(file.original_name)}
                 />
               </div>
-              <div>
+              <div class="overflow-hidden">
                 <CardHeader>
-                  <CardTitle class="flex items-center justify-between">
-                    <span>Name: {file.original_name}</span>
-                    <div class="flex gap-2">
+                  <CardTitle class="flex items-center justify-between flex-wrap">
+                    <span class="break-all pr-6">Name: {file.original_name}</span>
+                    <div class="flex gap-2 flex-wrap">
                       <Badge
                         class={getDiagnosisBadgeClasses(
                           participant.diagnosis,
@@ -754,8 +696,8 @@
       </Table>
     {/if}
     {#if selectedFile}
-      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-10" role="dialog" aria-modal="true">
-        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-10" transition:fade open>
+      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
+        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-20" transition:fade open>
           <h2 class="text-2xl font-bold mb-4">File Details</h2>
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
@@ -838,8 +780,8 @@
       </section>
     {/if}
     {#if isBatchEditing}
-      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-10" role="dialog" aria-modal="true">
-        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-10" transition:fade open>
+      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
+        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-20" transition:fade open>
           <h2 class="text-2xl font-bold mb-4">Batch Edit Files</h2>
           <form on:submit={saveBatchChanges}>
             <div class="w-full mb-4">
