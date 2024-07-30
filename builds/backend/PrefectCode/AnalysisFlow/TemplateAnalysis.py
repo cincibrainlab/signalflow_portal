@@ -126,7 +126,7 @@ async def TemplateAnalysis_Flow(importID: str, analysis_function: str, analysis_
         ]
         raw = await run_filters(raw, filters)
         
-        epochs = await make_epochs(raw, duration=1)
+        # epochs = await make_epochs(raw, duration=1)
         
         # Takes a long time to run, so it is commented out for now.
         # epochs, reject_log = await run_autoreject(epochs)
@@ -134,9 +134,9 @@ async def TemplateAnalysis_Flow(importID: str, analysis_function: str, analysis_
         # Takes a long time to run, so it is commented out for now.
         # epochs = await run_ica(epochs)
         
-        await get_psd_graph(epochs, importID, output_path)
+        await get_psd_graph(raw, importID, output_path)
         
-        await SaveEEG(epochs, importID, output_path)
+        await SaveEEG(raw, importID, output_path)
 
         # This will run all the tasks listed in parallel. Vastly speeds up code execution.
         # This is not recommended for signal processing and analysis functions. 

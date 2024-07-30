@@ -76,6 +76,11 @@ async def schedule_runs(analysis_id: str, deployment_id: UUID, deployment):
                 console.log(f"[bold red]Warning[/]: File with ID {file_id} not found in the database.")
                 continue
             
+            is_primary_file = file.get("is_primary_file")
+            if not is_primary_file:
+                console.log(f"Skipping file {file_id} as it is not a primary file.")
+                continue
+            
             # await serve(deployment)
             await run_deployment(
                 name=deployment_id,

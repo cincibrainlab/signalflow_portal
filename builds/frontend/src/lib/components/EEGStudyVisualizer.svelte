@@ -156,7 +156,7 @@
     
       getOriginalFileCatalog()
           .then(async (result) => {
-            const setFiles = result.filter((file: any) => file.is_set_file === true);
+            const setFiles = result.filter((file: any) => file.is_primary_file === true);
             const filesWithObjects = await getObjectsInFiles(setFiles);
             Files = filesWithObjects;
             console.log("Files with Objects:", Files);
@@ -167,7 +167,6 @@
           });
     })
   }
-
 
   let filteredFiles: any = []
   let isFiltering = false;
