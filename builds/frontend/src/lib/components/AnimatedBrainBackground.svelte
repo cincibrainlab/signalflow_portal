@@ -128,7 +128,6 @@
 
 .brain {
   fill: none;
-  stroke: #000;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;

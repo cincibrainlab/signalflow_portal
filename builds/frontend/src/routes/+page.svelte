@@ -31,6 +31,8 @@
   <svelte:head>
 	<title>{WebsiteName}</title>
 	<meta name="description" content={WebsiteDescription} />
+	<meta property="og:title" content={WebsiteName} />
+	
   </svelte:head>
   
   <div class="hero min-h-[60vh] ">
@@ -53,10 +55,10 @@
 		</div>
 		<div class="mt-6 md:mt-2">
 		  	<a href="/upload">
-				<button class="btn btn-primary btn-sm px-6">Start</button>
+				<button class="btn btn-primary btn-sm px-6 mt-3 mx-2">Start</button>
 		  	</a>
 		  	<a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">
-				<button class="btn btn-outline btn-primary btn-sm px-6 mt-3 mx-2">Explore Features</button>
+				<button class="btn btn-primary btn-sm px-6 mt-3 mx-2">Explore Features</button>
 			</a>
 		</div>
 	  </div>

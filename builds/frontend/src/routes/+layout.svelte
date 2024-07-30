@@ -15,6 +15,8 @@
 	import css from 'highlight.js/lib/languages/css';
 	import javascript from 'highlight.js/lib/languages/javascript';
 	import typescript from 'highlight.js/lib/languages/typescript';
+  
+  import { DarkMode } from 'flowbite-svelte';
 
 	hljs.registerLanguage('xml', xml); // for HTML
 	hljs.registerLanguage('css', css);
@@ -26,14 +28,12 @@
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 	import { storePopup } from '@skeletonlabs/skeleton';
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
-	import { LightSwitch } from '@skeletonlabs/skeleton';
 
 	// Toast to notify incomplete form
 	import { initializeStores, Toast } from '@skeletonlabs/skeleton';
 	initializeStores();
 
 	import { checkDbConnection } from '$lib/services/apiService';
-
 	let dbStatus = 'Checking...';
 	let dbStatusClass = 'badge variant-filled-warning h-full md:mx-2 px-1 hidden sm:flex font-bold text-lg';
 
@@ -108,6 +108,10 @@
             ★ us on Github
           </a>
         </li>
+        <li class="md:mx-4">
+          <DarkMode />
+          <!-- <button class="btn btn-ghost" on:click={toggleTheme}>Toggle Theme</button> -->
+        </li>
         <li class="md:mx-2"><a href="/upload" data-sveltekit-preload-data>Upload</a></li>
         <li class="md:mx-2"><a href="/vault" data-sveltekit-preload-data>Vault</a></li>
         <li class="md:mx-2"><a href="/analysisManager">Analysis Manager</a></li>
@@ -137,17 +141,10 @@
           tabindex="0"
           class="menu menu-lg dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 font-bold"
         >
-          <li><a href="/blog">Blog</a></li>
-          <li><a href="/pricing">Pricing</a></li>
-          <li><a href="/account">Account</a></li>
-          <li>
-            <a
-              href="https://github.com/CriticalMoments/CMSaasStarter"
-              class="border border-primary"
-            >
-              ★ us on Github
-            </a>
-          </li>
+        <li class="md:mx-2"><a href="/upload" data-sveltekit-preload-data>Upload</a></li>
+        <li class="md:mx-2"><a href="/vault" data-sveltekit-preload-data>Vault</a></li>
+        <li class="md:mx-2"><a href="/analysisManager">Analysis Manager</a></li>
+        <li class="md:mx-2"><a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">Docs</a></li>
         </ul>
       </div>
     </div>
@@ -157,7 +154,7 @@
     <slot />
   </div>
 
-  <div class="bg-gray-50">
+  <div class="">
     <div class="border-t max-w-[1000px] mx-auto"></div>
     <footer
       class="footer p-10 max-w-7xl mx-auto flex flex-wrap justify-between items-center text-base"
@@ -166,17 +163,10 @@
         <span class="footer-title opacity-80 w-full text-center mb-2"
           >Explore</span
         >
-        <a class="link link-hover mx-2 my-1" href="/vault">Vault</a>
-        <a class="link link-hover mx-2 my-1" href="/utilities">Utilities</a>
-        <a class="link link-hover mx-2 my-1" href="/features">Features</a>
-        <a class="link link-hover mx-2 my-1" href="/docs">Docs</a>
-        <a class="link link-hover mx-2 my-1" href="/contact_us">Contact Us</a>
-        <a
-          class="link link-hover mx-2 my-1"
-          href="https://github.com/cincibrainlab/sfvault"
-        >
-          Github
-        </a>
+        <li class="md:mx-2"><a href="/upload" data-sveltekit-preload-data>Upload</a></li>
+        <li class="md:mx-2"><a href="/vault" data-sveltekit-preload-data>Vault</a></li>
+        <li class="md:mx-2"><a href="/analysisManager">Analysis Manager</a></li>
+        <li class="md:mx-2"><a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">Docs</a></li>
       </nav>
       <aside class="flex flex-col items-center mt-4 sm:mt-0">
         <a
