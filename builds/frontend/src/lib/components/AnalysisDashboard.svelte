@@ -145,18 +145,18 @@
 
 </script>
 
-<main class="w-11/12 mx-auto p-6 bg-gray-100 min-h-screen">
+<main class="w-11/12 mx-auto p-6 min-h-screen">
     <header class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-gray-800">Dashboard</h1>
+        <h1 class="text-4xl font-bold ">Dashboard</h1>
     </header>
     <div class="flex flex-col lg:flex-row gap-6">
         <div class="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Current Runs</h2>
+            <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 ">Current Runs</h2>
                 <canvas id="runsChart" class="w-full"></canvas>
             </section>
-            <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-6 text-gray-700">Stats</h2>
+            <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+                <h2 class="text-2xl font-semibold mb-6 ">Stats</h2>
                 <div class="grid grid-cols-2 gap-4 h-64">
                     <div class="bg-purple-50 p-4 rounded-lg flex flex-col justify-between">
                         <p class="text-sm text-purple-600 mb-1">Total Runs Scheduled</p>
@@ -176,11 +176,11 @@
                     </div>
                 </div>
             </section>
-            <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-xl font-semibold mb-2 text-gray-700">Failed Files</h2>
+            <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+                <h2 class="text-xl font-semibold mb-2 ">Failed Files</h2>
                 <div class="h-48 overflow-y-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 sticky top-0">
+                        <thead class=" sticky top-0">
                             <tr>
                                 <th class="p-2 text-left">Name</th>
                                 <th class="p-2 text-right">Action</th>
@@ -199,11 +199,11 @@
                     </table>
                 </div>
             </section>
-            <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-xl font-semibold mb-2 text-gray-700">Pending Files</h2>
+            <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+                <h2 class="text-xl font-semibold mb-2 ">Pending Files</h2>
                 <div class="h-48 overflow-y-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 sticky top-0">
+                        <thead class=" sticky top-0">
                             <tr>
                                 <th class="p-2 text-left">Name</th>
                                 <th class="p-2 text-right">Action</th>
@@ -226,11 +226,11 @@
             
         </div>
         <div class="lg:w-1/3">
-            <section class="bg-white rounded-xl shadow-md p-6 h-full transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-xl font-semibold mb-2 text-gray-700">Files</h2>
+            <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 h-full transition duration-300 ease-in-out hover:shadow-lg">
+                <h2 class="text-xl font-semibold mb-2 ">Files</h2>
                 <div class="h-48 overflow-y-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-50 sticky top-0">
+                        <thead class=" sticky top-0">
                             <tr>
                                 <th class="p-2 text-left">Name</th>
                                 <th class="p-2">Status</th>
@@ -240,8 +240,8 @@
                         <tbody>
                             {#each files as file (file.id)}
                                 <tr class="border-b">
-                                    <td class="p-2 font-medium text-gray-800">{file.name}</td>
-                                    <td class="p-2 text-center text-gray-500">{file.status}</td>
+                                    <td class="p-2 font-medium">{file.name}</td>
+                                    <td class="p-2 text-center">{file.status}</td>
                                     <td class="p-2 text-right">
                                         <button on:click={() => viewDetails(file.id)} class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-xs mr-1">View</button>
                                         <button on:click={() => removeFile(file.id)} class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs">Remove</button>
@@ -256,11 +256,11 @@
         
     </div>
     <div class="w-full mt-6">
-        <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+        <section class="dark:bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
             <h2 class="text-xl font-semibold mb-2 text-gray-700">Possible Files</h2>
             <div class="h-48 overflow-y-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 sticky top-0">
+                    <thead class=" sticky top-0">
                         <tr>
                             <th class="p-2 text-left">Name</th>
                             <th class="p-2 text-right">Action</th>
@@ -284,8 +284,8 @@
         </section>
     </div>
     <div class="w-full mt-6">
-        <section class="bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Utilities</h2>
+        <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 ">Utilities</h2>
             <div class="flex justify-start space-x-4">
                 <button class="bg-blue-600 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded transition ease-in-out duration-300">
                     Download CSV

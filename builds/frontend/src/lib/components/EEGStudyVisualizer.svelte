@@ -382,6 +382,13 @@
 
   let selectedFiles: string[] = [];
 
+  function SelectAllVisible(){
+    selectedFiles = filteredFiles.map((f: any) => f.original_name);
+  }
+  function DeselectAll(){
+    selectedFiles = [];
+  }
+
   function toggleFileSelection(fileName: string) {
     selectedFiles = selectedFiles.includes(fileName)
       ? selectedFiles.filter(f => f !== fileName)
@@ -390,13 +397,13 @@
 </script>
 <div class="container mx-auto p-4">
   {#if Files.length === 0}
-    <div class="bg-white rounded-xl shadow-md p-6 text-center">
+    <div class="rounded-xl shadow-md p-6 text-center">
       <h2 class="text-2xl font-semibold mb-4 text-gray-700">No EEG Files Available</h2>
       <p class="mb-4">Sorry, there's nothing to display here yet. Start by uploading some EEG files.</p>
-      <Button href="/upload" variant="outline">Go to Upload Page</Button>
+      <Button href="/upload" >Go to Upload Page</Button>
     </div>
   {:else}
-    <div class="mb-6 bg-white p-4 rounded-lg shadow">
+    <div class="mb-6 p-4 rounded-lg shadow">
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-semibold flex items-center">
           <Filter class="w-5 h-5 mr-2" />
@@ -410,13 +417,13 @@
           {uniqueDiagnoses}
           {uniqueAgeGroups}
         />
-        <Button variant="outline" on:click={() => showAddParticipantModal = true}>
+        <Button  on:click={() => showAddParticipantModal = true}>
           Add New Participant
         </Button>
 
         <Button
           on:click={toggleViewMode}
-          variant="outline"
+          
           class="flex items-center"
         >
           {#if viewMode === "card"}
@@ -430,7 +437,7 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <label for="search" class="block text-sm font-medium text-gray-700 mb-1"
+          <label for="search" class="block text-sm font-medium mb-1"
             >Search</label
           >
           <Input
@@ -444,7 +451,7 @@
         <div>
           <label
             for="diagnosis"
-            class="block text-sm font-medium text-gray-700 mb-1">Diagnosis</label
+            class="block text-sm font-medium mb-1">Diagnosis</label
           >
           <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedDiagnosis}>
             {#each uniqueDiagnoses as diagnosis}
@@ -455,7 +462,7 @@
         <div>
           <label
             for="ageGroup"
-            class="block text-sm font-medium text-gray-700 mb-1">Age Group</label
+            class="block text-sm font-medium mb-1">Age Group</label
           >
           <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedAgeGroup}>
             {#each uniqueAgeGroups as ageGroup}
@@ -465,7 +472,7 @@
         <div>
           <label
             for="paradigm"
-            class="block text-sm font-medium text-gray-700 mb-1">Paradigm</label
+            class="block text-sm font-medium mb-1">Paradigm</label
           >
           <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedParadigm}>
             {#each uniqueParadigms as paradigm}
@@ -473,10 +480,27 @@
             {/each}
           </select>
         </div>
+        <div>
+          <button
+            class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
+            on:click={SelectAllVisible}
+          >
+            Select all Visible 
+          </button>
+        </div>
+        <div>
+          <button
+            class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
+            on:click={DeselectAll}
+          >
+            Deselect all 
+          </button>
+        </div>
+        <span class="h-full align-middle flex items-center">Files Visible: {filteredFiles.length}</span>
       </div>
     </div>
     {#if selectedFiles.length > 0}
-      <div class="mb-4 bg-white p-4 rounded-lg shadow max-h-36 overflow-y-scroll">
+      <div class="mb-4 p-4 rounded-lg shadow max-h-36 overflow-y-scroll">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-xl font-semibold">Selected Files</h3>
           <Button on:click={() => openBatchEditModal(Files.filter(f => selectedFiles.includes(f.original_name)))}>
@@ -538,7 +562,7 @@
                         />
                         {participant?.age_group || "Unknown"}
                       </Badge>
-                      <Badge variant="outline" class="flex items-center gap-1">
+                      <Badge  class="flex items-center gap-1">
                         <svelte:component
                           this={getSpeciesIcon(participant?.species)}
                           class="w-4 h-4 mr-1"
@@ -561,7 +585,7 @@
                 </CardContent>
                 <CardFooter>
                   <Button
-                    variant="outline"
+                    
                     class="text-blue-500 hover:text-blue-700 flex items-center"
                     on:click={(event) => {
                       event.stopPropagation();
@@ -625,7 +649,7 @@
           {:else}
             {#each filteredFiles as file (file.original_name)}
               <TableRow 
-                class="table-row-transition cursor-pointer hover:bg-gray-100"
+                class="table-row-transition cursor-pointer"
                 on:click={() => toggleFileSelection(file.original_name)}
               >
                 <TableCell>{file.original_name}</TableCell>
@@ -652,7 +676,7 @@
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" class="flex items-center gap-1">
+                  <Badge  class="flex items-center gap-1">
                     <svelte:component
                       this={getSpeciesIcon(file.participantData?.species)}
                       class="w-4 h-4 mr-1"
@@ -664,7 +688,6 @@
                 <TableCell><!-- paradigm --></TableCell>
                 <TableCell>
                   <Button
-                    variant="outline"
                     class="text-blue-500 hover:text-blue-700 flex items-center"
                     on:click={(event) => {
                       event.stopPropagation();
@@ -691,8 +714,8 @@
       </Table>
     {/if}
     {#if selectedFile}
-      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
-        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-20" transition:fade open>
+      <section class="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
+        <dialog class="rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-20 border-2" transition:fade open>
           <h2 class="text-2xl font-bold mb-4">File Details</h2>
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div>
@@ -763,11 +786,11 @@
             </div>
           </div>
           <div class="flex justify-end gap-2 mt-2">
-            <Button variant="outline" on:click={() => { selectedFile = null; }}>Close</Button>
+            <Button  on:click={() => { selectedFile = null; }}>Close</Button>
             {#if !isEditing}
               <Button on:click={toggleEditing}>Edit</Button>
             {:else}
-              <Button variant="outline" on:click={toggleEditing}>Cancel</Button>
+              <Button  on:click={toggleEditing}>Cancel</Button>
               <Button on:click={saveChanges}>Save Changes</Button>
             {/if}
           </div>
@@ -775,8 +798,8 @@
       </section>
     {/if}
     {#if isBatchEditing}
-      <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
-        <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-20" transition:fade open>
+      <section class="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
+        <dialog class="rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-20 border-2" transition:fade open>
           <h2 class="text-2xl font-bold mb-4">Batch Edit Files</h2>
           <form on:submit={saveBatchChanges}>
             <div class="w-full mb-4">
@@ -812,8 +835,8 @@
               </select>
             </div>
             <div class="flex justify-end gap-2 mt-2">
-              <Button type="button" variant="outline" on:click={() => { isBatchEditing = false; editingFiles = []; }}>Cancel</Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="button" on:click={() => { isBatchEditing = false; editingFiles = []; }}>Cancel</Button>
+              <Button type="submit" >Save Changes</Button>
             </div>
           </form>
         </dialog>
