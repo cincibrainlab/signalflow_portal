@@ -194,6 +194,27 @@ async def get_participant(participantObjectId: str):
         logging.error(f"Error retrieving participant: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
     
+@router.get("/api/get-analysis-from-deployment-id/{DeploymentID}")
+async def get_analysis_from_deployment_id(DeploymentID: str):
+    try:
+        analysis = await flow_db.get_analysis_from_deployment_id(DeploymentID)
+        logging.debug(f"Analysis: {analysis}")
+        return models.EegAnalysis(**analysis)
+    except Exception as e:
+        logging.error(f"Error retrieving analysis: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    
+@router.get("/api/get-analysis-function/{AnalysisID}")
+async def get_analysis(AnalysisID: str):
+    try:
+        analysisFunction = await flow_db.get_analysisFunction(AnalysisID)
+        logging.debug(f"Analysis: {analysisFunction}")
+        return models.AnalysisFunction(**analysisFunction)
+    except Exception as e:
+        logging.error(f"Error retrieving analysis: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    
+    
 @router.get("/api/get-eeg-format/{FormatObjectID}")
 async def get_eeg_format(FormatObjectID: str):
     try:

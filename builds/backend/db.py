@@ -490,6 +490,37 @@ async def get_participant(participant_object_id):
             "anxiety_level": participant.get("anxiety_level")
         }
 
+async def get_analysis_from_deployment_id(DeploymentID):
+    db = await get_database()
+    analysis = await db.EegAnalysis.find_one({"deployment_id": DeploymentID})
+    if analysis:
+        return {
+            "id": str(analysis["_id"]),
+            "name": analysis["name"],
+            "analysis_function": analysis.get("analysis_function"),
+            "description": analysis.get("description"),
+            "category": analysis.get("category"),
+            "valid_formats": analysis.get("valid_formats"),
+            "valid_paradigms": analysis.get("valid_paradigms"),
+            "valid_files": analysis.get("valid_files"),
+            "deployment_id": analysis.get("deployment_id"),
+            "output_path": analysis.get("output_path"),
+            "parameters": analysis.get("parameters")
+        }
+
+async def get_analysisFunction(analysisFunction_object_id):
+    db = await get_database()
+    analysisFunction_object_id_true = ObjectId(analysisFunction_object_id)
+    analysisFunction = await db.AnalysisFunction.find_one({"_id": analysisFunction_object_id_true})
+    if analysisFunction:
+        return {
+            "id": str(analysisFunction["_id"]),
+            "name": analysisFunction["name"],
+            "description": analysisFunction.get("description"),
+            "output_path": analysisFunction.get("output_path"),
+            "parameters": analysisFunction.get("parameters")
+        }
+    
 async def get_eeg_format(eeg_format_object_id):
     db = await get_database()
     eeg_format_object_id_true = ObjectId(eeg_format_object_id)

@@ -171,6 +171,45 @@ export async function getParticipant(participantObjectId: string) {
   }
 }
 
+export async function getAnalysisFromDeploymentID(DeploymentID: string) {
+  try {
+      const response = await fetch(`${baseUrl}get-analysis-from-deployment-id/${DeploymentID}`);
+      console.log('Get Analysis Response status:', response.status);
+
+      const data = await response.json();
+      if (!response.ok) {
+          console.log('Response data:', data);
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      let analysisObject = data;
+      return analysisObject;
+  } catch (error) {
+      console.error('Error fetching analysis:', error);
+      throw error;
+  }
+}
+
+export async function getAnalysisFunction(AnalysisFunctionObjectID: string) {
+  try { 
+      const response = await fetch(`${baseUrl}get-analysis-function/${AnalysisFunctionObjectID}`);
+      console.log('Get Analysis Function Response status:', response.status);
+
+      const data = await response.json();
+      if (!response.ok) {
+          console.log('Response data:', data);
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      let functionObject = data;
+      return functionObject;
+  } catch (error) {
+      console.error('Error fetching analysis function:', error);
+      throw error;
+  }
+}
+
+
 export async function getEEGFormat(FormatObjectID: string) {
   try { 
     const data = await cachedFetch(`${baseUrl}get-eeg-format/${FormatObjectID}`);
