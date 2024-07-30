@@ -2,10 +2,8 @@
 	import '../app.pcss';
 	import "../app.css"
 	import '../app.postcss';
-	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
-	import { derived } from 'svelte/store';
+  import { preloadComponents } from '$lib/preload';
 
 	// Highlight JS
 	import hljs from 'highlight.js/lib/core';
@@ -59,6 +57,7 @@
       overflow-y: scroll;
     }
   </style>
+  {@html preloadComponents()}
 </svelte:head>
 
 <div class="flex flex-col min-h-screen">
@@ -110,7 +109,7 @@
         </li>
         <li class="md:mx-2"><a href="/upload" data-sveltekit-preload-data>Upload</a></li>
         <li class="md:mx-2"><a href="/vault" data-sveltekit-preload-data>Vault</a></li>
-        <li class="md:mx-2"><a href="/analysisManager">Analysis Manager</a></li>
+        <li class="md:mx-2"><a href="/analysisManager" data-sveltekit-preload-data>Analysis Manager</a></li>
         <li class="md:mx-2"><a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">Docs</a></li>
       </ul>
       <div class="dropdown dropdown-end sm:hidden">

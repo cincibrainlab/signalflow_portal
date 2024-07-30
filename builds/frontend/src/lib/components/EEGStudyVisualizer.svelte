@@ -1,6 +1,5 @@
 <!-- src/lib/components/EEGStudyVisualizer.svelte -->
 <script lang="ts">
-  import { onMount } from "svelte"
   import { goto } from "$app/navigation"
   import { invalidate } from '$app/navigation';
   import { fade, slide } from "svelte/transition"
@@ -45,22 +44,17 @@
   import AddParticipant from './AddParticipant.svelte';
   import { debounce } from 'lodash-es';
   import {getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile } from '$lib/services/apiService';
-    /** @type {import('./$types').PageData} */
-    export let data;
+  /** @type {import('./$types').PageData} */
+  export let data;
 
-  let Files = data.files || [];
-  let Participants = data.participants || [];
-  let uniqueParadigms = data.uniqueParadigms || ["All"];
-  let UniqueFormats = data.uniqueFormats || ["All"];
-  let uniqueDiagnoses = data.uniqueDiagnoses || ["All"];
-  let uniqueAgeGroups = data.uniqueAgeGroups || ["All"];
-
-  // ... rest of your existing variables ...
-
-  onMount(() => {
-    console.log("Files:", Files);
-    console.log("Participants:", Participants);
-  });
+  let {
+    files: Files = [],
+    participants: Participants = [],
+    uniqueParadigms = ["All"],
+    uniqueFormats: UniqueFormats = ["All"],
+    uniqueDiagnoses = ["All"],
+    uniqueAgeGroups = ["All"]
+  } = data;
 
   let selectedFile: any = null;
   let isEditing = false;
@@ -413,6 +407,8 @@
           bind:showModal={showAddParticipantModal} 
           on:participantAdded={handleParticipantAdded} 
           on:close={() => showAddParticipantModal = false}
+          {uniqueDiagnoses}
+          {uniqueAgeGroups}
         />
         <Button variant="outline" on:click={() => showAddParticipantModal = true}>
           Add New Participant

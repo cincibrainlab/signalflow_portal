@@ -3,13 +3,31 @@
 
 export const baseUrl = "http://localhost:3005/api/";
 
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+async function cachedFetch(url: string, options?: RequestInit) {
+  const cacheKey = `${url}${options ? JSON.stringify(options) : ''}`;
+  const cached = cache.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+
+  const response = await fetch(url, options);
+  const data = await response.json();
+
+  if (response.ok) {
+    cache.set(cacheKey, { data, timestamp: Date.now() });
+  }
+
+  return data;
+}
 
 export async function checkDbConnection() {
   console.log(`Base URL: ${baseUrl}`);
   const response = await fetch(`${baseUrl}check-db-connection`);
   const data = await response.json();
-  console.log(`Data: data`);
-  console.log(`Status: ${response.status}`);  
   return { status: response.status, data };
 }
 
@@ -93,58 +111,34 @@ export async function assignFileToAnalysis(analysisId: string, OriginalImportFil
 
 export async function getFormats() {
   try {
-      const response = await fetch(`${baseUrl}list-eeg-formats`);
-      console.log('Response status:', response.status);
-      // console.log('Response headers:', response.headers);
-      
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Format Response data:', data);
-      return data;
+    const data = await cachedFetch(`${baseUrl}list-eeg-formats`);
+    console.log('Response status: OK (cached or fresh)');
+    return data;
   } catch (error) {
-      console.error('Error fetching eeg formats:', error);
-      throw error;
+    console.error('Error fetching eeg formats:', error);
+    throw error;
   }
 }
 
 export async function getParadigms() {
   try {
-      const response = await fetch(`${baseUrl}list-eeg-paradigms`);
-      console.log('Response status:', response.status);
-      // console.log('Response headers:', response.headers);
-      
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Paradigm Response data:', data);
-      return data;
+    const data = await cachedFetch(`${baseUrl}list-eeg-paradigms`);
+    console.log('Response status: OK (cached or fresh)');
+    return data;
   } catch (error) {
-      console.error('Error fetching eeg paradigms:', error);
-      throw error;
+    console.error('Error fetching eeg paradigms:', error);
+    throw error;
   }
 }
 
 export async function getAnalysisFunctions() {
   try {
-      const response = await fetch(`${baseUrl}list-analysis-functions`);
-      console.log('Response status:', response.status);
-      // console.log('Response headers:', response.headers);
-      
-      if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Function Response data:', data);
-      return data;
+    const data = await cachedFetch(`${baseUrl}list-analysis-functions`);
+    console.log('Function Response data: OK (cached or fresh)');
+    return data;
   } catch (error) {
-      console.error('Error fetching eeg paradigms:', error);
-      throw error;
+    console.error('Error fetching eeg paradigms:', error);
+    throw error;
   }
 }
 
@@ -168,58 +162,34 @@ export async function getParticipants() {
 
 export async function getParticipant(participantObjectId: string) {
   try {
-      const response = await fetch(`${baseUrl}get-participant/${participantObjectId}`);
-      console.log('Get Participant Response status:', response.status);
-
-      const data = await response.json();
-      if (!response.ok) {
-          console.log('Response data:', data);
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      let participantObject = data.participant;
-      return participantObject;
+    const data = await cachedFetch(`${baseUrl}get-participant/${participantObjectId}`);
+    console.log('Get Participant Response status: OK (cached or fresh)');
+    return data.participant;
   } catch (error) {
-      console.error('Error fetching participant:', error);
-      throw error;
+    console.error('Error fetching participant:', error);
+    throw error;
   }
 }
 
 export async function getEEGFormat(FormatObjectID: string) {
   try { 
-      const response = await fetch(`${baseUrl}get-eeg-format/${FormatObjectID}`);
-      console.log('Get EEG Format Response status:', response.status);
-
-      const data = await response.json();
-      if (!response.ok) {
-          console.log('Response data:', data);
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      let formatObject = data.eeg_format;
-      return formatObject;
+    const data = await cachedFetch(`${baseUrl}get-eeg-format/${FormatObjectID}`);
+    console.log('Get EEG Format Response status: OK (cached or fresh)');
+    return data.eeg_format;
   } catch (error) {
-      console.error('Error fetching EEG format:', error);
-      throw error;
+    console.error('Error fetching EEG format:', error);
+    throw error;
   }
 }
 
 export async function getParadigm(ParadigmObjectID: string) {
   try { 
-      const response = await fetch(`${baseUrl}get-eeg-paradigm/${ParadigmObjectID}`);
-      console.log('Get EEG Paradigm Response status:', response.status);
-
-      const data = await response.json();
-      if (!response.ok) {
-          console.log('Response data:', data);
-          throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      let paradigmObject = data.eeg_paradigm;
-      return paradigmObject;
+    const data = await cachedFetch(`${baseUrl}get-eeg-paradigm/${ParadigmObjectID}`);
+    console.log('Get EEG Paradigm Response status: OK (cached or fresh)');
+    return data.eeg_paradigm;
   } catch (error) {
-      console.error('Error fetching EEG paradigm:', error);
-      throw error;
+    console.error('Error fetching EEG paradigm:', error);
+    throw error;
   }
 }
 
@@ -238,6 +208,7 @@ export async function assignParticipantToFile(ID: string, fileId: string) {
     throw new Error(errorData.detail || 'Failed to assign participant to file');
   }
 
+  cache.delete(`${baseUrl}get-original-file-catalog`);
   return response.json();
 }
 
@@ -256,6 +227,7 @@ export async function assignEEGFormatToFile(ID: string, fileId: string) {
     throw new Error(errorData.detail || 'Failed to assign EEG format to file');
   }
 
+  cache.delete(`${baseUrl}get-original-file-catalog`);
   return response.json();
 }
 
@@ -274,6 +246,7 @@ export async function assignEEGParadigmToFile(ID: string, fileId: string) {
     throw new Error(errorData.detail || 'Failed to assign EEG paradigm to file');
   }
 
+  cache.delete(`${baseUrl}get-original-file-catalog`);
   return response.json();
 }
 
@@ -291,23 +264,12 @@ export async function addParticipant(participantData: any) {
     throw new Error('Failed to add participant');
   }
 
+  // Invalidate the cache for participants
+  cache.delete(`${baseUrl}get-participants`);
+
   return await response.json();
 }
 
-export async function addAnalysis(analysisData: any) {
-  const response = await fetch(`${baseUrl}add-analysis`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(analysisData),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to add analysis: ');
-  }
-  return await response.json();
-}
 
 export async function callAPI(apiSuffix: string): Promise<string> {
     console.log(`Attempting to call API with suffix: ${apiSuffix}`);
@@ -325,39 +287,43 @@ export async function callAPI(apiSuffix: string): Promise<string> {
 
 export async function getFormOptions(form_name: string) {
   try {
-      const response = await fetch(`${baseUrl}get-form-options/${form_name}`);
-      console.log('Get Form Options Response status:', response.status);
-      
-      const data = await response.json();
-      if (!response.ok) {
-        console.log('Response data:', data);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return data;
+    const data = await cachedFetch(`${baseUrl}get-form-options/${form_name}`);
+    console.log('Get Form Options Response status: OK (cached or fresh)');
+    return data;
   } catch (error) {
-      console.error('Error fetching form options:', error);
-      throw error;
+    console.error('Error fetching form options:', error);
+    throw error;
   }
 }
 
 
 export async function getAnalyses() {
   try {
-    const response = await fetch(`${baseUrl}get-analyses`);
-    console.log('Get Analyses Response status:', response.status);
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.log('Error response data:', data);
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    const data = await cachedFetch(`${baseUrl}get-analyses`);
+    console.log('Get Analyses Response status: OK (cached or fresh)');
     return data;
   } catch (error) {
     console.error('Error fetching analyses:', error);
     throw error;
   }
 }
+
+export async function addAnalysis(analysisData: any) {
+  const response = await fetch(`${baseUrl}add-analysis`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(analysisData),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to add analysis: ');
+  }
+  cache.delete(`${baseUrl}get-analyses`);
+  return await response.json();
+}
+
 
 export async function sendContactMessage(formData: any) {
   console.log(JSON.stringify(formData))

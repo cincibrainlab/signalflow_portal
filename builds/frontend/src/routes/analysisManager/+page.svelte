@@ -1,7 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { Button } from "$lib/components/ui/button";
-    import { getAnalyses, getParadigms, getFormats, getAnalysisFunctions } from '$lib/services/apiService';
     import { goto } from '$app/navigation';
     import { Input } from "$lib/components/ui/input"
     import { debounce } from 'lodash-es';
@@ -20,22 +18,10 @@
 	Filter,
   } from "lucide-svelte"
 	import AddAnalysis from '$lib/components/AddAnalysis.svelte';
+  /** @type {import('./$types').PageData} */
+  export let data;
 
-  let analyses: any[] = [];
-
-  onMount(async () => {
-      try {
-          analyses = await getAnalyses();
-          console.log(analyses);
-      } catch (error) {
-          console.error('Error fetching analyses (page):', error);
-      }
-  });
-
-  function viewDetails(id: string) {
-      console.log(`View details for analysis ${id}`);
-      // Implement view details functionality
-  }
+  let { analyses, uniqueParadigms, uniqueFormats, uniqueFunctions, uniqueCategories } = data;
 
   function openDashboard(id: string) {
       goto(`/dashboard?id=${id}`);
@@ -54,41 +40,6 @@
 
   let filteredanalyses: any = []
   let isFiltering = false;
-
-  let uniqueParadigms: string[] = []
-  let UniqueFormats: string[] = []
-  let uniqueFunctions: string[] = []
-
-  getParadigms()
-    .then(result => {
-        uniqueParadigms = result.map((item: any) => item.name);
-        uniqueParadigms.unshift("All")
-    })
-    .catch(error => {
-        console.error('Error fetching participants:', error);
-        // Handle the error appropriately
-    });
-
-  getFormats()
-    .then(result => {
-        UniqueFormats = result.map((item: any) => item.name);
-        UniqueFormats.unshift("All")
-    })
-    .catch(error => {
-        console.error('Error fetching participants:', error);
-        // Handle the error appropriately
-    });
-
-  getAnalysisFunctions()
-    .then(result => {
-        uniqueFunctions = result.map((item: any) => item.name);
-        uniqueFunctions.unshift("All")
-    })
-    .catch(error => {
-        console.error('Error fetching participants:', error);
-        // Handle the error appropriately
-    });
-
 
   const updateDebouncedSearch = debounce((value: any) => {
     debouncedSearchTerm = value;
@@ -187,6 +138,10 @@
           <AddAnalysis 
             bind:showModal={showAddAnalysisModal} 
             on:close={() => showAddAnalysisModal = false}
+            {uniqueParadigms}
+            {uniqueFormats}
+            {uniqueFunctions}
+            {uniqueCategories}
           />
           <Button variant="outline" on:click={() => showAddAnalysisModal = true}>
             Add New Analysis
@@ -222,7 +177,7 @@
               class="block text-sm font-medium text-gray-7000 mb-1">Format</label
             >
             <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedFormat}>
-              {#each UniqueFormats as format}
+              {#each uniqueFormats as format}
                 <option value={format}>{format}</option>
               {/each}
             </select>

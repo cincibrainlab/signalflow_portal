@@ -1,13 +1,21 @@
 <script lang="ts">
     // Import necessary components and data
 
-    import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { flip } from 'svelte/animate';
     import { dndzone } from 'svelte-dnd-action';
     import { fetchPrefectStats, type PrefectStats } from '$lib/services/prefectAPI';
     import { getMatchingFiles } from '$lib/services/apiService';
 
     export let deploymentId: string;
+    export let prefectStats: PrefectStats | null;
+
+    // Stats data
+    $: averageRuntime = prefectStats?.avg_runtime || '0';
+    $: runsCompleted = prefectStats?.completed_runs || 0;
+    $: totalRunsScheduled = prefectStats?.total_runs || 0;
+    $: successRate = prefectStats?.success_rate?.toFixed(2) || '0';
+    let performanceTrend = null;
 
     function handleDndConsider(e: CustomEvent) {
         pendingFiles = e.detail.items;
@@ -17,7 +25,7 @@
         pendingFiles = e.detail.items;
     }
 
-    function processFile(id: number) {
+    function processFile(id: string) {
         // Implement your file processing logic here
         console.log(`Processing file with id: ${id}`);
     }
@@ -26,11 +34,15 @@
     // Runs dummy data
     import { Chart } from 'chart.js/auto';
 
-    let chart;
+    let chart: Chart<"doughnut", number[], string>;
     let chartData = {
         labels: ['Failed', 'Pending', 'Completed'],
         datasets: [{
-            data: [0, 0, 0],
+            data: [
+                prefectStats?.failed_runs || 0,
+                prefectStats?.pending_runs || 0,
+                prefectStats?.completed_runs || 0
+            ],
             backgroundColor: ['#ff6b6b', '#feca57', '#48dbfb']
         }]
     };
@@ -50,8 +62,8 @@
             runsCompleted = data.completed_runs;
             totalRunsScheduled = data.total_runs;
             successRate = data.success_rate.toFixed(2);
-            failedFiles = data.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name }));
-            pendingFiles = data.runs.filter(run => run.status === 'PENDING').map(run => ({id: run.id, name: run.name }));
+            failedFiles = data.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name, status: run.status }));
+            pendingFiles = data.runs.filter(run => run.status === 'PENDING').map(run => ({id: run.id, name: run.name, status: run.status }));
             files = data.runs
                 .filter(run => !removedFileIds.has(run.id))
                 .map(run => ({id: run.id, name: run.name, status: run.status}));
@@ -80,10 +92,15 @@
                 }
             });
         }
-        await updatePrefectStats();
-        // newFiles = await getMatchingFiles();
 
-        // Set up periodic refresh (e.g., every 30 seconds)
+        // Initialize files, pendingFiles, and failedFiles
+        if (prefectStats) {
+            files = prefectStats.runs.map(run => ({id: run.id, name: run.name, status: run.status}));
+            pendingFiles = prefectStats.runs.filter(run => run.status === 'PENDING').map(run => ({id: run.id, name: run.name, status: run.status}));
+            failedFiles = prefectStats.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name, status: run.status}));
+        }
+
+        // Set up periodic refresh
         intervalId = setInterval(updatePrefectStats, 15000);
     });
 
@@ -93,13 +110,6 @@
             clearInterval(intervalId);
         }
     });
-
-    // Stats data
-    let averageRuntime = 0;
-    let runsCompleted = 0;
-    let totalRunsScheduled = 0;
-    let successRate = 0;
-    let performanceTrend = null;
 
     // Files dummy data
     let files: { id: string; name: string; status: string }[] = [];
@@ -113,12 +123,12 @@
         files = files.filter(file => file.id !== id);
     }
 
-    function viewDetails(id: number) {
+    function viewDetails(id: string) {
         // Implement view details functionality
         console.log(`Viewing details for file ${id}`);
     }
 
-    function retryFile(id: number) {
+    function retryFile(id: string) {
         // Implement retry functionality
         console.log(`Retrying file ${id}`);
     }

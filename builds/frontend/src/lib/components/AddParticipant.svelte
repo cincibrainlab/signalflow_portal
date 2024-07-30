@@ -1,11 +1,12 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { Button } from "$lib/components/ui/button";
-  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant, addParticipant, getFormOptions} from '$lib/services/apiService';
-  import { getFormats, getParadigms, getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile } from '$lib/services/apiService';
+  import { addParticipant, getFormOptions } from '$lib/services/apiService';
 
 
   export let showModal = false;
+  export let uniqueDiagnoses: string[] = [];
+  export let uniqueAgeGroups: string[] = [];
   
   const dispatch = createEventDispatcher();
 
@@ -25,8 +26,6 @@
   let UniqueGender = ["All", "male", "female", "non-binary/non-conforming", "other", "prefer not to respond"];
   let UniqueHandedness = ["All", "right", "left", "ambidextrous", "prefer not to respond"];
   let UniqueSpecies = ["All", "human", "mouse", "rat", "monkey", "dog", "cat", "Other"];
-  let UniqueAgeGroups: string[]
-  let UniqueDiagnoses: string[]
 
   async function handleSubmit() {
     try {
@@ -57,25 +56,6 @@
     };
   }
 
-  onMount(() => {
-      getFormOptions("Diagnosis")
-        .then(result => {
-          UniqueDiagnoses = result.form_options
-        })
-        .catch(error => {
-            console.error('Error fetching diagnosies:', error);
-            // Handle the error appropriately
-        });
-
-      getFormOptions("AgeGroup")
-        .then(result => {
-          UniqueAgeGroups = result.form_options
-        })
-        .catch(error => {
-            console.error('Error fetching age groups:', error);
-            // Handle the error appropriately
-        });
-  })
 </script>
 
 {#if showModal}
@@ -95,7 +75,7 @@
           <div>
             <label for="age_group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
             <select id="age_group" bind:value={newParticipant.age_group} required class="w-full p-2 border rounded">
-              {#each UniqueAgeGroups as ageGroup}
+              {#each uniqueAgeGroups as ageGroup}
                 <option value={ageGroup}>{ageGroup}</option>
               {/each}
             </select>
@@ -127,7 +107,7 @@
           <div>
             <label for="diagnosis" class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
             <select id="diagnosis" bind:value={newParticipant.diagnosis} required class="w-full p-2 border rounded">
-              {#each UniqueDiagnoses as diagnosis}
+              {#each uniqueDiagnoses as diagnosis}
                 <option value={diagnosis}>{diagnosis}</option>
               {/each}
             </select>

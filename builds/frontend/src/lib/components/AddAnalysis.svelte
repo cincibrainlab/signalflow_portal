@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher} from 'svelte';
   import { Button } from "$lib/components/ui/button";
-  import { addAnalysis, getFormats, getParadigms, getMatchingFiles, getAnalysisFunctions} from '$lib/services/apiService';
-  import { createAnalysis } from '$lib/services/prefectAPI';
-  import { Checkbox } from 'flowbite-svelte';
+  import { addAnalysis, getMatchingFiles } from '$lib/services/apiService';
 
   import MultiSelect from 'svelte-multiselect'
 
@@ -11,7 +9,6 @@
   let selectedFormats: any[] = []
   let selectedParadigms: any[] = []
 
-  export let showModal = false;
   let runAnalysis_choice = false;
   let added_analysis_id: string
   
@@ -42,10 +39,11 @@
   };
 
   // These should be fetched from your API or passed as props
-  let uniqueFunctions: any[] = [];
-  let UniqueCategopries = ["Connectivity", "test", "test2"];
-  let UniqueFormats: any[] = [];
-  let uniqueParadigms: any[] = [];
+    export let showModal = false;
+    export let uniqueParadigms: any[] = [];
+    export let uniqueFormats: any[] = [];
+    export let uniqueFunctions: any[] = [];
+    export let uniqueCategories: string[] = [];
 
   async function handleSubmit() {
     try {
@@ -75,8 +73,6 @@
     }
   }
 
-  
-
 
   function closeModal() {
     showModal = false;
@@ -99,38 +95,6 @@
     added_analysis_id = ""
   }
 
-
-
-  onMount(() => {
-    getParadigms()
-        .then(result => {
-            console.log(result)
-            uniqueParadigms = result.map((item: any) => ({ id: item._id, label: item.name }));
-        })
-        .catch(error => {
-            console.error('Error fetching paradigms:', error);
-            // Handle the error appropriately
-        });
-
-    getFormats()
-        .then(result => {
-            UniqueFormats = result.map((item: any) => ({ id: item._id, label: item.name }));
-        })
-        .catch(error => {
-            console.error('Error fetching formats:', error);
-            // Handle the error appropriately
-        });
-
-    getAnalysisFunctions()
-        .then(result => {
-          console.log(result)
-          uniqueFunctions = result
-        })
-        .catch(error => {
-            console.error('Error fetching functions:', error);
-            // Handle the error appropriately
-        });
-  })
 
   function handleFormatSelection(event: any){
     newAnalysis.valid_formats = selectedFormats.map(format => format.id )
@@ -166,7 +130,7 @@
             <label for="valid_formats" class="block text-md font-semibold text-gray-700 mb-1">Valid Formats:</label>
             <MultiSelect 
                 bind:selected = {selectedFormats} 
-                options={UniqueFormats} 
+                options={uniqueFormats} 
                 on:change={handleFormatSelection}
                 required
             />
@@ -186,7 +150,7 @@
           <div>
             <label for="category" class="block text-md font-semibold text-gray-700 mb-1">Category:</label>
             <select id="category" bind:value={newAnalysis.category} required class="w-full p-2 border rounded">
-              {#each UniqueCategopries as category}
+              {#each uniqueCategories as category}
                 <option value={category}>{category}</option>
               {/each}
             </select>

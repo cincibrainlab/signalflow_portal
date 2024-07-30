@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { page } from '$app/stores';
     import { goto } from '$app/navigation';
     import AnalysisDashboard from '$lib/components/AnalysisDashboard.svelte';
+    import type { PageData } from './$types';
 
-    $: deploymentId = $page.url.searchParams.get('id');
+    export let data: PageData;
 
     function goBack() {
         goto('/analysisManager');
@@ -14,9 +14,9 @@
     <button on:click={goBack} class="mb-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
         Back to Analysis Manager
     </button>
-    {#if deploymentId}
-        <AnalysisDashboard {deploymentId} />
+    {#if data.deploymentId}
+        <AnalysisDashboard deploymentId={data.deploymentId} prefectStats={data.prefectStats} />
     {:else}
-        <p>No deployment ID provided.</p>
+        <p>{data.error || 'No deployment ID provided.'}</p>
     {/if}
 </div>
