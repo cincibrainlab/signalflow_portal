@@ -13,7 +13,7 @@ export async function load({ }) {
         ]);
 
         // Process files
-        const setFiles = fileCatalog.filter((file: any) => file.is_set_file === true);
+        const setFiles = fileCatalog.filter((file: any) => file.is_primary_file === true);
         const filesWithObjects = await getObjectsInFiles(setFiles);
 
         // Process other data
