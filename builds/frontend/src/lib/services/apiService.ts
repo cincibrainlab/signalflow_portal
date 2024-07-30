@@ -1,7 +1,7 @@
 // src/services/apiService.ts
 
 
-export const baseUrl = "http://localhost:3005/api/";
+export const baseUrl = "http://127.0.0.1:3005/api/";
 
 const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
