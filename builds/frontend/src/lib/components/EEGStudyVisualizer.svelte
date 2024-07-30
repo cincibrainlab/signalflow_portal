@@ -388,6 +388,13 @@
 
   let selectedFiles: string[] = [];
 
+  function SelectAllVisible(){
+    selectedFiles = filteredFiles.map((f: any) => f.original_name);
+  }
+  function DeselectAll(){
+    selectedFiles = [];
+  }
+
   function toggleFileSelection(fileName: string) {
     selectedFiles = selectedFiles.includes(fileName)
       ? selectedFiles.filter(f => f !== fileName)
@@ -477,6 +484,23 @@
             {/each}
           </select>
         </div>
+        <div>
+          <button
+            class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
+            on:click={SelectAllVisible}
+          >
+            Select all Visible 
+          </button>
+        </div>
+        <div>
+          <button
+            class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
+            on:click={DeselectAll}
+          >
+            Deselect all 
+          </button>
+        </div>
+        <span class="h-full align-middle flex items-center">Files Visible: {filteredFiles.length}</span>
       </div>
     </div>
     {#if selectedFiles.length > 0}
