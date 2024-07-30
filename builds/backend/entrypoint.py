@@ -1,6 +1,6 @@
 import os
 import asyncio
-from db import is_database_connected, get_database
+from db import is_database_connected, get_database, load_flows_from_yaml
 from db import check_database_and_tables, load_config_from_yaml
 from rich.console import Console
 
@@ -18,16 +18,17 @@ async def reset_database():
         await db[collection].drop()
     console.print("✅ Database reset complete")
 
-async def add_portal_config_path(portal_config_path):
+async def add_portal_config_path(portal_config_path, analysis_flows_path):
     try:
         db = await get_database()
         startup_collection = db.startup
         await startup_collection.update_one(
             {"_id": 1},
-            {"$set": {"sf_config_path": portal_config_path}},
+            {"$set": {"sf_config_path": portal_config_path, "af_config_path": analysis_flows_path}},
             upsert=True
         )
         console.print(f"✅ Startup collection updated with portal config path: {portal_config_path}")
+        console.print(f"✅ Startup collection updated with analysis flows path: {analysis_flows_path}")
         return True
     except Exception as e:
         console.print(f"❌ Failed to update startup collection: {e}")
@@ -56,7 +57,8 @@ async def check_entrypoint(console: Console):
     
     # Add the portal config path to the database
     portal_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'portal_config.yaml')
-    entrypoint_check['portal_config_path'] = await add_portal_config_path(portal_config_path)
+    analysis_flows_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'analysis_flows.yaml')
+    entrypoint_check['portal_config_path'] = await add_portal_config_path(portal_config_path, analysis_flows_path)
     status_icon = '✅' if entrypoint_check['portal_config_path'] else '❌'
     console.print(f"[bold]{status_icon} Portal Config Path Assigned:[/bold] [yellow]{portal_config_path}[/yellow]")
    
@@ -69,6 +71,11 @@ async def check_entrypoint(console: Console):
     entrypoint_check['config_loaded'] = await load_config_from_yaml()
     status_icon = '✅' if entrypoint_check['config_loaded'] else '❌'
     console.print(f"[bold]{status_icon} Portal Config Loaded:[/bold] [yellow]{entrypoint_check['config_loaded']}[/yellow]")
+
+    #check if analysis_flows.yaml is loaded
+    entrypoint_check['analysis_flows_loaded'] = await load_flows_from_yaml()
+    status_icon = '✅' if entrypoint_check['analysis_flows_loaded'] else '❌'
+    console.print(f"[bold]{status_icon} Analysis Flows Loaded:[/bold] [yellow]{entrypoint_check['analysis_flows_loaded']}[/yellow]")
    
     # check if free disk space is greater than 10 GB
     entrypoint_check['disk_space'] = free_disk_space(portal_config_path)

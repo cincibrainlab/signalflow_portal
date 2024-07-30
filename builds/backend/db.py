@@ -74,7 +74,7 @@ def initialize_database(reset=True):
     # Create collections based on your models
     collections = [
         "Participant", "Study", "EEGFormat", "EEGParadigm", "User", "OriginalImportFile", "File",
-        "Dataset", "Session", "FileStatus", "EegAnalysis", "UserGroup"
+        "Dataset", "Session", "FileStatus", "EegAnalysis", "UserGroup", "AnalysisFlow"
     ]
 
     for collection_name in collections:
@@ -108,7 +108,7 @@ async def check_database_and_tables():
 
     required_collections = [
         "Participant", "Study", "EEGFormat", "EEGParadigm", "User", "OriginalImportFile", "File",
-        "Dataset", "Session", "FileStatus", "EegAnalysis", "UserGroup"
+        "Dataset", "Session", "FileStatus", "EegAnalysis", "UserGroup", "AnalysisFlow"
     ]
 
     for collection in required_collections:
@@ -146,6 +146,20 @@ async def load_config():
     except yaml.YAMLError as exc:
         console.print(exc)
 
+async def load_analysis_flows():
+    db = await get_database()
+    startup_record = await db.startup.find_one({"_id": 1})
+    if startup_record and 'af_config_path' in startup_record:
+        file_path = startup_record['af_config_path']
+        try:
+            with open(file_path, "r") as stream:
+                return yaml.safe_load(stream)
+        except FileNotFoundError:
+            console.print(f"Analysis flows file {file_path} not found.")
+        except yaml.YAMLError as exc:
+            console.print(f"Error parsing analysis flows YAML: {exc}")
+    return None
+
 async def load_config_from_yaml():
     """
     Load configuration from YAML and update the database accordingly.
@@ -173,6 +187,37 @@ async def load_config_from_yaml():
         else:
             # Handle non-array content
             await config_collection.update_one(
+                {"_id": section},
+                {"$set": content},
+                upsert=True
+            )
+    return True
+
+async def load_flows_from_yaml():
+    """
+    Load analysis flows from YAML and update the database accordingly.
+    Returns:
+        bool: True if successful, False otherwise.
+    """
+    analysis_flows = await load_analysis_flows()
+    if analysis_flows is None:
+        return False
+    
+    db = await get_database()
+    analysis_flows_collection = db.AnalysisFlow
+        # Update or insert each section of the configuration
+    for section, content in analysis_flows.items():
+        if isinstance(content, list):
+            # Handle array content (like users, eeg_formats, etc.)
+            section_collection = db[section]
+            # Clear existing documents in the collection
+            await section_collection.delete_many({})
+            # Insert new documents
+            if content:
+                await section_collection.insert_many(content)
+        else:
+            # Handle non-array content
+            await analysis_flows_collection.update_one(
                 {"_id": section},
                 {"$set": content},
                 upsert=True
@@ -310,10 +355,10 @@ async def get_eeg_paradigms():
     eeg_paradigms = await db.EEGParadigm.find().to_list(length=None)
     return eeg_paradigms
 
-async def get_analysis_functions():
+async def get_analysis_flows():
     db = await get_database()
-    analysis_functions = await db.AnalysisFunction.find().to_list(length=None)
-    return analysis_functions
+    analysis_flows = await db.AnalysisFlow.find().to_list(length=None)
+    return analysis_flows
 
 async def get_emails():
     db = await get_database()
@@ -508,17 +553,17 @@ async def get_analysis_from_deployment_id(DeploymentID):
             "parameters": analysis.get("parameters")
         }
 
-async def get_analysisFunction(analysisFunction_object_id):
+async def get_analysisFlow(analysisFlow_object_id):
     db = await get_database()
-    analysisFunction_object_id_true = ObjectId(analysisFunction_object_id)
-    analysisFunction = await db.AnalysisFunction.find_one({"_id": analysisFunction_object_id_true})
-    if analysisFunction:
+    analysisFlow_object_id_true = ObjectId(analysisFlow_object_id)
+    analysisFlow = await db.AnalysisFlow.find_one({"_id": analysisFlow_object_id_true})
+    if analysisFlow:
         return {
-            "id": str(analysisFunction["_id"]),
-            "name": analysisFunction["name"],
-            "description": analysisFunction.get("description"),
-            "output_path": analysisFunction.get("output_path"),
-            "parameters": analysisFunction.get("parameters")
+            "id": str(analysisFlow["_id"]),
+            "name": analysisFlow["name"],
+            "description": analysisFlow.get("description"),
+            "output_path": analysisFlow.get("output_path"),
+            "parameters": analysisFlow.get("parameters")
         }
     
 async def get_eeg_format(eeg_format_object_id):

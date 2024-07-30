@@ -5,7 +5,7 @@
     import { flip } from 'svelte/animate';
     import { dndzone } from 'svelte-dnd-action';
     import { fetchPrefectStats, type PrefectStats } from '$lib/services/prefectAPI';
-    import { getMatchingFiles, getAnalysisFromDeploymentID, getAnalysisFunction } from '$lib/services/apiService';
+    import { getMatchingFiles, getAnalysisFromDeploymentID, getAnalysisFlow } from '$lib/services/apiService';
 
     export let deploymentId: string;
     export let prefectStats: PrefectStats | null;
@@ -144,16 +144,16 @@
     }
 
     let analysis: any = [];
-    let analysisFunction: any = [];
+    let analysisFlow: any = [];
 
     getAnalysisFromDeploymentID(deploymentId)
         .then((ret_analysis) => {
             analysis = ret_analysis;
             console.log(analysis);
-            getAnalysisFunction(analysis.analysis_function)
-                .then((ret_analysisFunction) => {
-                    analysisFunction = ret_analysisFunction;
-                    console.log(analysisFunction);
+            getAnalysisFlow(analysis.analysis_flow)
+                .then((ret_analysisFlow) => {
+                    analysisFlow = ret_analysisFlow;
+                    console.log(analysisFlow);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -169,7 +169,7 @@
 <main class="w-11/12 mx-auto p-6 min-h-screen">
     <header class="text-center mb-8">
         <h1 class="text-4xl font-bold ">Dashboard</h1>
-        <span class="text-2xl font-bold">Flow Name: {analysisFunction.name}</span>
+        <span class="text-2xl font-bold">Flow Name: {analysisFlow.name}</span>
     </header>
     <div class="flex flex-col lg:flex-row gap-6">
         <div class="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">

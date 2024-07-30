@@ -107,14 +107,11 @@
             ★ us on Github
           </a>
         </li>
-        <li class="md:mx-4">
-          <DarkMode />
-          <!-- <button class="btn btn-ghost" on:click={toggleTheme}>Toggle Theme</button> -->
-        </li>
         <li class="md:mx-2"><a href="/upload" data-sveltekit-preload-data>Upload</a></li>
         <li class="md:mx-2"><a href="/vault" data-sveltekit-preload-data>Vault</a></li>
         <li class="md:mx-2"><a href="/analysisManager" data-sveltekit-preload-data>Analysis Manager</a></li>
         <li class="md:mx-2"><a rel="external" href="https://cincibrainlab.github.io/signalflow_portal/">Docs</a></li>
+        <li class="md:mx-4"><DarkMode /></li>
       </ul>
       <div class="dropdown dropdown-end sm:hidden">
         <!-- svelte-ignore a11y-label-has-associated-control -->

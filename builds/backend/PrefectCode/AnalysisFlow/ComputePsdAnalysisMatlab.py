@@ -26,8 +26,8 @@ async def ComputePsdAnalysisMatlab_Flow(importID: str, analysis_function: str, a
     EEGAnalysis = await db.EegAnalysis.find_one({"_id": ObjectId(analysis_id)})
     output_path = EEGAnalysis["output_path"]
     
-    # Get the analysis function from the database
-    AnalysisFunction = await db.AnalysisFunction.find_one({"name": analysis_function})
+    # Get the analysis flow from the database
+    AnalysisFlow = await db.AnalysisFlow.find_one({"name": analysis_function})
     
     # Get the file from the database
     original_file = await db.OriginalImportFile.find_one({"upload_id": importID})

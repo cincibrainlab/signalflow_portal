@@ -79,18 +79,6 @@ User:
     is_active: True
     is_superuser: False
 
-AnalysisFunction:
-  - name: "TemplateAnalysis"
-    description: "placeholder analysis for development"
-    output_path: "portal_files/output"
-    parameters:
-      - 'example_num'
-  - name: "ComputePsdAnalysis"
-    description: "placeholder analysis for development"
-    output_path: "portal_files/output"
-    parameters:
-      - 'example_num'
-
 # List of fake Participants
 Participant:
   - participant_id: 'Empty'

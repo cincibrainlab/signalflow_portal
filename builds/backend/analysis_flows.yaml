@@ -1,0 +1,13 @@
+AnalysisFlow:
+  - name: "TemplateAnalysis"
+    description: "placeholder analysis for development"
+    author: "placeholder"
+    date_added: "placeholder"
+    parameters:
+      - 'example_num'
+  - name: "ComputePsdAnalysis"
+    description: "placeholder analysis for development"
+    author: "placeholder"
+    date_added: "placeholder"
+    parameters:
+      - 'example_num'

@@ -21,7 +21,7 @@
   /** @type {import('./$types').PageData} */
   export let data;
 
-  let { analyses, uniqueParadigms, uniqueFormats, uniqueFunctions, uniqueCategories } = data;
+  let { analyses, uniqueParadigms, uniqueFormats, uniqueFlows, uniqueCategories } = data;
 
   function openDashboard(id: string) {
       goto(`/dashboard?id=${id}`);
@@ -140,7 +140,7 @@
             on:close={() => showAddAnalysisModal = false}
             {uniqueParadigms}
             {uniqueFormats}
-            {uniqueFunctions}
+            {uniqueFlows}
             {uniqueCategories}
           />
           <Button  on:click={() => showAddAnalysisModal = true}>
@@ -166,8 +166,8 @@
               class="block text-sm font-medium0 mb-1">Function</label
             >
             <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedFunction}>
-              {#each uniqueFunctions as func}
-                <option value={func}>{func}</option>
+              {#each uniqueFlows as flow}
+                <option value={flow}>{flow}</option>
               {/each}
             </select>
           </div>

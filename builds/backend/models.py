@@ -140,17 +140,19 @@ class EegAnalysis(BaseModel):
     category: Optional[str] = Field(default="")
     valid_formats: Optional[list[PyObjectId]] = Field(default=None)
     valid_paradigms: Optional[list[PyObjectId]] = Field(default=None)
-    valid_files: Optional[list[PyObjectId]] = Field(default=None) #List of mongo Obj ID's for compatible originalImportFiles
+    valid_files: Optional[list[PyObjectId]] = Field(default=None)
     deployment_id: Optional[str] = Field(default=None)
     output_path: Optional[str] = Field(default="portal_files/output")
     parameters: Optional[str] = Field(default="")
 
 
-class AnalysisFunction(BaseModel):
+class AnalysisFlow(BaseModel):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
     name: Optional[str] = Field(default="")
     description: Optional[str] = Field(default="")
     parameters: Optional[list[str]] = Field(default=None)
+    author: Optional[str] = Field(default="")
+    date_added: Optional[str] = Field(default="")
     
 class UserGroup(BaseModel):
     name: Optional[str] = Field(default="")

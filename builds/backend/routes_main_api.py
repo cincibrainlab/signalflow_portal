@@ -117,11 +117,11 @@ async def list_eeg_paradigms():
     logging.debug(f"EEG Paradigms: {paradigms}")
     return [models.EEGParadigm(**paradigm) for paradigm in paradigms]
 
-@router.get("/api/list-analysis-functions", response_model=List[models.AnalysisFunction])
-async def list_analysis_functions():
-    functions = await flow_db.get_analysis_functions()
-    logging.debug(f"Analysis Functions: {functions}")
-    return [models.AnalysisFunction(**function) for function in functions]
+@router.get("/api/list-analysis-flows", response_model=List[models.AnalysisFlow])
+async def list_analysis_flows():
+    flows = await flow_db.get_analysis_flows()
+    logging.debug(f"Analysis Flows: {flows}")
+    return [models.AnalysisFlow(**flow) for flow in flows]
 
 # ───────────────────────────────────────────────────────────────────────────────
 # WEBFORMS: FILES TAB
@@ -204,12 +204,12 @@ async def get_analysis_from_deployment_id(DeploymentID: str):
         logging.error(f"Error retrieving analysis: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
     
-@router.get("/api/get-analysis-function/{AnalysisID}")
+@router.get("/api/get-analysis-flow/{AnalysisID}")
 async def get_analysis(AnalysisID: str):
     try:
-        analysisFunction = await flow_db.get_analysisFunction(AnalysisID)
-        logging.debug(f"Analysis: {analysisFunction}")
-        return models.AnalysisFunction(**analysisFunction)
+        analysisFlow = await flow_db.get_analysisFlow(AnalysisID)
+        logging.debug(f"Analysis: {analysisFlow}")
+        return models.AnalysisFlow(**analysisFlow)
     except Exception as e:
         logging.error(f"Error retrieving analysis: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
@@ -275,7 +275,7 @@ async def get_analyses():
 
 # ────────────────────────────────────────────────────────────────────────────────
 # FUNCTION: UPLOAD PROCESSING
-# ────��───────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────────
 @router.get("/api/process-uploads")
 async def process_uploads():
     logging.info("Processing new uploads...")

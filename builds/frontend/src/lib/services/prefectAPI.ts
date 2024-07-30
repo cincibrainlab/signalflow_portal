@@ -20,18 +20,15 @@ export interface PrefectStats {
 export async function fetchPrefectStats(deploymentId: string): Promise<PrefectStats> {
     try {
         const response = await fetch(`${baseUrl}prefect-stats/${deploymentId}`);
-        const rawText = await response.text();
-        console.log("Raw response:", rawText);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = JSON.parse(rawText);
+        const data = await response.json();
         return data;
     } catch (error) {
         console.error('Error fetching Prefect stats:', error);
         throw error;
     }
 }
-

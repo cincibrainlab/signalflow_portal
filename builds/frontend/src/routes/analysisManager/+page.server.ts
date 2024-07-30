@@ -1,20 +1,20 @@
-import { getAnalyses, getParadigms, getFormats, getAnalysisFunctions } from '$lib/services/apiService';
+import { getAnalyses, getParadigms, getFormats, getAnalysisFlows } from '$lib/services/apiService';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({}) => {
     try {
-        const [analyses, paradigms, formats, functions] = await Promise.all([
+        const [analyses, uniqueParadigms, uniqueFormats, flows] = await Promise.all([
             getAnalyses(),
             getParadigms(),
             getFormats(),
-            getAnalysisFunctions()
+            getAnalysisFlows()
         ]);
 
         return {
             analyses,
-            uniqueParadigms: ["All", ...paradigms.map((item: { name: any; }) => item.name)],
-            uniqueFormats: ["All", ...formats.map((item: { name: any; }) => item.name)],
-            uniqueFunctions: functions,
+            uniqueParadigms,
+            uniqueFormats,
+            uniqueFlows: flows,
             uniqueCategories: ["Connectivity", "test", "test2"]
         };
     } catch (error) {
@@ -23,7 +23,7 @@ export const load: PageLoad = async ({}) => {
             analyses: [],
             uniqueParadigms: ["All"],
             uniqueFormats: ["All"],
-            uniqueFunctions: [],
+            uniqueFlows: [],
             uniqueCategories: ["Connectivity", "test", "test2"]
         };
     }

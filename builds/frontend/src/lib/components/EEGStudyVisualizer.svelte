@@ -417,7 +417,7 @@
           {uniqueDiagnoses}
           {uniqueAgeGroups}
         />
-        <Button  on:click={() => showAddParticipantModal = true}>
+        <Button variant="outline" on:click={() => showAddParticipantModal = true}>
           Add New Participant
         </Button>
 
@@ -425,6 +425,7 @@
           on:click={toggleViewMode}
           
           class="flex items-center"
+          variant="outline"
         >
           {#if viewMode === "card"}
             <List class="w-4 h-4 mr-2" />
@@ -480,48 +481,46 @@
             {/each}
           </select>
         </div>
-        <div>
-          <button
+        <span class="h-full align-middle flex items-center">Files Visible: {filteredFiles.length}</span>
+      </div>
+    </div> 
+    <div class="mb-4 p-4 rounded-lg shadow max-h-36 overflow-y-scroll">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold">Selected Files</h3>
+        <div class="flex items-center gap-2">
+          <Button
             class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
             on:click={SelectAllVisible}
           >
             Select all Visible 
-          </button>
-        </div>
-        <div>
-          <button
+          </Button>
+          <Button
             class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
             on:click={DeselectAll}
           >
             Deselect all 
-          </button>
-        </div>
-        <span class="h-full align-middle flex items-center">Files Visible: {filteredFiles.length}</span>
-      </div>
-    </div>
-    {#if selectedFiles.length > 0}
-      <div class="mb-4 p-4 rounded-lg shadow max-h-36 overflow-y-scroll">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">Selected Files</h3>
+          </Button>
+
+
           <Button on:click={() => openBatchEditModal(Files.filter(f => selectedFiles.includes(f.original_name)))}>
             Make Changes
           </Button>
         </div>
-        <ul>
-          {#each selectedFiles as fileName}
-            <li class="mb-2 flex items-center justify-between">
-              <span>{fileName}</span>
-              <button
-                class="text-red-500 hover:text-red-700"
-                on:click={() => toggleFileSelection(fileName)}
-              >
-                <X class="w-4 h-4" />
-              </button>
-            </li>
-          {/each}
-        </ul>
       </div>
-    {/if}
+      <ul>
+        {#each selectedFiles as fileName}
+          <li class="mb-2 flex items-center justify-between">
+            <span>{fileName}</span>
+            <button
+              class="text-red-500 hover:text-red-700"
+              on:click={() => toggleFileSelection(fileName)}
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </li>
+        {/each}
+      </ul>
+    </div>
     {#if viewMode === "card"}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {#each filteredFiles as file}
@@ -587,6 +586,7 @@
                   <Button
                     
                     class="text-blue-500 hover:text-blue-700 flex items-center"
+                    variant="outline"
                     on:click={(event) => {
                       event.stopPropagation();
                       openFileModal(file);
@@ -689,6 +689,7 @@
                 <TableCell>
                   <Button
                     class="text-blue-500 hover:text-blue-700 flex items-center"
+                    variant="outline"
                     on:click={(event) => {
                       event.stopPropagation();
                       openFileModal(file);
@@ -786,11 +787,11 @@
             </div>
           </div>
           <div class="flex justify-end gap-2 mt-2">
-            <Button  on:click={() => { selectedFile = null; }}>Close</Button>
+            <Button variant="outline" on:click={() => { selectedFile = null; }}>Close</Button>
             {#if !isEditing}
               <Button on:click={toggleEditing}>Edit</Button>
             {:else}
-              <Button  on:click={toggleEditing}>Cancel</Button>
+              <Button on:click={toggleEditing}>Cancel</Button>
               <Button on:click={saveChanges}>Save Changes</Button>
             {/if}
           </div>
@@ -835,7 +836,7 @@
               </select>
             </div>
             <div class="flex justify-end gap-2 mt-2">
-              <Button type="button" on:click={() => { isBatchEditing = false; editingFiles = []; }}>Cancel</Button>
+              <Button variant="outline" type="button" on:click={() => { isBatchEditing = false; editingFiles = []; }}>Cancel</Button>
               <Button type="submit" >Save Changes</Button>
             </div>
           </form>
