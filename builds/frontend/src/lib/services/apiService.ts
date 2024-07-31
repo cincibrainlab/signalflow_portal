@@ -1,5 +1,5 @@
 // src/services/apiService.ts
-import pako from 'pako';
+import Papa from 'papaparse';
 
 
 export const baseUrl = "http://127.0.0.1:3005/api/";
@@ -393,33 +393,37 @@ export async function sendContactMessage(formData: any) {
 
 }
 
-export async function getEEGData(upload_id: any){
+export async function getEEGData(upload_id: any) {
   console.log(`Getting EEG data for upload ID: ${upload_id}`);
   try {
     const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}`);
     console.log('Get EEG Data Response status:', response.status);
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error('No reader available');
 
-    const chunks: string[] = [];
+    // Check if the response is OK
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-    const processText = async ({ done, value }: ReadableStreamReadResult<Uint8Array>): Promise<void> => {
-      if (done) {
-        console.log('Stream complete');
-        return;
+    // Get the CSV file sent from the server
+    const csvText = await response.text();
+    const parsedData = Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true
+    });
+
+    // Turn the data back into a 2d array
+    let eegData = parsedData.data;
+    let eegDataArray = [];
+    for (let i = 0; i < eegData.length; i++) {
+      let row = eegData[i];
+      let rowArray = [];
+      for (let key in row) {
+        rowArray.push(row[key]);
       }
+      eegDataArray.push(rowArray);
+    }
+    return eegDataArray;
 
-      const text = new TextDecoder().decode(value);
-      console.log('Text chunk:', text);
-      chunks.push(text);
-
-
-      return reader.read().then(processText);
-    };
-
-    await reader.read().then(processText);
-
-    return chunks.join('');
   } catch (error) {
     console.error('Error:', error);
   }

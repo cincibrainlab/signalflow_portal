@@ -14,6 +14,7 @@ from pydantic import BaseModel
 import io
 from fastapi.responses import StreamingResponse
 import numpy as np
+import pandas as pd
 
 
 router = APIRouter()
@@ -338,10 +339,13 @@ async def get_prefect_stats(deploymentId: str):
 
 @router.get("/api/get-eeg-data/{upload_id}")
 async def get_EEG_Data(upload_id):
-    try:
-        data = await flow_db.get_EEG_Data(upload_id)
-        data_bytes = data.tobytes()
-        return StreamingResponse(io.BytesIO(data_bytes), media_type="application/octet-stream")
-    except Exception as e:
-        logging.error(f"Error in get_EEG_Data: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    # try:
+    data = await flow_db.get_EEG_Data(upload_id)
+    # Send the data as a CSV file
+    
+    df = pd.DataFrame(data)
+    csv = df.to_csv(index=False)
+    return StreamingResponse(io.BytesIO(csv.encode()), media_type="text/csv")
+    # except Exception as e:
+    #     logging.error(f"Error in get_EEG_Data: {str(e)}")
+    #     raise HTTPException(status_code=500, detail=str(e))
