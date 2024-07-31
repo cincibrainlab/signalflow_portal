@@ -250,7 +250,7 @@ async def add_analysis(analysis: models.EegAnalysis):
     try:
         new_analysis = await flow_db.add_analysis(analysis)
         logging.debug(f"New analysis Added to db: {new_analysis}")
-        deployment = await deploy_analysis(new_analysis["id"], new_analysis["analysis_function"])
+        deployment = await deploy_analysis(new_analysis["id"], new_analysis["analysis_flow"])
         logging.debug(f"New analysis Deployed: {deployment}")
         return {"success": True, "message": "Analysis added and deployed successfully", "analysisId" : new_analysis["id"], "deployment_id": deployment["id"]}
     except Exception as e:

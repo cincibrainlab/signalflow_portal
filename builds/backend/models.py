@@ -135,7 +135,7 @@ class Session(BaseModel):
     
 class EegAnalysis(BaseModel):
     name: Optional[str] = Field(default="")
-    analysis_function: Optional[PyObjectId] = Field(default=None)
+    analysis_flow: Optional[PyObjectId] = Field(default=None)
     description: Optional[str] = Field(default="")
     category: Optional[str] = Field(default="")
     valid_formats: Optional[list[PyObjectId]] = Field(default=None)

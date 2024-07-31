@@ -13,15 +13,16 @@
     TableRow,
   } from "$lib/components/ui/table"
   import {
-    ExternalLink,
     ArrowUpDown,
-	Filter,
+	  Filter,
   } from "lucide-svelte"
 	import AddAnalysis from '$lib/components/AddAnalysis.svelte';
   /** @type {import('./$types').PageData} */
   export let data;
 
   let { analyses, uniqueParadigms, uniqueFormats, uniqueFlows, uniqueCategories } = data;
+  uniqueParadigms = uniqueParadigms.filter((item: any) => item.name !== "Unassigned");
+  uniqueFormats = uniqueFormats.filter((item: any) => item.name !== "Unassigned");
 
   function openDashboard(id: string) {
       goto(`/dashboard?id=${id}`);
@@ -80,9 +81,9 @@
           bValue = b.name;
           break;
 
-        case "function":
-          aValue = a.analysis_function;
-          bValue = b.analysis_function;
+        case "flow":
+          aValue = a.analysis_flow;
+          bValue = b.analysis_flow;
           break;
 
         case "category":
@@ -162,12 +163,13 @@
           </div>
           <div>
             <label
-              for="Function"
-              class="block text-sm font-medium0 mb-1">Function</label
+              for="Flow"
+              class="block text-sm font-medium0 mb-1">Flow</label
             >
             <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedFunction}>
+              <option value="All">All</option>
               {#each uniqueFlows as flow}
-                <option value={flow}>{flow}</option>
+                <option value={flow.name}>{flow.name}</option>
               {/each}
             </select>
           </div>
@@ -177,8 +179,9 @@
               class="block text-sm font-medium0 mb-1">Format</label
             >
             <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedFormat}>
+              <option value="All">All</option>
               {#each uniqueFormats as format}
-                <option value={format}>{format}</option>
+                <option value={format.name}>{format.name}</option>
               {/each}
             </select>
           </div>
@@ -188,8 +191,9 @@
               class="block text-sm font-medium0 mb-1">Paradigm</label
             >
             <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedParadigm}>
+              <option value="All">All</option>
               {#each uniqueParadigms as paradigm}
-                <option value={paradigm}>{paradigm}</option>
+                <option value={paradigm.name}>{paradigm.name}</option>
               {/each}
             </select>
           </div>
@@ -203,8 +207,8 @@
                     Analysis Name
                     <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
                 </TableHead>
-                <TableHead class="w-1/8" on:click={() => toggleSort("function")}>
-                    Function
+                <TableHead class="w-1/8" on:click={() => toggleSort("flow")}>
+                    Flow
                     <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
                 </TableHead>
                 <TableHead class="w-1/8" on:click={() => toggleSort("category")}>
@@ -225,7 +229,7 @@
             {#each filteredanalyses as analysis}
                 <TableRow>
                     <TableCell>{analysis.name}</TableCell>
-                    <TableCell>{analysis.analysis_function}</TableCell>
+                    <TableCell>{analysis.analysis_flow}</TableCell>
                     <TableCell>{analysis.category}</TableCell>
                     <TableCell>{analysis.valid_formats.join(', ')}</TableCell>
                     <TableCell>{analysis.valid_paradigms.join(', ')}</TableCell>

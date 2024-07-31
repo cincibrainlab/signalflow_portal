@@ -149,11 +149,9 @@
     getAnalysisFromDeploymentID(deploymentId)
         .then((ret_analysis) => {
             analysis = ret_analysis;
-            console.log(analysis);
             getAnalysisFlow(analysis.analysis_flow)
                 .then((ret_analysisFlow) => {
                     analysisFlow = ret_analysisFlow;
-                    console.log(analysisFlow);
                 })
                 .catch((error) => {
                     console.error(error);

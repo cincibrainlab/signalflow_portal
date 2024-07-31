@@ -12,8 +12,8 @@ from .ComputePsdAnalysisMatlab import ComputePsdAnalysisMatlab_Flow
 
 
 # Define package-level variables
-#* Currently the only place new analysis flows need to be added is here and in portal_config.yaml
-#* The key needs to be put both in this dictionary and in the portal_config.yaml file
+#* Currently the only place new analysis flows need to be added is here and in analysis_flows.yaml
+#* The key needs to be put both in this dictionary and in the analysis_flows.yaml file
 analysis_flows = {
     "TemplateAnalysis": TemplateAnalysis_Flow,
     "ComputePsdAnalysis": ComputePsdAnalysisMatlab_Flow,

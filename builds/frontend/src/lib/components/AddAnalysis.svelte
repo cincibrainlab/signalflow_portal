@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher} from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { Button } from "$lib/components/ui/button";
   import { addAnalysis, getMatchingFiles } from '$lib/services/apiService';
 
@@ -44,6 +44,11 @@
     export let uniqueFormats: any[] = [];
     export let uniqueFlows: any[] = [];
     export let uniqueCategories: string[] = [];
+
+  onMount(async () => {
+    uniqueParadigms = uniqueParadigms.map((item: any) => ({ id: item._id, label: item.name }));
+    uniqueFormats = uniqueFormats.map((item: any) => ({ id: item._id, label: item.name }));
+  })
 
   async function handleSubmit() {
     try {

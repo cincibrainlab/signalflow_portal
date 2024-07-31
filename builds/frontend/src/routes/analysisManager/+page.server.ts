@@ -3,7 +3,7 @@ import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({}) => {
     try {
-        const [analyses, uniqueParadigms, uniqueFormats, flows] = await Promise.all([
+        const [analyses, uniqueParadigms, uniqueFormats, uniqueFlows] = await Promise.all([
             getAnalyses(),
             getParadigms(),
             getFormats(),
@@ -14,7 +14,7 @@ export const load: PageLoad = async ({}) => {
             analyses,
             uniqueParadigms,
             uniqueFormats,
-            uniqueFlows: flows,
+            uniqueFlows,
             uniqueCategories: ["Connectivity", "test", "test2"]
         };
     } catch (error) {

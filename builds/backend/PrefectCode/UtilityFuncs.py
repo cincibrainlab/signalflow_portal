@@ -9,18 +9,18 @@ from prefect.deployments import run_deployment
 
 console = Console()
 
-async def deploy_analysis(analysis_id: str, analysis_function: str):
+async def deploy_analysis(analysis_id: str, analysis_flow: str):
     """
     This function is used to deploy an analysis to the Prefect server.
     """
-    console.log(f"Starting deployment for analysis_id: {analysis_id}, function: {analysis_function}")
+    console.log(f"Starting deployment for analysis_id: {analysis_id}, flow: {analysis_flow}")
     
     # Get the flow from the dictionary
-    flow_func = analysis_flows.get(analysis_function)
+    flow_func = analysis_flows.get(analysis_flow)
     
     if not flow_func:
-        console.log(f"Error: Analysis function '{analysis_function}' not found in analysis_flows")
-        raise ValueError(f"Analysis function '{analysis_function}' not found.")
+        console.log(f"Error: Analysis flow '{analysis_flow}' not found in analysis_flows")
+        raise ValueError(f"Analysis flow '{analysis_flow}' not found.")
     
     console.log(f"Found flow function: {flow_func.__name__}")
     
@@ -28,8 +28,8 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
         # Create a deployment for the flow using the new method
         
         deployment = await flow_func.to_deployment(
-            name=f"{analysis_function}_deployment_{analysis_id}",
-            parameters={"analysis_id": analysis_id, "analysis_function": analysis_function},
+            name=f"{analysis_flow}_deployment_{analysis_id}",
+            parameters={"analysis_id": analysis_id, "analysis_flow": analysis_flow},
             work_pool_name="analysis-process-pool",
             job_variables={"working_dir": "./"},
         )
@@ -40,16 +40,16 @@ async def deploy_analysis(analysis_id: str, analysis_function: str):
         console.log(f"Deployment applied with ID: {deployment_id}")
         
         # Schedule runs for each file in the analysis
-        result = await schedule_runs(analysis_id, deployment_id, deployment)
+        result = await schedule_runs(analysis_id, deployment_id)
         console.log(result)
         
-        return {"success": True, "message": f"Deployed {analysis_function} for analysis_id {analysis_id}", "id": deployment_id}
+        return {"success": True, "message": f"Deployed {analysis_flow} for analysis_id {analysis_id}", "id": deployment_id}
     except Exception as e:
         console.log(f"Error deploying analysis: {str(e)}")
         console.log(f"Traceback: {traceback.format_exc()}")
         raise
 
-async def schedule_runs(analysis_id: str, deployment_id: UUID, deployment):
+async def schedule_runs(analysis_id: str, deployment_id: UUID):
     console.log(f"Scheduling runs for analysis_id: {analysis_id}, deployment_id: {deployment_id}")
     db = await flow_db.get_database()
     analysis = await db.EegAnalysis.find_one({"_id": ObjectId(analysis_id)})

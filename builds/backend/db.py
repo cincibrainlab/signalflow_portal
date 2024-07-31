@@ -542,7 +542,7 @@ async def get_analysis_from_deployment_id(DeploymentID):
         return {
             "id": str(analysis["_id"]),
             "name": analysis["name"],
-            "analysis_function": analysis.get("analysis_function"),
+            "analysis_flow": analysis.get("analysis_flow"),
             "description": analysis.get("description"),
             "category": analysis.get("category"),
             "valid_formats": analysis.get("valid_formats"),
@@ -602,20 +602,19 @@ async def add_analysis(analysis: models.EegAnalysis):
     db = await get_database()
     # Convert the Pydantic model to a dictionary
     analysis_dict = analysis.model_dump()
-    analysis_dict["analysis_function"] = ObjectId(analysis_dict["analysis_function"])
+    analysis_dict["analysis_flow"] = ObjectId(analysis_dict["analysis_flow"])
     analysis_dict["valid_formats"] = [ObjectId(format_id) for format_id in analysis_dict["valid_formats"]]
     analysis_dict["valid_paradigms"] = [ObjectId(paradigm_id) for paradigm_id in analysis_dict["valid_paradigms"]]
     analysis_dict["valid_files"] = [ObjectId(orginal_file_id) for orginal_file_id in analysis_dict["valid_files"]]
 
+    flow = await db.AnalysisFlow.find_one({"_id": ObjectId(analysis_dict["analysis_flow"])})
 
     result = await db.EegAnalysis.insert_one(analysis_dict)
-
-    function = await db.AnalysisFunction.find_one({"_id": ObjectId(analysis_dict["analysis_function"])})
 
     return {
         "id": str(result.inserted_id),
         "analysis_name": analysis_dict["name"],
-        "analysis_function": function["name"]
+        "analysis_flow": flow["name"]
     }
 
 async def get_analyses():
@@ -623,7 +622,7 @@ async def get_analyses():
     analyses = await db.EegAnalysis.find().to_list(length=None)
     for analysis in analyses:
         analysis['_id'] = str(analysis['_id'])  # Convert ObjectId to string
-        analysis['analysis_function'] = (await db.AnalysisFunction.find_one({"_id": analysis['analysis_function']}))['name']
+        analysis['analysis_flow'] = (await db.AnalysisFlow.find_one({"_id": analysis['analysis_flow']}))['name']
         format_names = await db.EEGFormat.find({"_id": {"$in": analysis.get("valid_formats", [])}}).distinct("name")
         paradigm_names = await db.EEGParadigm.find({"_id": {"$in": analysis.get("valid_paradigms", [])}}).distinct("name")
         file_names = await db.OriginalImportFile.find({"_id": {"$in": analysis.get("valid_files", [])}}).distinct("original_name")
