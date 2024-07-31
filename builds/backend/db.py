@@ -660,6 +660,15 @@ async def get_OriginalImportFile():
         }
         for upload_record in file_catalog
     ]
+    
+async def get_OriginalImportFile_by_id(upload_id):
+    db = await get_database()
+    file_record = await db.OriginalImportFile.find_one({"upload_id": upload_id})
+    if file_record:
+        return file_record
+    else:
+        return {"error": "File not found"}
+
 
 async def get_matchingFiles(valid_formats, valid_paradigms):
     db = await get_database()

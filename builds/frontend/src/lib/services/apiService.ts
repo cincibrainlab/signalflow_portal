@@ -55,6 +55,25 @@ export async function getOriginalFileCatalog() {
   }
 }
 
+export async function getOriginalFileFromUploadID(OriginalImportFile_Uploadid: string) {
+  try {
+      const response = await fetch(`${baseUrl}get-original-file-from-upload-id/${OriginalImportFile_Uploadid}`);
+      console.log('Get Original File Response status:', response.status);
+
+      const data = await response.json();
+      if (!response.ok) {
+          console.log('Response data:', data);
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      let analysisObject = data;
+      return analysisObject;
+  } catch (error) {
+      console.error('Error fetching analysis:', error);
+      throw error;
+  }
+}
+
 export async function getMatchingFiles(valid_formats: any[], valid_paradigms: any[]) {
   try {
       const url = `${baseUrl}get-matching-files`;

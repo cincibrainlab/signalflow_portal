@@ -127,10 +127,21 @@ async def list_analysis_flows():
 # WEBFORMS: FILES TAB
 # ────────────────────────────────────────────────────────────────────────────────
 @router.get("/api/get-original-file-catalog")
-async def get_upload_catalog():
+async def get_original_file_catalog():
     logging.info("Getting file table...")
     file_catalog = await flow_db.get_OriginalImportFile()
     return [models.OriginalImportFile(**upload) for upload in file_catalog]
+
+@router.get("/api/get-original-file-from-upload-id/{fileObjectId}")
+async def get_original_file_from_upload_id(fileObjectId: str):
+    try:
+        file = await flow_db.get_OriginalImportFile_by_id(fileObjectId)
+        logging.debug(f"File: {file}")
+        return models.OriginalImportFile(**file)
+    except Exception as e:
+        logging.error(f"Error retrieving file: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+
 
 @router.post("/api/get-matching-files")
 async def get_matching_files(valid_formats: list[str], valid_paradigms: list[str]):
