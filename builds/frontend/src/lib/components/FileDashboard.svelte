@@ -29,7 +29,8 @@
             
             getEEGData(upload_id).then((response) => {
                 EEGData = response ?? [];
-                console.log('EEGData', EEGData)
+                console.log('EEGData', EEGData);
+                drawEEGPlot();
             });
 
         } else {
@@ -39,6 +40,30 @@
         
 
     });
+
+    function drawEEGPlot() {
+        const canvas = document.getElementById('eegCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const channelHeight = height / 128;
+
+        ctx.clearRect(0, 0, width, height);
+
+        EEGData.forEach((channelData, channelIndex) => {
+        ctx.beginPath();
+        channelData.forEach((value, timeIndex) => {
+            const x = (timeIndex / 1000) * width;
+            const y = (channelIndex * channelHeight) + (value * channelHeight / 2);
+            if (timeIndex === 0) {
+            ctx.moveTo(x, y);
+            } else {
+            ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+        });
+    }
 
 </script>
 
@@ -51,6 +76,7 @@
         <div class="lg:w-2/3 gap-6">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 ">n/a</h2>
+                <canvas id="eegCanvas" width="1000" height="1280"></canvas>
             </section>
         </div>
         <div class="lg:w-1/3">
@@ -112,5 +138,6 @@
     canvas {
       width: 100%;
       height: 400px;
+      border: 1px solid black;
     }
 </style>
