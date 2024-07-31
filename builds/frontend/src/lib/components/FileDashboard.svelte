@@ -2,32 +2,38 @@
     // Import necessary components and data
 
     import { onMount, onDestroy } from 'svelte';
+    import pako from 'pako';
     import { flip } from 'svelte/animate';
     import { dndzone } from 'svelte-dnd-action';
-    import { getOriginalFileFromUploadID, getParticipant} from '$lib/services/apiService';
+    import { getOriginalFileFromUploadID, getParticipant, getEEGData} from '$lib/services/apiService';
 
     export let upload_id: string;
     let File: any = [];
     let Participant: any = [];
+    let EEGData: any;
 
-    if (upload_id) {
-        getOriginalFileFromUploadID(upload_id).then((response) => {
-            File = response;
-            console.log('File', File)
-            if (File.participant) {
-                getParticipant(File.participant).then((response) => {
-                    Participant = response
-                    console.log('participantData', Participant)
-                });
-            }
+    onMount(async () => {
+        if (upload_id) {
+            getOriginalFileFromUploadID(upload_id).then((response) => {
+                File = response;
+                console.log('File', File)
+                if (File.participant) {
+                    getParticipant(File.participant).then((response) => {
+                        Participant = response
+                        console.log('participantData', Participant)
+                    });
+                }
 
-        });
-    } else {
-        console.error('No upload ID provided');
-    }
+            });
+            
+            EEGData = await getEEGData(upload_id);
+            console.log('EEGData', EEGData)
 
-    console.log('File', File);
-    console.log('participantData', Participant);
+        } else {
+            console.error('No upload ID provided');
+        }
+
+    });
 
 </script>
 
@@ -37,20 +43,9 @@
         <h2 class="text-xl font-semibold ">Filename: {File.original_name}</h2>
     </header>
     <div class="flex flex-col lg:flex-row gap-6">
-        <div class="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="lg:w-2/3 gap-6">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 ">n/a</h2>
-            </section>
-            <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-6 ">n/a</h2>
-                
-            </section>
-            <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-xl font-semibold mb-2 ">n/a</h2>
-                
-            </section>
-            <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-xl font-semibold mb-2 ">n/a</h2>
             </section>
         </div>
         <div class="lg:w-1/3">

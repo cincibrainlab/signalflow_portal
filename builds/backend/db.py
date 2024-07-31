@@ -16,6 +16,7 @@ from shutil import copy
 import mne
 import models
 from bson import ObjectId
+import asyncio
 
 MONGO_URL = "mongodb://localhost:3002"
 DATABASE_NAME = "sfportal"
@@ -1013,3 +1014,38 @@ def get_core_eeg_info( primary_file_path ):
         # Optionally log the error or handle it as needed
 
     return eeg_core_info
+
+
+async def get_EEG_Data(upload_id):
+    try: 
+        primary_dest_path, secondary_dest_path = await copy_import_files(upload_id)
+        
+        if secondary_dest_path is not None:
+            try:
+                if primary_dest_path.endswith(".set"):
+                    # Read EEGLAB file info 
+                    eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, primary_dest_path, preload=True, verbose=True)
+                elif not primary_dest_path.endswith(".fdt"):
+                    eeg_data = await asyncio.to_thread(mne.io.read_raw, primary_dest_path, preload=True, verbose=True)
+                else:
+                    eeg_data = None
+                    
+                
+                # resample the data to 100 Hz
+                raw = eeg_data.resample(100)
+                raw_data = raw.get_data()
+            except Exception as e:
+                logging.error(f"Error reading EEG data: {str(e)}")
+                raise
+            
+            if os.path.exists(primary_dest_path):
+                await asyncio.to_thread(os.remove, primary_dest_path)
+                logging.info(f"Removed SET file {primary_dest_path}")
+            if secondary_dest_path and os.path.exists(secondary_dest_path):
+                await asyncio.to_thread(os.remove, secondary_dest_path)
+                logging.info(f"Removed FDT file {secondary_dest_path}")
+            
+            return raw_data
+    except Exception as e:
+        logging.error(f"Error getting EEG data: {str(e)}")
+        raise

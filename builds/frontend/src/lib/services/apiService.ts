@@ -1,4 +1,5 @@
 // src/services/apiService.ts
+import pako from 'pako';
 
 
 export const baseUrl = "http://127.0.0.1:3005/api/";
@@ -390,4 +391,16 @@ export async function sendContactMessage(formData: any) {
 
   return await response.json();
 
+}
+
+export async function getEEGData(upload_id: any){
+  console.log(`Getting EEG data for upload ID: ${upload_id}`);
+  const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}`);
+  console.log('getEEGData Response status:', response.status);
+  const compressedData = await response.arrayBuffer();
+
+  // Decompress the data
+  const decompressed = pako.inflate(new Uint8Array(compressedData), { to: 'string' });
+  let decompressedData = JSON.parse(decompressed);
+  return decompressedData;
 }

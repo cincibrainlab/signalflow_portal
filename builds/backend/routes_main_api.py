@@ -11,6 +11,10 @@ from entrypoint import check_entrypoint
 from typing import List
 import models
 from pydantic import BaseModel
+import io
+from fastapi.responses import StreamingResponse
+import numpy as np
+
 
 router = APIRouter()
 
@@ -330,4 +334,14 @@ async def get_prefect_stats(deploymentId: str):
             return response
     except Exception as e:
         logging.error(f"Error in get_prefect_stats for deployment {deploymentId}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/api/get-eeg-data/{upload_id}")
+async def get_EEG_Data(upload_id):
+    try:
+        data = await flow_db.get_EEG_Data(upload_id)
+        data_bytes = data.tobytes()
+        return StreamingResponse(io.BytesIO(data_bytes), media_type="application/octet-stream")
+    except Exception as e:
+        logging.error(f"Error in get_EEG_Data: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
