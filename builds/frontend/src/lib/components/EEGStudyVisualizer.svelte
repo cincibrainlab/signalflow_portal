@@ -64,6 +64,10 @@
   let selectedParadigmData_Name: string = "";
   let Selected_participant_id: string = "";
 
+  function openDashboard(id: string) {
+      goto(`/fileDashboard?id=${id}`);
+  }
+
   function openFileModal(file: any) {
     selectedFile = file;
     selectedEEGFormat_Name = file.formatData?.name || "";
@@ -589,7 +593,7 @@
                     variant="outline"
                     on:click={(event) => {
                       event.stopPropagation();
-                      openFileModal(file);
+                      openDashboard(file.upload_id);
                     }}
                   >
                     View Details
