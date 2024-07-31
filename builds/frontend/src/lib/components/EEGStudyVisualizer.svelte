@@ -180,15 +180,15 @@
 
       const matchesDiagnosis =
         selectedDiagnosis === "All" ||
-        participant?.diagnosis === selectedDiagnosis;
+        participant?.diagnosis.toLowerCase() === selectedDiagnosis.toLowerCase();
 
       const matchesAgeGroup =
         selectedAgeGroup === "All" ||
-        participant?.age_group === selectedAgeGroup;
+        participant?.age_group.toLowerCase() === selectedAgeGroup.toLowerCase();
 
       const matchesParadigm =
         selectedParadigm === "All" ||
-        file.eeg_paradigm.some((p: any) => p.type === selectedParadigm);
+        (file.paradigmData && file.paradigmData.name.toLowerCase() === selectedParadigm.toLowerCase());
 
       return matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm;
     }).sort((a: any, b: any) => {
