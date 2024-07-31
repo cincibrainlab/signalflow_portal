@@ -6,10 +6,13 @@
     import { flip } from 'svelte/animate';
     import { dndzone } from 'svelte-dnd-action';
     import { getOriginalFileFromUploadID, getParticipant, getEEGData} from '$lib/services/apiService';
+    import { Chart } from 'chart.js';
 
     export let upload_id: string;
     let File: any = [];
     let Participant: any = [];
+    let labels:any = [];
+    let canvas:any;
     let EEGData: any;
 
     onMount(async () => {
@@ -26,14 +29,63 @@
 
             });
             
-            EEGData = await getEEGData(upload_id);
-            console.log('EEGData', EEGData)
+            getEEGData(upload_id).then((response) => {
+                EEGData = response;
+                console.log('EEGData', EEGData)
+            });
 
         } else {
             console.error('No upload ID provided');
         }
 
+        const ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: EEGData.map((_: any, index: number) => index),
+            datasets: [{
+            label: 'EEG Data',
+            data: EEGData,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+            fill: false
+            }]
+        },
+        options: {
+            scales: {
+            x: {
+                type: 'linear',
+                position: 'bottom'
+            }
+            }
+        }
+        });
+
     });
+
+    
+
+    const chartData = {
+        labels,
+        datasets: [
+        {
+            label: 'EEG Data',
+            EEGData,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+            fill: false
+        }
+        ]
+    };
+
+    const options = {
+        scales: {
+        x: {
+            type: 'linear',
+            position: 'bottom'
+        }
+        }
+    };
 
 </script>
 
@@ -46,6 +98,8 @@
         <div class="lg:w-2/3 gap-6">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 ">n/a</h2>
+                <h2 class="text-xl font-semibold mb-2 ">{EEGData}</h2>
+                <canvas bind:this={canvas}></canvas>
             </section>
         </div>
         <div class="lg:w-1/3">
@@ -103,3 +157,9 @@
 
   
 <!-- Have an area that shows duplicate files and participants -->
+<style>
+    canvas {
+      width: 100%;
+      height: 400px;
+    }
+</style>

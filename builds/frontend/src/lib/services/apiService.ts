@@ -395,12 +395,32 @@ export async function sendContactMessage(formData: any) {
 
 export async function getEEGData(upload_id: any){
   console.log(`Getting EEG data for upload ID: ${upload_id}`);
-  const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}`);
-  console.log('getEEGData Response status:', response.status);
-  const compressedData = await response.arrayBuffer();
+  try {
+    const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}`);
+    console.log('Get EEG Data Response status:', response.status);
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No reader available');
 
-  // Decompress the data
-  const decompressed = pako.inflate(new Uint8Array(compressedData), { to: 'string' });
-  let decompressedData = JSON.parse(decompressed);
-  return decompressedData;
+    const chunks: string[] = [];
+
+    const processText = async ({ done, value }: ReadableStreamReadResult<Uint8Array>): Promise<void> => {
+      if (done) {
+        console.log('Stream complete');
+        return;
+      }
+
+      const text = new TextDecoder().decode(value);
+      console.log('Text chunk:', text);
+      chunks.push(text);
+
+
+      return reader.read().then(processText);
+    };
+
+    await reader.read().then(processText);
+
+    return chunks.join('');
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }

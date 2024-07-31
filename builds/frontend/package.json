@@ -65,6 +65,7 @@
     "lucide-svelte": "^0.399.0",
     "mongodb": "^6.8.0",
     "pako": "^2.1.0",
+    "svelte-chartjs": "^3.1.5",
     "svelte-dnd-action": "^0.9.49",
     "svelte-multiselect": "^10.3.0",
     "svelte-radix": "^1.1.0",
