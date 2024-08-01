@@ -66,6 +66,14 @@
         if (resizeObserver) {
             resizeObserver.disconnect();
         }
+            // Remove the SVG content, but keep the element
+        EEGData = [];
+        
+        if (svgElement) {
+            while (svgElement.firstChild) {
+                svgElement.removeChild(svgElement.firstChild);
+            }
+        }
     });
 
     function drawEEGPlot() {
@@ -131,35 +139,34 @@
             .attr("class", "y-axis")
             .call(d3.axisLeft(yScale));
 
-        zoom = d3.zoom()
-            .scaleExtent([1, 20])
-            .translateExtent([[0, 0], [width, height]])
-            .extent([[0, 0], [width, height]])
-            .on("zoom", zoomed);
+        // zoom = d3.zoom()
+        //     .scaleExtent([1, 20])
+        //     .translateExtent([[0, 0], [width, height]])
+        //     .extent([[0, 0], [width, height]])
+        //     .on("zoom", zoomed);
 
-        svg.call(zoom);
+        // svg.call(zoom);
     }
 
-    function zoomed(event: d3.D3ZoomEvent<SVGSVGElement, unknown>) {
-        const newXScale = event.transform.rescaleX(xScale);
-        xAxis.call(d3.axisBottom(newXScale).tickFormat(d => `${d.toFixed(2)}s`));
+    // function zoomed(event: d3.D3ZoomEvent<SVGSVGElement, unknown>) {
+    //     const newXScale = event.transform.rescaleX(xScale);
+    //     xAxis.call(d3.axisBottom(newXScale).tickFormat(d => `${d.toFixed(2)}s`));
 
-        chartArea.selectAll("path")
-            .attr("d", (d, i) => {
-                const yOffset = i * (height / EEGData.length);
-                return d3.line<number>()
-                    .x((d, i) => newXScale((viewportStart + i) / samplingRate))
-                    .y(d => yOffset + (height / EEGData.length) / 2 + (yScale(d) - yScale(0)) / EEGData.length)(d as number[]);
-            });
+    //     chartArea.selectAll("path")
+    //         .attr("d", (d, i) => {
+    //             const yOffset = i * (height / EEGData.length);
+    //             return d3.line<number>()
+    //                 .x((d, i) => newXScale((viewportStart + i) / samplingRate))
+    //                 .y(d => yOffset + (height / EEGData.length) / 2 + (yScale(d) - yScale(0)) / EEGData.length)(d as number[]);
+    //         });
 
-    }
+    // }
 
     function updateViewport(startSeconds: number, endSeconds: number) {
         viewportStart = Math.floor(startSeconds * samplingRate);
         viewportEnd = Math.floor(endSeconds * samplingRate);
         xScale.domain([startSeconds, endSeconds]);
         xAxis.call(d3.axisBottom(xScale).tickFormat(d => `${d.toFixed(2)}s`));
-        zoom.translateExtent([[xScale(0), 0], [xScale(EEGData[0].length / samplingRate), height]]);
 
         // Instead of calling drawEEGPlot, update only the necessary parts
         updateEEGLines();
