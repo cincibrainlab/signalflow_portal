@@ -354,3 +354,8 @@ async def get_EEG_Data(upload_id):
     
     return StreamingResponse(iterfile(), media_type="application/octet-stream")
 
+@router.get("/api/get-eeg-data-shape/{upload_id}")
+async def get_EEG_Data_Shape(upload_id):
+    data = await flow_db.get_EEG_Data(upload_id)
+    return {"shape": data.shape}
+

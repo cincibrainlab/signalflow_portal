@@ -399,6 +399,14 @@ export async function sendContactMessage(formData: any) {
 export async function getEEGData(upload_id: any) {
   console.log(`Getting EEG data for upload ID: ${upload_id}`);
   try {
+    const shapeResponse = await fetch(`${baseUrl}get-eeg-data-shape/${upload_id}`);
+    console.log('Get EEG Data Shape Response status:', shapeResponse.status);
+    const shapeData = await shapeResponse.json();
+    console.log('Shape data:', shapeData);
+    let numchannels = shapeData.shape[0];
+    console.log('Num channels:', numchannels);
+
+
     const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}`);
     console.log('Get EEG Data Response status:', response.status);
     const arrayBuffer = await response.arrayBuffer();
@@ -412,7 +420,7 @@ export async function getEEGData(upload_id: any) {
     // Now 'array' is a Float64Array
     console.log(array.length, array.constructor.name);
 
-    array = reshapeArray(array, 128);
+    array = reshapeArray(array, numchannels);
 
     return array;
 
