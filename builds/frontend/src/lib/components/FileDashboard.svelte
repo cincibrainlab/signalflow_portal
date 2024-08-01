@@ -49,8 +49,6 @@
         const height = EEGData.length * 100;
         const channelHeight = height / (EEGData.length + 1);
 
-        let marginBottom = 20;
-
         const xScale = d3.scaleLinear()
             .domain([0, EEGData[0].length])
             .range([0, width]);
@@ -64,10 +62,6 @@
         svg.append("g")
             .attr("transform", `translate(0, ${height})`)
             .call(xAxis);
-
-        const gx = svg.append("g")
-            .attr("transform", `translate(0,${height - marginBottom})`)
-            .call(d3.axisBottom(x));
 
         const yAxis = d3.axisLeft(yScale);
         svg.append("g")
