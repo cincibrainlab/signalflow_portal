@@ -3,12 +3,13 @@
 
     import { onMount} from 'svelte';
     import { getOriginalFileFromUploadID, getParticipant, getEEGData} from '$lib/services/apiService';
+    import * as d3 from 'd3';
 
     export let upload_id: string;
     let File: any = [];
     let Participant: any = [];
     let EEGData: any[][] = [];
-    let Yscale = 1;
+    let Yscale = 1000;
 
     onMount(async () => {
         if (upload_id) {
@@ -39,79 +40,58 @@
     });
 
     function drawEEGPlot() {
-        const canvas: HTMLCanvasElement = document.getElementById('eegCanvas') as HTMLCanvasElement;
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                let ParentComponenetWidth = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
-                
-                canvas.width = EEGData[0].length;
-                console.log('canvas.width', canvas.width);
-                canvas.height = EEGData.length * 100;
-                const width = canvas.width;
-                const height = canvas.height;
-                const channelHeight = height / (EEGData.length + 1);
+        const svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", EEGData[0].length)
+            .attr("height", EEGData.length * 100);
 
-                let samplesPerSecond = 100;
-                
-                let Xscale = ParentComponenetWidth / samplesPerSecond * 5;
+        const width = EEGData[0].length;
+        const height = EEGData.length * 100;
+        const channelHeight = height / (EEGData.length + 1);
 
-                ctx.clearRect(0, 0, width, height);
+        let marginBottom = 20;
 
-                // Make labels for each channel
-                EEGData.forEach((channelData, channelIndex) => {
-                    ctx.font = '12px Arial';
-                    ctx.fillText(`Channel ${channelIndex + 1}`, 0, channelHeight * (channelIndex + 1));
-                });
+        const xScale = d3.scaleLinear()
+            .domain([0, EEGData[0].length])
+            .range([0, width]);
 
-                // Show border lines for each channel
-                // EEGData.forEach((channelData, channelIndex) => {
-                //     ctx.beginPath();
-                //     const y = channelHeight * (channelIndex + 1);
-                //     const ytop = y - (channelHeight / 2);
-                //     const ybottom = y + (channelHeight / 2);
-                //     ctx.moveTo(0, ytop);
-                //     ctx.lineTo(width, ytop);
-                //     ctx.stroke()
+        const yScale = d3.scaleLinear()
+            .domain([-1, 1]) // Adjust this domain based on your data range
+            .range([channelHeight / 2, -channelHeight / 2]);
 
-                //     ctx.moveTo(0, ybottom);
-                //     ctx.lineTo(width, ybottom);
-                //     ctx.stroke()
-                // });
+        // Add axes 
+        const xAxis = d3.axisBottom(xScale);
+        svg.append("g")
+            .attr("transform", `translate(0, ${height})`)
+            .call(xAxis);
 
-                EEGData.forEach((channelData, channelIndex) => {
-                    // console.log('channel: ', channelIndex,' channelData', channelData);
-                    ctx.beginPath();
+        const gx = svg.append("g")
+            .attr("transform", `translate(0,${height - marginBottom})`)
+            .call(d3.axisBottom(x));
 
-                    // Normalize the data to fit the canvas
+        const yAxis = d3.axisLeft(yScale);
+        svg.append("g")
+            .call(yAxis);
 
+        EEGData.forEach((channelData, channelIndex) => {
 
-                    channelData.forEach((value, timeIndex) => {
-                        const x = timeIndex * width / channelData.length;
-                        // Set the y position to start at a constant distance apart 
-                        let StartPoint = channelHeight * (channelIndex + 1);
-                        // each channel needs to stay in own area so we need to adjust the y position
-                        const ytop = StartPoint - (channelHeight / 2);
-                        const ybottom = StartPoint + (channelHeight / 2);
+            channelData = channelData.map(d => d * Yscale);
 
-                        // The y needs to stay within the channel area
-                        value = value * 1000000;
-                        
-                        const y = StartPoint + ((value * Yscale)) ;
+            const channelGroup = svg.append("g")
+                .attr("transform", `translate(0, ${channelHeight * (channelIndex + 1)})`);
 
-                        if (timeIndex === 0) {
-                            ctx.moveTo(x, y);
-                        } else {
-                            ctx.lineTo(x, y);
-                        }
-                        
-                    });
-                    ctx.stroke();
-                });
-            }
-        }
+            const line = d3.line()
+                .x((d, i) => xScale(i))
+                .y(d => yScale(d));
+
+            channelGroup.append("path")
+                .datum(channelData)
+                .attr("d", line)
+                .attr("fill", "none")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1);
+        });
     }
-    
 
     function ChangeScale() {
         drawEEGPlot();
@@ -129,7 +109,7 @@
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 ">n/a</h2>
                 <div class="w-full h-96 overflow-x-scroll overflow-y-scroll border border-black">
-                    <canvas id="eegCanvas"></canvas>
+                    <div id="chart"></div>
                 </div>
                 <div class="mt-4">
                     <label for="scaleInput" class="block text-sm font-medium text-gray-700">Scale:</label>
