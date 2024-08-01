@@ -1,17 +1,14 @@
 <script lang="ts">
     // Import necessary components and data
 
-    import { onMount, onDestroy } from 'svelte';
-    import pako from 'pako';
-    import { flip } from 'svelte/animate';
-    import { dndzone } from 'svelte-dnd-action';
+    import { onMount} from 'svelte';
     import { getOriginalFileFromUploadID, getParticipant, getEEGData} from '$lib/services/apiService';
-    import { Line } from 'svelte-chartjs';
 
     export let upload_id: string;
     let File: any = [];
     let Participant: any = [];
     let EEGData: any[][] = [];
+    let Yscale = 1;
 
     onMount(async () => {
         if (upload_id) {
@@ -42,28 +39,83 @@
     });
 
     function drawEEGPlot() {
-        const canvas = document.getElementById('eegCanvas');
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-        const channelHeight = height / 128;
+        const canvas: HTMLCanvasElement = document.getElementById('eegCanvas') as HTMLCanvasElement;
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                let ParentComponenetWidth = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
+                
+                canvas.width = EEGData[0].length;
+                console.log('canvas.width', canvas.width);
+                canvas.height = EEGData.length * 100;
+                const width = canvas.width;
+                const height = canvas.height;
+                const channelHeight = height / (EEGData.length + 1);
 
-        ctx.clearRect(0, 0, width, height);
+                let samplesPerSecond = 100;
+                
+                let Xscale = ParentComponenetWidth / samplesPerSecond * 5;
 
-        EEGData.forEach((channelData, channelIndex) => {
-        ctx.beginPath();
-        channelData.forEach((value, timeIndex) => {
-            const x = (timeIndex / 1000) * width;
-            const y = (channelIndex * channelHeight) + (value * channelHeight / 2);
-            if (timeIndex === 0) {
-            ctx.moveTo(x, y);
-            } else {
-            ctx.lineTo(x, y);
+                ctx.clearRect(0, 0, width, height);
+
+                // Make labels for each channel
+                EEGData.forEach((channelData, channelIndex) => {
+                    ctx.font = '12px Arial';
+                    ctx.fillText(`Channel ${channelIndex + 1}`, 0, channelHeight * (channelIndex + 1));
+                });
+
+                // Show border lines for each channel
+                // EEGData.forEach((channelData, channelIndex) => {
+                //     ctx.beginPath();
+                //     const y = channelHeight * (channelIndex + 1);
+                //     const ytop = y - (channelHeight / 2);
+                //     const ybottom = y + (channelHeight / 2);
+                //     ctx.moveTo(0, ytop);
+                //     ctx.lineTo(width, ytop);
+                //     ctx.stroke()
+
+                //     ctx.moveTo(0, ybottom);
+                //     ctx.lineTo(width, ybottom);
+                //     ctx.stroke()
+                // });
+
+                EEGData.forEach((channelData, channelIndex) => {
+                    // console.log('channel: ', channelIndex,' channelData', channelData);
+                    ctx.beginPath();
+
+                    // Normalize the data to fit the canvas
+
+
+                    channelData.forEach((value, timeIndex) => {
+                        const x = timeIndex * width / channelData.length;
+                        // Set the y position to start at a constant distance apart 
+                        let StartPoint = channelHeight * (channelIndex + 1);
+                        // each channel needs to stay in own area so we need to adjust the y position
+                        const ytop = StartPoint - (channelHeight / 2);
+                        const ybottom = StartPoint + (channelHeight / 2);
+
+                        // The y needs to stay within the channel area
+                        value = value * 1000000;
+                        
+                        const y = StartPoint + ((value * Yscale)) ;
+
+                        if (timeIndex === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                        
+                    });
+                    ctx.stroke();
+                });
             }
-        });
-        ctx.stroke();
-        });
+        }
     }
+    
+
+    function ChangeScale() {
+        drawEEGPlot();
+    }   
 
 </script>
 
@@ -76,7 +128,14 @@
         <div class="lg:w-2/3 gap-6">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 ">n/a</h2>
-                <canvas id="eegCanvas" width="1000" height="1280"></canvas>
+                <div class="w-full h-96 overflow-x-scroll overflow-y-scroll border border-black">
+                    <canvas id="eegCanvas"></canvas>
+                </div>
+                <div class="mt-4">
+                    <label for="scaleInput" class="block text-sm font-medium text-gray-700">Scale:</label>
+                    <input type="number" id="scaleInput" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" bind:value={Yscale}>
+                    <button class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={ChangeScale}>Change Scale</button>
+                </div>
             </section>
         </div>
         <div class="lg:w-1/3">
@@ -134,10 +193,3 @@
 
   
 <!-- Have an area that shows duplicate files and participants -->
-<style>
-    canvas {
-      width: 100%;
-      height: 400px;
-      border: 1px solid black;
-    }
-</style>
