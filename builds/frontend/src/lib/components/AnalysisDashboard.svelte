@@ -5,17 +5,21 @@
     import { flip } from 'svelte/animate';
     import { dndzone } from 'svelte-dnd-action';
     import { fetchPrefectStats, type PrefectStats } from '$lib/services/prefectAPI';
-    import { getMatchingFiles, getAnalysisFromDeploymentID, getAnalysisFlow } from '$lib/services/apiService';
 
-    export let deploymentId: string;
-    export let prefectStats: PrefectStats | null;
+    export let data;
+    let { prefectStats, analysis, analysisFlow, possibleFiles, deploymentId } = data;
+
+    // Files dummy data
+    let files: { id: string; name: string; status: string }[] = [];
+    let pendingFiles: { id: string; name: string; status: string }[] = [];
+    let failedFiles: { id: string; name: string; status: string }[] = [];
+    let removedFileIds: Set<string> = new Set();
 
     // Stats data
     $: averageRuntime = prefectStats?.avg_runtime || '0';
     $: runsCompleted = prefectStats?.completed_runs || 0;
     $: totalRunsScheduled = prefectStats?.total_runs || 0;
     $: successRate = prefectStats?.success_rate?.toFixed(2) || '0';
-    let performanceTrend = null;
 
     function handleDndConsider(e: CustomEvent) {
         pendingFiles = e.detail.items;
@@ -51,57 +55,71 @@
 
     async function updatePrefectStats() {
         try {
-            const data: PrefectStats = await fetchPrefectStats(deploymentId);
+            const newPrefectStats: PrefectStats = await fetchPrefectStats(deploymentId);
             
-            // Update chart data
-            chartData.datasets[0].data = [data.failed_runs, data.pending_runs, data.completed_runs];
-            chart.update();
+            // Update prefectStats (this will trigger the reactive statements)
+            prefectStats = newPrefectStats;
 
-            // Update other stats
-            averageRuntime = data.avg_runtime;
-            runsCompleted = data.completed_runs;
-            totalRunsScheduled = data.total_runs;
-            successRate = data.success_rate.toFixed(2);
-            failedFiles = data.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name, status: run.status }));
-            pendingFiles = data.runs.filter(run => run.status === 'PENDING' || run.status === 'SCHEDULED').map(run => ({id: run.id, name: run.name, status: run.status }));
-            files = data.runs
+            // Manually update the more complex derived data
+            failedFiles = newPrefectStats.runs
+                .filter(run => run.status === 'FAILED')
+                .map(run => ({id: run.id, name: run.name, status: run.status}));
+
+            pendingFiles = newPrefectStats.runs
+                .filter(run => run.status === 'PENDING' || run.status === 'SCHEDULED')
+                .map(run => ({id: run.id, name: run.name, status: run.status}));
+
+            files = newPrefectStats.runs
                 .filter(run => !removedFileIds.has(run.id))
                 .map(run => ({id: run.id, name: run.name, status: run.status}));
+
+            // Update chart data
+            chartData.datasets[0].data = [
+                newPrefectStats.failed_runs,
+                newPrefectStats.pending_runs,
+                newPrefectStats.completed_runs
+            ];
+            chart.update();
+
         } catch (error) {
             console.error('Error updating Prefect stats:', error);
         }
     }
 
     onMount(async () => {
-        const ctx = (document.getElementById('runsChart') as HTMLCanvasElement)!.getContext('2d');
-        if (ctx) {
-            chart = new Chart(ctx, {
-                type: 'doughnut',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Current Runs'
+        try {
+            const ctx = (document.getElementById('runsChart') as HTMLCanvasElement)!.getContext('2d');
+            if (ctx) {
+                chart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Current Runs'
+                            }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
+            // Initialize files, pendingFiles, and failedFiles
+            if (prefectStats) {
+                files = prefectStats.runs.map(run => ({id: run.id, name: run.name, status: run.status}));
+                pendingFiles = prefectStats.runs.filter(run => run.status === 'PENDING' || run.status === 'SCHEDULED').map(run => ({id: run.id, name: run.name, status: run.status}));
+                failedFiles = prefectStats.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name, status: run.status}));
+            }
+            // Set up periodic refresh
+            intervalId = setInterval(updatePrefectStats, 15000);
 
-        // Initialize files, pendingFiles, and failedFiles
-        if (prefectStats) {
-            files = prefectStats.runs.map(run => ({id: run.id, name: run.name, status: run.status}));
-            pendingFiles = prefectStats.runs.filter(run => run.status === 'PENDING' || run.status === 'SCHEDULED').map(run => ({id: run.id, name: run.name, status: run.status}));
-            failedFiles = prefectStats.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name, status: run.status}));
+        } catch (error) {
+            console.error('Error in onMount:', error);
+            // Handle the error appropriately (e.g., show an error message to the user)
         }
-
-        // Set up periodic refresh
-        intervalId = setInterval(updatePrefectStats, 15000);
     });
 
     onDestroy(() => {
@@ -110,13 +128,6 @@
             clearInterval(intervalId);
         }
     });
-
-    // Files dummy data
-    let files: { id: string; name: string; status: string }[] = [];
-    let pendingFiles: { id: string; name: string; status: string }[] = [];
-    let failedFiles: { id: string; name: string; status: string }[] = [];
-    let removedFileIds: Set<string> = new Set();
-    let newFiles;
 
     function removeFile(id: string) {
         removedFileIds.add(id);
@@ -133,33 +144,11 @@
         console.log(`Retrying file ${id}`);
     }
 
-    // Possible files dummy data
-    let possibleFiles = [
-        { id: 1, name: 'possible1.txt' },
-    ];
 
     function addFile(id: number) {
         // Implement add file functionality
         console.log(`Adding file ${id} to analysis`);
     }
-
-    let analysis: any = [];
-    let analysisFlow: any = [];
-
-    getAnalysisFromDeploymentID(deploymentId)
-        .then((ret_analysis) => {
-            analysis = ret_analysis;
-            getAnalysisFlow(analysis.analysis_flow)
-                .then((ret_analysisFlow) => {
-                    analysisFlow = ret_analysisFlow;
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
-        })
-        .catch((error) => {
-            console.error(error);
-        });
 
 
 </script>
@@ -284,11 +273,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each possibleFiles as file (file.id)}
+                        {#each possibleFiles as newFile}
                             <tr class="border-b">
-                                <td class="p-2 text-blue-700">{file.name}</td>
+                                <td class="p-2 text-blue-700">{newFile.original_name}</td>
                                 <td class="p-2 text-right">
-                                    <button on:click={() => addFile(file.id)} 
+                                    <button on:click={() => addFile(newFile.id)} 
                                             class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs transition duration-300 ease-in-out">
                                         Add to Analysis
                                     </button>

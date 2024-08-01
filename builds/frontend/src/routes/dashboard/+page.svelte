@@ -14,9 +14,11 @@
     <button on:click={goBack} class="mb-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
         Back to Analysis Manager
     </button>
-    {#if data.deploymentId}
-        <AnalysisDashboard deploymentId={data.deploymentId} prefectStats={data.prefectStats} />
+    {#if data.error}
+        <p>{data.error}</p>
+    {:else if data.deploymentId}
+        <AnalysisDashboard {data} />
     {:else}
-        <p>{data.error || 'No deployment ID provided.'}</p>
+        <p>No deployment ID provided.</p>
     {/if}
 </div>
