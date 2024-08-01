@@ -3,6 +3,8 @@
     import { goto } from '$app/navigation';
     import { Input } from "$lib/components/ui/input"
     import { debounce } from 'lodash-es';
+    import { getAnalyses } from '$lib/services/apiService';
+    import { Alert} from 'flowbite-svelte';
 
     import {
     Table,
@@ -17,6 +19,7 @@
 	  Filter,
   } from "lucide-svelte"
 	import AddAnalysis from '$lib/components/AddAnalysis.svelte';
+	import { fade } from "svelte/transition";
   /** @type {import('./$types').PageData} */
   export let data;
 
@@ -125,6 +128,21 @@
     console.log("New sort column:", sortColumn)
     console.log("New sort direction:", sortDirection)
   }
+
+  let toastMessage = '';
+  let toastType: 'success' | 'error' = 'success';
+  let showToast = false;
+
+  function handleToast(event: CustomEvent) {
+    ({ message: toastMessage, type: toastType } = event.detail);
+    showToast = true;
+    setTimeout(() => showToast = false, 3000);
+  }
+
+  async function handleAnalysisAdded() {
+    analyses = await getAnalyses();
+    showAddAnalysisModal = false;
+  }
     
 </script>
 
@@ -138,7 +156,11 @@
 
           <AddAnalysis 
             bind:showModal={showAddAnalysisModal} 
-            on:close={() => showAddAnalysisModal = false}
+            on:close={async () => {
+              showAddAnalysisModal = false;
+              analyses = await getAnalyses();
+            }}
+            on:showToast={handleToast}
             {uniqueParadigms}
             {uniqueFormats}
             {uniqueFlows}
@@ -241,3 +263,13 @@
         </TableBody>
     </Table>
 </div>
+{#if showToast}
+  <div 
+    class="toast toast-top toast-end"
+    transition:fade
+  >
+    <Alert class="{toastType === 'success' ? 'bg-green-300' : 'bg-red-300'} shadow-lg hover:shadow-xl">
+      <span class="text-base">{toastMessage}</span>
+    </Alert>
+  </div>
+{/if}

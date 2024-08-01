@@ -857,47 +857,49 @@ async def delete_uploads_and_save_info_files():
         )
 
 async def ingest_info_files(info_files):
-    async def extract_metadata(info_file):
+    async def extract_metadata(file_metadata):
         db = await get_database()
         folder_path = await get_folder_paths()
         folder_path = folder_path["uploads"]
         participant = await db.Participant.find_one({"participant_id": "Empty"})
         paradigm = await db.EEGParadigm.find_one({"name": "Unassigned"})
         EEGFormat = await db.EEGFormat.find_one({"name": "Unassigned"})
-        with open(info_file, "r") as f:
-            file_metadata = json.load(f)
+        original_import_file_catalog_entry = {
+            "upload_id": file_metadata.get("ID", "NA"),
+            "original_name": file_metadata["MetaData"].get("filename", "NA"),
+            "dataset_id": file_metadata["MetaData"].get("datasetId", "NA"),
+            # "upload_user": file_metadata["MetaData"].get("user", "NA"), TODO: Add user support
+            "status": add_status_code(200),
+            "date_added": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "hash": create_file_hash(
+                os.path.join(
+                    folder_path,
+                    os.path.basename(file_metadata["Storage"].get("Path", "")),
+                )
+            ),
+            "remove_upload": False,
+            "participant": participant["_id"],
+            "eeg_format": EEGFormat["_id"],
+            "eeg_paradigm": paradigm["_id"],
+        }
             
-            original_import_file_catalog_entry = {
-                "upload_id": file_metadata.get("ID", "NA"),
-                "original_name": file_metadata["MetaData"].get("filename", "NA"),
-                "dataset_id": file_metadata["MetaData"].get("datasetId", "NA"),
-                # "upload_user": file_metadata["MetaData"].get("user", "NA"), TODO: Add user support
-                "status": add_status_code(200),
-                "date_added": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "hash": create_file_hash(
-                    os.path.join(
-                        folder_path,
-                        os.path.basename(file_metadata["Storage"].get("Path", "")),
-                    )
-                ),
-                "remove_upload": False,
-                "participant": participant["_id"],
-                "eeg_format": EEGFormat["_id"],
-                "eeg_paradigm": paradigm["_id"],
-            }
-            
-            dataset_catalog_entry = {
-                "dataset_id": file_metadata["MetaData"].get("datasetId", "NA"),
-                "dataset_name": file_metadata["MetaData"].get("datasetName", "NA"),
-                "description": "",
-            }
+        dataset_catalog_entry = {
+            "dataset_id": file_metadata["MetaData"].get("datasetId", "NA"),
+            "dataset_name": file_metadata["MetaData"].get("datasetName", "NA"),
+            "description": "",
+        }
         return original_import_file_catalog_entry, dataset_catalog_entry
     for info_file in info_files:
-        original_import_file_catalog_entry, dataset_catalog_entry = await extract_metadata(info_file)
-        dataset_result = await add_dataset_catalog(dataset_catalog_entry)
-        upload_result = await add_original_import_file_catalog(original_import_file_catalog_entry)
-        print(f"Added dataset with ID: {dataset_result['dataset_id']}")
-        print(f"Added upload with ID: {upload_result['upload_id']}")
+        with open(info_file, "r") as f:
+            file_metadata = json.load(f)
+        id = file_metadata.get("ID")
+        file = await db.OriginalImportFile.find_one({"upload_id": id})
+        if not file:
+            original_import_file_catalog_entry, dataset_catalog_entry = await extract_metadata(file_metadata)
+            dataset_result = await add_dataset_catalog(dataset_catalog_entry)
+            upload_result = await add_original_import_file_catalog(original_import_file_catalog_entry)
+            print(f"Added dataset with ID: {dataset_result['dataset_id']}")
+            print(f"Added upload with ID: {upload_result['upload_id']}")
 
 async def process_new_uploads(upload_dir):
     async def update_file_catalog(info_files):

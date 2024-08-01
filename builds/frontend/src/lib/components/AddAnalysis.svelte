@@ -52,29 +52,19 @@
 
   async function handleSubmit() {
     try {
-      await getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms)
-        .then(result => {
-            console.log(result)
-            newAnalysis.valid_files = result.map((file: any) => file._id)
-        })
-          .catch(error => {
-              console.error('Error fetching files:', error);
-              // Handle the error appropriately
-          });
-      console.log("Trying to add: ", newAnalysis)
-      if (newAnalysis.output_path == "") {
-        newAnalysis.output_path = "portal_files/output/"
+      const result = await getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms);
+      newAnalysis.valid_files = result.map((file: any) => file._id);
+
+      if (newAnalysis.output_path === "") {
+        newAnalysis.output_path = "portal_files/output/";
       }
-      await addAnalysis(newAnalysis)
-      .then(result => {
-        console.log(result)
-      })
-      .catch(error => {console.error('Error adding analysis:', error);});
-      dispatch('analysisAdded', newAnalysis);
+
+      await addAnalysis(newAnalysis);
+      dispatch('showToast', { message: 'Analysis added successfully', type: 'success' });
       closeModal();
     } catch (error) {
-      console.error('Error adding new analysis:', error);
-      // Handle error (e.g., show an error message to the user)
+      console.error('Error:', error);
+      dispatch('showToast', { message: 'Error occurred', type: 'error' });
     }
   }
 

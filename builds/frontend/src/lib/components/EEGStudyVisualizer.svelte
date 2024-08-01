@@ -1,8 +1,8 @@
 <!-- src/lib/components/EEGStudyVisualizer.svelte -->
 <script lang="ts">
   import { goto } from "$app/navigation"
-  import { invalidate } from '$app/navigation';
   import { fade, slide } from "svelte/transition"
+  import { Alert} from 'flowbite-svelte';
   import {
     Card,
     CardContent,
@@ -19,13 +19,14 @@
     Zap,
     Cog,
     Baby,
-    User2,
+    UserRound,
     Filter,
     Grid,
     List,
     Rat as Mouse,
     Cat,
     Dog,
+    Banana,
     Calculator as FileAnalytics,
     ExternalLink,
     ArrowUpDown,
@@ -325,22 +326,26 @@
     }
   }
   function getAgeIcon(ageGroup: string) {
-    return ageGroup === "pediatric" || ageGroup === "infant" ? Baby : User2
+    return ageGroup === "pediatric" || ageGroup === "infant" ? Baby : UserRound
   }
 
   function getSpeciesIcon(species: string) {
     if (!species) {
-      return User2
+      return UserRound
     }
     switch (species.toLowerCase()) {
       case "mouse":
+        return Mouse
+      case "rat":
         return Mouse
       case "cat":
         return Cat
       case "dog":
         return Dog
+      case "monkey":
+        return Banana
       default:
-        return User2
+        return UserRound
     }
   }
 
@@ -398,6 +403,17 @@
       ? selectedFiles.filter(f => f !== fileName)
       : [...selectedFiles, fileName];
   }
+
+  let toastMessage = '';
+  let toastType: 'success' | 'error' = 'success';
+  let showToast = false;
+
+  function handleToast(event: CustomEvent) {
+    ({ message: toastMessage, type: toastType } = event.detail);
+    showToast = true;
+    setTimeout(() => showToast = false, 3000);
+  }
+
 </script>
 <div class="container mx-auto p-4">
   {#if Files.length === 0}
@@ -416,7 +432,8 @@
 
         <AddParticipant 
           bind:showModal={showAddParticipantModal} 
-          on:participantAdded={handleParticipantAdded} 
+          on:participantAdded={handleParticipantAdded}
+          on:toast={handleToast}
           on:close={() => showAddParticipantModal = false}
           {uniqueDiagnoses}
           {uniqueAgeGroups}
@@ -688,8 +705,8 @@
                     {file.participantData?.species || "Unknown"}
                   </Badge>
                 </TableCell>
-                <TableCell><!-- format --></TableCell>
-                <TableCell><!-- paradigm --></TableCell>
+                <TableCell>{file.formatData?.name}</TableCell>
+                <TableCell>{file.paradigmData?.name}</TableCell>
                 <TableCell>
                   <Button
                     class="text-blue-500 hover:text-blue-700 flex items-center"
@@ -849,6 +866,16 @@
     {/if}
   {/if}
 </div>
+{#if showToast}
+  <div 
+    class="toast toast-top toast-end"
+    transition:fade
+  >
+    <Alert class="{toastType === 'success' ? 'bg-green-300' : 'bg-red-300'} shadow-lg hover:shadow-xl">
+      <span class="text-base">{toastMessage}</span>
+    </Alert>
+  </div>
+{/if}
 
 <style>
   .custom-checkbox:checked {

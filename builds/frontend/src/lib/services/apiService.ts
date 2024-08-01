@@ -359,7 +359,6 @@ export async function getAnalyses() {
 }
 
 export async function addAnalysis(analysisData: any) {
-  cache.delete(`${baseUrl}get-analyses`);
   const response = await fetch(`${baseUrl}add-analysis`, {
     method: 'POST',
     headers: {
@@ -369,8 +368,12 @@ export async function addAnalysis(analysisData: any) {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to add analysis: ');
+    throw new Error('Failed to add analysis');
   }
+
+  // Clear the cache for get-analyses
+  cache.delete(`${baseUrl}get-analyses`);
+
   return await response.json();
 }
 

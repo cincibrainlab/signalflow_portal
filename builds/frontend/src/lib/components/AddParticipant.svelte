@@ -29,13 +29,13 @@
 
   async function handleSubmit() {
     try {
-      console.log("Attempting to add: ", newParticipant)
       await addParticipant(newParticipant);
       dispatch('participantAdded', newParticipant);
+      dispatch('toast', { message: 'Participant added successfully', type: 'success' });
       closeModal();
     } catch (error) {
       console.error('Error adding new participant:', error);
-      // Handle error (e.g., show an error message to the user)
+      dispatch('toast', { message: 'Error adding new participant', type: 'error' });
     }
   }
 

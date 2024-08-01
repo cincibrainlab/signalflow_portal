@@ -63,7 +63,7 @@
             totalRunsScheduled = data.total_runs;
             successRate = data.success_rate.toFixed(2);
             failedFiles = data.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name, status: run.status }));
-            pendingFiles = data.runs.filter(run => run.status === 'PENDING').map(run => ({id: run.id, name: run.name, status: run.status }));
+            pendingFiles = data.runs.filter(run => run.status === 'PENDING' || run.status === 'SCHEDULED').map(run => ({id: run.id, name: run.name, status: run.status }));
             files = data.runs
                 .filter(run => !removedFileIds.has(run.id))
                 .map(run => ({id: run.id, name: run.name, status: run.status}));
@@ -96,7 +96,7 @@
         // Initialize files, pendingFiles, and failedFiles
         if (prefectStats) {
             files = prefectStats.runs.map(run => ({id: run.id, name: run.name, status: run.status}));
-            pendingFiles = prefectStats.runs.filter(run => run.status === 'PENDING').map(run => ({id: run.id, name: run.name, status: run.status}));
+            pendingFiles = prefectStats.runs.filter(run => run.status === 'PENDING' || run.status === 'SCHEDULED').map(run => ({id: run.id, name: run.name, status: run.status}));
             failedFiles = prefectStats.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name, status: run.status}));
         }
 
@@ -233,9 +233,6 @@
                             {#each pendingFiles as file (file.id)}
                                 <tr animate:flip={{duration: 300}} class="border-b cursor-move">
                                     <td class="p-2 text-yellow-800">⋮⋮ {file.name}</td>
-                                    <td class="p-2 text-right">
-                                        <button on:click={() => processFile(file.id)} class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs">Process</button>
-                                    </td>
                                 </tr>
                             {/each}
                         </tbody>
@@ -248,7 +245,7 @@
         <div class="lg:w-1/3">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 h-full transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-xl font-semibold mb-2 ">Files</h2>
-                <div class="h-48 overflow-y-auto">
+                <div class="overflow-y-auto">
                     <table class="w-full text-sm">
                         <thead class=" sticky top-0">
                             <tr>
