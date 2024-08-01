@@ -1,15 +1,31 @@
 <script lang="ts">
     // Import necessary components and data
 
-    import { onMount} from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { getOriginalFileFromUploadID, getParticipant, getEEGData} from '$lib/services/apiService';
     import * as d3 from 'd3';
+	import { Button } from './ui/button';
+    import { ArrowBigLeft, ArrowBigRight, ArrowBigLeftDash, ArrowBigRightDash } from 'lucide-svelte';
 
     export let upload_id: string;
     let File: any = [];
     let Participant: any = [];
-    let EEGData: any[][] = [];
-    let Yscale = 1000;
+    let EEGData: number[][] = [];
+    let svgElement: SVGSVGElement;
+    let width: number;
+    let height: number;
+    let xScale: d3.ScaleLinear<number, number>;
+    let yScale: d3.ScaleLinear<number, number>;
+    let xAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
+    let zoom: d3.ZoomBehavior<Element, unknown>;
+    let chartArea: d3.Selection<SVGGElement, unknown, null, undefined>;
+
+    let viewportStart = 0;
+    let viewportEnd = 5000; // Initial viewport size (5 seconds * 1000 Hz = 500 samples)
+    const samplingRate = 1000; // 100 Hz sampling rate
+    let yScaleRange = 100; // Default y-scale range in microvolts
+
+    let resizeObserver: ResizeObserver;
 
     onMount(async () => {
         if (upload_id) {
@@ -35,61 +51,165 @@
             console.error('No upload ID provided');
         }
 
-        
+        if (EEGData && EEGData.length > 0) {
+            drawEEGPlot();
+        }
 
+        resizeObserver = new ResizeObserver(() => {
+            drawEEGPlot();
+        });
+
+        resizeObserver.observe(svgElement);
+    });
+
+    onDestroy(() => {
+        if (resizeObserver) {
+            resizeObserver.disconnect();
+        }
     });
 
     function drawEEGPlot() {
-        const svg = d3.select("#chart")
-            .append("svg")
-            .attr("width", EEGData[0].length)
-            .attr("height", EEGData.length * 100);
+        const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+        width = svgElement.clientWidth - margin.left - margin.right;
+        height = svgElement.clientHeight - margin.top - margin.bottom;
 
-        const width = EEGData[0].length;
-        const height = EEGData.length * 100;
-        const channelHeight = height / (EEGData.length + 1);
+        // Clear any existing SVG content
+        d3.select(svgElement).selectAll("*").remove();
 
-        const xScale = d3.scaleLinear()
-            .domain([0, EEGData[0].length])
+        const svg = d3.select(svgElement)
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        xScale = d3.scaleLinear()
+            .domain([viewportStart / samplingRate, viewportEnd / samplingRate])
             .range([0, width]);
 
-        const yScale = d3.scaleLinear()
-            .domain([-1, 1]) // Adjust this domain based on your data range
-            .range([channelHeight / 2, -channelHeight / 2]);
+        yScale = d3.scaleLinear()
+            .domain([-yScaleRange / 2, yScaleRange / 2])
+            .range([height, 0]);
 
-        // Add axes 
-        const xAxis = d3.axisBottom(xScale);
-        svg.append("g")
-            .attr("transform", `translate(0, ${height})`)
-            .call(xAxis);
+        const channelHeight = height / EEGData.length;
 
-        const yAxis = d3.axisLeft(yScale);
-        svg.append("g")
-            .call(yAxis);
+        const clipPath = svg.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", width)
+            .attr("height", height);
 
-        EEGData.forEach((channelData, channelIndex) => {
+        chartArea = svg.append("g")
+            .attr("clip-path", "url(#clip)");
 
-            channelData = channelData.map(d => d * Yscale);
+        EEGData.forEach((channel, i) => {
+            const yOffset = i * channelHeight;
 
-            const channelGroup = svg.append("g")
-                .attr("transform", `translate(0, ${channelHeight * (channelIndex + 1)})`);
+            const scaledLine = d3.line<number>()
+                .x((d, i) => xScale((viewportStart + i) / samplingRate))
+                .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / EEGData.length);
 
-            const line = d3.line()
-                .x((d, i) => xScale(i))
-                .y(d => yScale(d));
-
-            channelGroup.append("path")
-                .datum(channelData)
-                .attr("d", line)
+            chartArea.append("path")
+                .datum(channel.slice(viewportStart, viewportEnd))
                 .attr("fill", "none")
-                .attr("stroke", "black")
-                .attr("stroke-width", 1);
+                .attr("stroke", d3.schemeCategory10[i % 10])
+                .attr("stroke-width", 1.5)
+                .attr("d", scaledLine);
+
+            svg.append("text")
+                .attr("x", -10)
+                .attr("y", yOffset + channelHeight / 2)
+                .attr("dy", ".35em")
+                .attr("text-anchor", "end")
+                .text(`Ch ${i + 1}`);
         });
+
+        xAxis = svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).tickFormat(d => `${d.toFixed(2)}s`));
+
+        svg.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(yScale));
+
+        zoom = d3.zoom()
+            .scaleExtent([1, 20])
+            .translateExtent([[0, 0], [width, height]])
+            .extent([[0, 0], [width, height]])
+            .on("zoom", zoomed);
+
+        svg.call(zoom);
     }
 
-    function ChangeScale() {
-        drawEEGPlot();
-    }   
+    function zoomed(event: d3.D3ZoomEvent<SVGSVGElement, unknown>) {
+        const newXScale = event.transform.rescaleX(xScale);
+        xAxis.call(d3.axisBottom(newXScale).tickFormat(d => `${d.toFixed(2)}s`));
+
+        chartArea.selectAll("path")
+            .attr("d", (d, i) => {
+                const yOffset = i * (height / EEGData.length);
+                return d3.line<number>()
+                    .x((d, i) => newXScale((viewportStart + i) / samplingRate))
+                    .y(d => yOffset + (height / EEGData.length) / 2 + (yScale(d) - yScale(0)) / EEGData.length)(d as number[]);
+            });
+
+    }
+
+    function updateViewport(startSeconds: number, endSeconds: number) {
+        viewportStart = Math.floor(startSeconds * samplingRate);
+        viewportEnd = Math.floor(endSeconds * samplingRate);
+        xScale.domain([startSeconds, endSeconds]);
+        xAxis.call(d3.axisBottom(xScale).tickFormat(d => `${d.toFixed(2)}s`));
+        zoom.translateExtent([[xScale(0), 0], [xScale(EEGData[0].length / samplingRate), height]]);
+
+        // Instead of calling drawEEGPlot, update only the necessary parts
+        updateEEGLines();
+    }
+
+    function updateEEGLines() {
+        const height = svgElement.clientHeight - 50; // Subtracting 50 to account for margins
+        const channelHeight = height / EEGData.length;
+
+        chartArea.selectAll("path")
+            .data(EEGData)
+            .attr("d", (channel, i) => {
+                const yOffset = i * channelHeight;
+                return d3.line<number>()
+                    .x((d, i) => xScale((viewportStart + i) / samplingRate))
+                    .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / EEGData.length)(channel.slice(viewportStart, viewportEnd));
+            });
+    }
+
+    function updateYScale(newRange: number) {
+        yScaleRange = newRange;
+        yScale.domain([-yScaleRange / 2000000, yScaleRange / 2000000]);
+        
+        // Update y-axis
+        d3.select(svgElement).select(".y-axis")
+            .call(d3.axisLeft(yScale));
+
+        // Update EEG lines
+        updateEEGLines();
+    }
+
+    function navigateViewport(seconds: number) {
+        const currentStart = viewportStart / samplingRate;
+        const currentEnd = viewportEnd / samplingRate;
+        const duration = currentEnd - currentStart;
+        
+        let newStart = currentStart + seconds;
+        let newEnd = currentEnd + seconds;
+
+        // Ensure we don't go beyond the data bounds
+        if (newStart < 0) {
+            newStart = 0;
+            newEnd = duration;
+        } else if (newEnd > EEGData[0].length / samplingRate) {
+            newEnd = EEGData[0].length / samplingRate;
+            newStart = newEnd - duration;
+        }
+
+        updateViewport(newStart, newEnd);
+    }
 
 </script>
 
@@ -98,21 +218,40 @@
         <h1 class="text-4xl font-bold "> File Dashboard</h1>
         <h2 class="text-xl font-semibold ">Filename: {File.original_name}</h2>
     </header>
-    <div class="flex flex-col lg:flex-row gap-6">
-        <div class="lg:w-2/3 gap-6">
+
+    <div>
+
+    </div>
+    <div class="flex flex-col gap-6">
+        <div class="w-full">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 ">n/a</h2>
-                <div class="w-full h-96 overflow-x-scroll overflow-y-scroll border border-black">
-                    <div id="chart"></div>
+                <div class="w-full overflow-x-scroll overflow-y-scroll border border-black">
+                    <div class="w-full h-[500px]">
+                        <svg bind:this={svgElement} width="100%" height="100%"></svg>
+                    </div>
                 </div>
-                <div class="mt-4">
-                    <label for="scaleInput" class="block text-sm font-medium text-gray-700">Scale:</label>
-                    <input type="number" id="scaleInput" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" bind:value={Yscale}>
-                    <button class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={ChangeScale}>Change Scale</button>
+                <div class="flex justify-between mt-4">
+                    <div class="flex gap-2">
+                        <label for="scaleInput" class="block text-base font-medium text-gray-700">Scale (µV):</label>
+                        <input type="number" id="scaleInput" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" bind:value={yScaleRange} 
+                        on:input={() => updateYScale(yScaleRange)}>
+                    </div>
+                    <div class="flex justify-center gap-2 mt-4">
+                        <Button on:click={() => navigateViewport(-10)}><ArrowBigLeftDash/>10s</Button>
+                        <Button on:click={() => navigateViewport(-1)}><ArrowBigLeft/>1s</Button>
+                        <Button on:click={() => navigateViewport(1)}>1s<ArrowBigRight/></Button>
+                        <Button on:click={() => navigateViewport(10)}>10s<ArrowBigRightDash/></Button>
+                    </div>
                 </div>
+                <div class="flex gap-2 mt-4">
+                    <Button on:click={() => updateYScale(50)}>50 µV</Button>
+                    <Button on:click={() => updateYScale(100)}>100 µV</Button>
+                    <Button on:click={() => updateYScale(200)}>200 µV</Button>
+                </div>
+
             </section>
         </div>
-        <div class="lg:w-1/3">
+        <div class="w-full">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 h-full transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-xl font-semibold mb-2 ">Participant Details</h2>
                 <div class="flex flex-col gap-4">
@@ -151,11 +290,6 @@
             </section>
         </div>
         
-    </div>
-    <div class="w-full mt-6">
-        <section class="dark:bg-white rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
-            <h2 class="text-xl font-semibold mb-2 text-gray-700">Possible Files</h2>
-        </section>
     </div>
     <div class="w-full mt-6">
         <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">

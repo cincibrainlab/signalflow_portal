@@ -144,7 +144,6 @@
         console.log(`Retrying file ${id}`);
     }
 
-
     function addFile(id: number) {
         // Implement add file functionality
         console.log(`Adding file ${id} to analysis`);
