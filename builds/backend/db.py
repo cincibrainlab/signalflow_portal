@@ -1033,9 +1033,7 @@ async def get_EEG_Data(upload_id):
                     eeg_data = None
                     
                 
-                # resample the data to 100 Hz
-                raw = eeg_data.resample(100)
-                raw_data = raw.get_data()
+                raw_data = eeg_data.get_data()
             except Exception as e:
                 logging.error(f"Error reading EEG data: {str(e)}")
                 raise

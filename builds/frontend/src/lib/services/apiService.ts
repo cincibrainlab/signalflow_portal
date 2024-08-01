@@ -1,5 +1,5 @@
 // src/services/apiService.ts
-import Papa from 'papaparse';
+import pako from 'pako';
 
 
 export const baseUrl = "http://127.0.0.1:3005/api/";
@@ -401,33 +401,42 @@ export async function getEEGData(upload_id: any) {
   try {
     const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}`);
     console.log('Get EEG Data Response status:', response.status);
+    const arrayBuffer = await response.arrayBuffer();
 
-    // Check if the response is OK
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    // Decompress
+    const decompressed = pako.inflate(new Uint8Array(arrayBuffer));
+    
+    // Parse NumPy array
+    let array = parseNumpyArray(decompressed);
+    
+    // Now 'array' is a Float64Array
+    console.log(array.length, array.constructor.name);
 
-    // Get the CSV file sent from the server
-    const csvText = await response.text();
-    const parsedData = Papa.parse(csvText, {
-      header: true,
-      skipEmptyLines: true
-    });
+    array = reshapeArray(array, 128);
 
-    // Turn the data back into a 2d array
-    let eegData = parsedData.data;
-    let eegDataArray = [];
-    for (let i = 0; i < eegData.length; i++) {
-      let row = eegData[i];
-      let rowArray = [];
-      for (let key in row) {
-        rowArray.push(row[key]);
-      }
-      eegDataArray.push(rowArray);
-    }
-    return eegDataArray;
+    return array;
 
   } catch (error) {
     console.error('Error:', error);
   }
+}
+
+// Helper function to parse NumPy array (simplified for float64)
+function parseNumpyArray(buffer: any) {
+  // Skip header (assuming .npy format, you may need to adjust this)
+  const headerLength = new DataView(buffer.buffer).getUint16(8, true) + 10;
+  const data = new Float64Array(buffer.buffer, headerLength);
+  return data;
+}
+
+function reshapeArray(flatArray: Float64Array, rows: any) {
+  let cols = flatArray.length / rows;
+  const result = [[]];
+  for (let i = 0; i < flatArray.length; i++) {
+    if (result[result.length - 1].length === cols) {
+      result.push([]);
+    }
+    result[result.length - 1].push(flatArray[i]);
+  }
+  return result;
 }

@@ -15,7 +15,7 @@ import io
 from fastapi.responses import StreamingResponse
 import numpy as np
 import pandas as pd
-
+import zlib
 
 router = APIRouter()
 
@@ -341,11 +341,16 @@ async def get_prefect_stats(deploymentId: str):
 async def get_EEG_Data(upload_id):
     # try:
     data = await flow_db.get_EEG_Data(upload_id)
-    # Send the data as a CSV file
     
-    df = pd.DataFrame(data)
-    csv = df.to_csv(index=False)
-    return StreamingResponse(io.BytesIO(csv.encode()), media_type="text/csv")
-    # except Exception as e:
-    #     logging.error(f"Error in get_EEG_Data: {str(e)}")
-    #     raise HTTPException(status_code=500, detail=str(e))
+    bytes_io = io.BytesIO()
+    np.save(bytes_io, data, allow_pickle=False)
+    
+    # Compress
+    compressed = zlib.compress(bytes_io.getvalue())
+    
+    # Create a generator to stream the data
+    def iterfile():
+        yield compressed
+    
+    return StreamingResponse(iterfile(), media_type="application/octet-stream")
+
