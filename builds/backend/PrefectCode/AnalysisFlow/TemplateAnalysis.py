@@ -60,7 +60,7 @@ async def SaveEEG(raw, importID, output_path):
 
 
 @flow(name="TemplateAnalysis_Flow", description="Run a Template analysis on the file.")
-async def TemplateAnalysis_Flow(importID: str, analysis_function: str, analysis_id: str):
+async def TemplateAnalysis_Flow(importID: str, analysis_flow: str, analysis_id: str):
     config = await UtilityTasks.loadconfig()  # Load configuration file
     upload_path = config["folder_paths"]["uploads"]  # Get upload directory path
 
@@ -71,7 +71,7 @@ async def TemplateAnalysis_Flow(importID: str, analysis_function: str, analysis_
     output_path = EEGAnalysis["output_path"]
     
     # Get the analysis flow from the database
-    AnalysisFlow = await db.AnalysisFlow.find_one({"name": analysis_function})
+    AnalysisFlow = await db.AnalysisFlow.find_one({"name": analysis_flow})
     
     # Get the file from the database
     original_file = await db.OriginalImportFile.find_one({"upload_id": importID})

@@ -29,7 +29,7 @@ async def deploy_analysis(analysis_id: str, analysis_flow: str):
         
         deployment = await flow_func.to_deployment(
             name=f"{analysis_flow}_deployment_{analysis_id}",
-            parameters={"analysis_id": analysis_id, "analysis_flow": analysis_flow},
+            parameters={"analysis_flow": analysis_flow, "analysis_id": analysis_id},
             work_pool_name="analysis-process-pool",
             job_variables={"working_dir": "./"},
         )
