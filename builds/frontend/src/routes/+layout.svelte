@@ -101,7 +101,7 @@
         </li>
         <li class="md:mx-4">
           <a
-            href="https://github.com/cincibrainlab/sfvault"
+            href="https://cincibrainlab.github.io/signalflow_portal/"
             class="border border-primary"
           >
             ★ us on Github
