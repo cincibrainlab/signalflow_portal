@@ -16,6 +16,7 @@ from fastapi.responses import StreamingResponse
 import numpy as np
 import pandas as pd
 import zlib
+import mne
 
 router = APIRouter()
 
@@ -340,8 +341,12 @@ async def get_prefect_stats(deploymentId: str):
 @router.get("/api/get-eeg-data/{upload_id}")
 async def get_EEG_Data(upload_id):
     # try:
-    data = await flow_db.get_EEG_Data(upload_id)
+    raw_data = await flow_db.get_EEG_Data(upload_id)
     
+    # Do a .5 hz high pass filter
+    raw_data = raw_data.filter(0.5, None)
+    
+    data = raw_data.get_data()
     bytes_io = io.BytesIO()
     np.save(bytes_io, data, allow_pickle=False)
     
@@ -356,6 +361,7 @@ async def get_EEG_Data(upload_id):
 
 @router.get("/api/get-eeg-data-shape/{upload_id}")
 async def get_EEG_Data_Shape(upload_id):
-    data = await flow_db.get_EEG_Data(upload_id)
+    raw_data = await flow_db.get_EEG_Data(upload_id)
+    data = raw_data.get_data()
     return {"shape": data.shape}
 

@@ -1031,9 +1031,7 @@ async def get_EEG_Data(upload_id):
                     eeg_data = await asyncio.to_thread(mne.io.read_raw, primary_dest_path, preload=True, verbose=True)
                 else:
                     eeg_data = None
-                    
-                
-                raw_data = eeg_data.get_data()
+            
             except Exception as e:
                 logging.error(f"Error reading EEG data: {str(e)}")
                 raise
@@ -1045,7 +1043,7 @@ async def get_EEG_Data(upload_id):
                 await asyncio.to_thread(os.remove, secondary_dest_path)
                 logging.info(f"Removed FDT file {secondary_dest_path}")
             
-            return raw_data
+            return eeg_data
     except Exception as e:
         logging.error(f"Error getting EEG data: {str(e)}")
         raise
