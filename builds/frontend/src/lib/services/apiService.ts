@@ -448,3 +448,25 @@ function reshapeArray(flatArray: Float64Array, rows: any) {
   }
   return result;
 }
+
+export async function downloadFile(upload_id: any) {
+  console.log(`Downloading EEG File for upload ID: ${upload_id}`);
+  try {
+    const response = await fetch(`${baseUrl}download-eeg-file/${upload_id}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = 'downloaded_files.zip';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Download failed:', error);
+  }
+
+}

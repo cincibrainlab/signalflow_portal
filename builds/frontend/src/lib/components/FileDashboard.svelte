@@ -2,7 +2,7 @@
     // Import necessary components and data
 
     import { onMount, onDestroy } from 'svelte';
-    import { getOriginalFileFromUploadID, getParticipant, getEEGData} from '$lib/services/apiService';
+    import { getOriginalFileFromUploadID, getParticipant, getEEGData, downloadFile} from '$lib/services/apiService';
     import * as d3 from 'd3';
 	import { Button } from './ui/button';
     import { ArrowBigLeft, ArrowBigRight, ArrowBigLeftDash, ArrowBigRightDash } from 'lucide-svelte';
@@ -218,6 +218,10 @@
         updateViewport(newStart, newEnd);
     }
 
+    function downlaodEEGFIle() {
+        downloadFile(upload_id);
+    }
+
 </script>
 
 <main class="w-11/12 mx-auto p-6 min-h-screen">
@@ -301,7 +305,7 @@
     <div class="w-full mt-6">
         <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
             <h2 class="text-xl font-semibold mb-4 ">Utilities</h2>
-
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" on:click={downlaodEEGFIle}>Download File</button>
         </section>
     </div>
 </main>

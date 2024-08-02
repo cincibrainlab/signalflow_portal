@@ -14,9 +14,11 @@ from pydantic import BaseModel
 import io
 from fastapi.responses import StreamingResponse
 import numpy as np
-import pandas as pd
 import zlib
-import mne
+import asyncio
+
+from fastapi import Response
+import zipfile
 
 router = APIRouter()
 
@@ -343,6 +345,9 @@ async def get_EEG_Data(upload_id):
     # try:
     raw_data = await flow_db.get_EEG_Data(upload_id)
     
+    # Resample to 250 Hz
+    raw_data = raw_data.resample(100)
+    
     # Do a .5 hz high pass filter
     raw_data = raw_data.filter(0.5, None)
     
@@ -365,3 +370,32 @@ async def get_EEG_Data_Shape(upload_id):
     data = raw_data.get_data()
     return {"shape": data.shape}
 
+
+@router.get("/api/download-eeg-file/{upload_id}")
+async def download_EEG_Data(upload_id):
+    primary_dest_path, secondary_dest_path = await flow_db.copy_import_files(upload_id)
+    
+    if not (os.path.exists(primary_dest_path) and os.path.exists(secondary_dest_path)):
+        return Response(content="One or both files not found", status_code=404)
+    
+    zip_filename = "downloaded_files.zip"
+    
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.write(primary_dest_path, os.path.basename(primary_dest_path))
+        zip_file.write(secondary_dest_path, os.path.basename(secondary_dest_path))
+    
+    zip_buffer.seek(0)
+    
+    if os.path.exists(primary_dest_path):
+        await asyncio.to_thread(os.remove, primary_dest_path)
+        logging.info(f"Removed SET file {primary_dest_path}")
+    if secondary_dest_path and os.path.exists(secondary_dest_path):
+        await asyncio.to_thread(os.remove, secondary_dest_path)
+        logging.info(f"Removed FDT file {secondary_dest_path}")
+    
+    return StreamingResponse(
+        iter([zip_buffer.getvalue()]),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment;filename={zip_filename}"}
+    )
