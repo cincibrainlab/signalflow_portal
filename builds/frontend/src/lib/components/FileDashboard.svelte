@@ -45,6 +45,7 @@
                 EEGData = Array.isArray(response) ? response.map(arr => new Float64Array(arr)) : [response ?? []] as Float64Array[];
                 console.log('EEGData', EEGData);
                 drawEEGPlot();
+                updateYScale(yScaleRange);
             });
 
         } else {
