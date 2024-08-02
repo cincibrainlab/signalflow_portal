@@ -1,6 +1,7 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
-    import FileDashboard from '$lib/components/FileDashboard.svelte';
+    // This is a weird error, but it works so whatever
+    import FileDashboardComponent from '$lib/components/FileDashboardComponent.svelte';
     import type { PageData } from './$types';
 
     export let data: PageData;
@@ -15,7 +16,7 @@
         Back to Vault
     </button>
     {#if data.upload_id}
-        <FileDashboard upload_id={data.upload_id} />
+        <FileDashboardComponent {data} />
     {:else}
         <p>{data.error || 'No deployment ID provided.'}</p>
     {/if}

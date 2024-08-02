@@ -51,7 +51,7 @@
         }]
     };
 
-    let intervalId: number;
+    let intervalId: ReturnType<typeof setTimeout>;
 
     async function updatePrefectStats() {
         try {
@@ -109,9 +109,9 @@
             }
             // Initialize files, pendingFiles, and failedFiles
             if (prefectStats) {
-                files = prefectStats.runs.map(run => ({id: run.id, name: run.name, status: run.status}));
-                pendingFiles = prefectStats.runs.filter(run => run.status === 'PENDING' || run.status === 'SCHEDULED').map(run => ({id: run.id, name: run.name, status: run.status}));
-                failedFiles = prefectStats.runs.filter(run => run.status === 'FAILED').map(run => ({id: run.id, name: run.name, status: run.status}));
+                files = prefectStats.runs.map((run: { id: string; name: string; status: string }) => ({id: run.id, name: run.name, status: run.status}));
+                pendingFiles = prefectStats.runs.filter((run: { id: string; name: string; status: string }) => run.status === 'PENDING' || run.status === 'SCHEDULED').map((run: { id: string; name: string; status: string }) => ({id: run.id, name: run.name, status: run.status}));
+                failedFiles = prefectStats.runs.filter((run: { id: string; name: string; status: string }) => run.status === 'FAILED').map((run: { id: string; name: string; status: string }) => ({id: run.id, name: run.name, status: run.status}));
             }
             // Set up periodic refresh
             intervalId = setInterval(updatePrefectStats, 15000);

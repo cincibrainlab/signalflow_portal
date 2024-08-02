@@ -396,7 +396,7 @@ export async function sendContactMessage(formData: any) {
 
 }
 
-export async function getEEGData(upload_id: any) {
+export async function getEEGData(upload_id: string): Promise<Float64Array[]> {
   console.log(`Getting EEG data for upload ID: ${upload_id}`);
   try {
     const shapeResponse = await fetch(`${baseUrl}get-eeg-data-shape/${upload_id}`);
@@ -405,47 +405,43 @@ export async function getEEGData(upload_id: any) {
     console.log('Shape data:', shapeData);
     let numchannels = shapeData.shape[0];
     console.log('Num channels:', numchannels);
-
-
     const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}`);
     console.log('Get EEG Data Response status:', response.status);
     const arrayBuffer = await response.arrayBuffer();
 
     // Decompress
     const decompressed = pako.inflate(new Uint8Array(arrayBuffer));
-    
     // Parse NumPy array
     let array = parseNumpyArray(decompressed);
-    
     // Now 'array' is a Float64Array
     console.log(array.length, array.constructor.name);
-
-    array = reshapeArray(array, numchannels);
-
-    return array;
-
+    // Reshape the array
+    const reshapedArray = reshapeArray(array, numchannels);
+    
+    return reshapedArray;
   } catch (error) {
     console.error('Error:', error);
+    throw error; // Re-throw the error to be handled by the caller
   }
 }
 
 // Helper function to parse NumPy array (simplified for float64)
-function parseNumpyArray(buffer: any) {
+function parseNumpyArray(buffer: any): Float64Array {
   // Skip header (assuming .npy format, you may need to adjust this)
   const headerLength = new DataView(buffer.buffer).getUint16(8, true) + 10;
   const data = new Float64Array(buffer.buffer, headerLength);
   return data;
 }
 
-function reshapeArray(flatArray: Float64Array, rows: any) {
-  let cols = flatArray.length / rows;
-  const result = [[]];
-  for (let i = 0; i < flatArray.length; i++) {
-    if (result[result.length - 1].length === cols) {
-      result.push([]);
-    }
-    result[result.length - 1].push(flatArray[i]);
+// Make sure this function is defined correctly
+function reshapeArray(flatArray: Float64Array, rows: number): Float64Array[] {
+  const cols = flatArray.length / rows;
+  const result: Float64Array[] = [];
+  
+  for (let i = 0; i < rows; i++) {
+    result.push(flatArray.subarray(i * cols, (i + 1) * cols));
   }
+  
   return result;
 }
 

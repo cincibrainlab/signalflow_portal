@@ -170,6 +170,8 @@
   let filteredFiles: any = []
   let isFiltering = false;
 
+  $: filteredSelectedFiles = Files.filter((file: any) => selectedFiles.includes(file.original_name));
+
   $: {
     isFiltering = true;
     filteredFiles = Files.filter((file: any) => {
@@ -523,7 +525,7 @@
           </Button>
 
 
-          <Button on:click={() => openBatchEditModal(Files.filter(f => selectedFiles.includes(f.original_name)))}>
+          <Button on:click={() => openBatchEditModal(filteredSelectedFiles)}>
             Make Changes
           </Button>
         </div>

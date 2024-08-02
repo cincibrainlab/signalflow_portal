@@ -4,6 +4,7 @@
 	import { getToastStore } from '@skeletonlabs/skeleton';
 	import { v4 as uuidv4 } from 'uuid';
 	import { uniqueNamesGenerator, adjectives, animals } from 'unique-names-generator';
+	import type { Config } from 'unique-names-generator';
 
 	let uppyDashboardComponent: UppyDashboard;
 	const toastStore = getToastStore();

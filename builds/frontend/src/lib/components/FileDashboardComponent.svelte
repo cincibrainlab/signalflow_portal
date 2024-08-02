@@ -1,3 +1,4 @@
+<!-- src/lib/components/FileDashboardComponent.svelte -->
 <script lang="ts">
     // Import necessary components and data
 
@@ -7,7 +8,8 @@
 	import { Button } from './ui/button';
     import { ArrowBigLeft, ArrowBigRight, ArrowBigLeftDash, ArrowBigRightDash } from 'lucide-svelte';
 
-    export let upload_id: string;
+    export let data;
+    let upload_id: string = data.upload_id;
     let File: any = [];
     let Participant: any = [];
     let EEGData: Float64Array[] = [];
@@ -230,10 +232,6 @@
         <h1 class="text-4xl font-bold "> File Dashboard</h1>
         <h2 class="text-xl font-semibold ">Filename: {File.original_name}</h2>
     </header>
-
-    <div>
-
-    </div>
     <div class="flex flex-col gap-6">
         <div class="w-full">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">

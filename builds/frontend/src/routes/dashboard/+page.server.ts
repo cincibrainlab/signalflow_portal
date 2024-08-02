@@ -1,6 +1,6 @@
 import { fetchPrefectStats } from '$lib/services/prefectAPI';
 import { getAnalysisFromDeploymentID, getAnalysisFlow, getMatchingFiles } from '$lib/services/apiService';
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad } from './$types'; // Import the 'FileType' type
 
 export const load: PageServerLoad = async ({ url }) => {
     const deploymentId = url.searchParams.get('id');
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ url }) => {
         const allFiles = await getMatchingFiles(analysis.valid_formats, analysis.valid_paradigms);
 
         const existingFileNames = new Set(prefectStats.runs.map(run => run.name));
-        const possibleFiles = allFiles.filter(file => !existingFileNames.has(file.original_name));
+        const possibleFiles = allFiles.filter((file: any) => !existingFileNames.has(file.original_name));
 
         return {
             prefectStats,
