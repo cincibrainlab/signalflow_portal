@@ -1,4 +1,4 @@
-export const baseUrl = "http://localhost:3005/prefect/";
+export const baseUrl = "http://127.0.0.1:3005/prefect/";
 
 export interface PrefectRun {
     id: string;
