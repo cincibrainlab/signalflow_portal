@@ -340,13 +340,13 @@ async def get_prefect_stats(deploymentId: str):
         logging.error(f"Error in get_prefect_stats for deployment {deploymentId}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/api/get-eeg-data/{upload_id}")
-async def get_EEG_Data(upload_id):
+@router.get("/api/get-eeg-data/{upload_id}/{sample_rate}")
+async def get_EEG_Data(upload_id, sample_rate):
     # try:
     raw_data = await flow_db.get_EEG_Data(upload_id)
     
     # Resample to 250 Hz
-    raw_data = raw_data.resample(100)
+    raw_data = raw_data.resample(sample_rate)
     
     # Do a .5 hz high pass filter
     raw_data = raw_data.filter(0.5, None)
@@ -366,9 +366,13 @@ async def get_EEG_Data(upload_id):
 
 @router.get("/api/get-eeg-data-shape/{upload_id}")
 async def get_EEG_Data_Shape(upload_id):
+    # Will return the shape of the data and the sampling frequency
     raw_data = await flow_db.get_EEG_Data(upload_id)
     data = raw_data.get_data()
-    return {"shape": data.shape}
+    return {
+        "shape": data.shape,
+        "sfreq": raw_data.info["sfreq"]
+    }
 
 
 @router.get("/api/download-eeg-file/{upload_id}")

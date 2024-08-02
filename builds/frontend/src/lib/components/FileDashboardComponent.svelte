@@ -12,7 +12,10 @@
     let upload_id: string = data.upload_id;
     let File: any = [];
     let Participant: any = [];
+
     let EEGData: Float64Array[] = [];
+    let numChannels: number = 0;
+
     let svgElement: SVGSVGElement;
     let width: number;
     let height: number;
@@ -22,10 +25,12 @@
     let zoom: d3.ZoomBehavior<Element, unknown>;
     let chartArea: d3.Selection<SVGGElement, unknown, null, undefined>;
 
-    let viewportStart = 0;
-    let viewportEnd = 5000; // Initial viewport size (5 seconds * 1000 Hz = 500 samples)
-    const samplingRate = 1000; // 100 Hz sampling rate
     let yScaleRange = 100; // Default y-scale range in microvolts
+    let samplingRate = 100; // Default sampling rate
+    let numSecondsToDisplay = 5;
+    let viewportStart = 0;
+    let viewportEnd = numSecondsToDisplay * samplingRate; // Initial viewport size (numSecondsToDisplay seconds * samplingRate Hz = ? samples)
+    
 
     let resizeObserver: ResizeObserver;
 
@@ -43,8 +48,9 @@
 
             });
             
-            getEEGData(upload_id).then((response) => {
-                EEGData = Array.isArray(response) ? response.map(arr => new Float64Array(arr)) : [response ?? []] as Float64Array[];
+            getEEGData(upload_id, samplingRate).then((response) => {
+                EEGData = Array.isArray(response.data) ? response.data.map((arr: any[]) => new Float64Array(arr)) : [response ?? []] as Float64Array[];
+                numChannels = response.num_channels;
                 console.log('EEGData', EEGData);
                 drawEEGPlot();
                 updateYScale(yScaleRange);
@@ -201,6 +207,24 @@
         updateEEGLines();
     }
 
+    function updateSamplingRate(newRate: number) {
+        samplingRate = newRate;
+        viewportEnd = viewportStart + numSecondsToDisplay * samplingRate;
+        getEEGData(upload_id, samplingRate).then((response) => {
+            EEGData = Array.isArray(response.data) ? response.data.map((arr: any[]) => new Float64Array(arr)) : [response ?? []] as Float64Array[];
+            numChannels = response.num_channels;
+            console.log('EEGData', EEGData);
+            drawEEGPlot();
+            updateYScale(yScaleRange);
+        });
+    }
+
+    function updateNumSecondsToDisplay(newNumSeconds: number) {
+        numSecondsToDisplay = newNumSeconds;
+        viewportEnd = viewportStart + numSecondsToDisplay * samplingRate;
+        updateViewport(0,newNumSeconds)
+    }
+
     function navigateViewport(seconds: number) {
         const currentStart = viewportStart / samplingRate;
         const currentEnd = viewportEnd / samplingRate;
@@ -246,6 +270,13 @@
                         <input type="number" id="scaleInput" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" bind:value={yScaleRange} 
                         on:input={() => updateYScale(yScaleRange)}>
                     </div>
+                    
+                    <div class="flex gap-2">
+                        <label for="numSecondsInput" class="block text
+                        -base font-medium text-gray-700">Seconds to Display:</label>
+                        <input type="number" id="numSecondsInput" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" bind:value={numSecondsToDisplay}
+                        on:input={() => updateNumSecondsToDisplay(numSecondsToDisplay)}>
+                    </div>
                     <div class="flex justify-center gap-2 mt-4">
                         <Button on:click={() => navigateViewport(-10)}><ArrowBigLeftDash/>10s</Button>
                         <Button on:click={() => navigateViewport(-1)}><ArrowBigLeft/>1s</Button>
@@ -257,6 +288,14 @@
                     <Button on:click={() => updateYScale(50)}>50 µV</Button>
                     <Button on:click={() => updateYScale(100)}>100 µV</Button>
                     <Button on:click={() => updateYScale(200)}>200 µV</Button>
+                </div>
+                <header class="text-center mt-8">
+                    <h2 class="text-xl font-semibold ">Advanced Settings</h2>
+                </header>
+                <div class="flex gap-2">
+                    <label for="samplingRateInput" class="block text-base font-medium text-gray-700">Sampling Rate (Hz):</label>
+                    <input type="number" id="samplingRateInput" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" bind:value={samplingRate} 
+                    on:input={() => updateSamplingRate(samplingRate)}>
                 </div>
 
             </section>

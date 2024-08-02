@@ -396,16 +396,20 @@ export async function sendContactMessage(formData: any) {
 
 }
 
-export async function getEEGData(upload_id: string): Promise<Float64Array[]> {
+export async function getEEGData(upload_id: string, sample_rate: number): Promise<any> {
   console.log(`Getting EEG data for upload ID: ${upload_id}`);
   try {
     const shapeResponse = await fetch(`${baseUrl}get-eeg-data-shape/${upload_id}`);
     console.log('Get EEG Data Shape Response status:', shapeResponse.status);
     const shapeData = await shapeResponse.json();
     console.log('Shape data:', shapeData);
+
     let numchannels = shapeData.shape[0];
+    let samplingrate = sample_rate
+    let OriginalSamplingRate = shapeData.sfreq
+
     console.log('Num channels:', numchannels);
-    const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}`);
+    const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}/${sample_rate}`);
     console.log('Get EEG Data Response status:', response.status);
     const arrayBuffer = await response.arrayBuffer();
 
@@ -418,7 +422,12 @@ export async function getEEGData(upload_id: string): Promise<Float64Array[]> {
     // Reshape the array
     const reshapedArray = reshapeArray(array, numchannels);
     
-    return reshapedArray;
+    return {
+      "num_channels": numchannels,
+      "sampling_rate": samplingrate,
+      "original_sampling_rate": OriginalSamplingRate,
+      "data": reshapedArray
+    }
   } catch (error) {
     console.error('Error:', error);
     throw error; // Re-throw the error to be handled by the caller
