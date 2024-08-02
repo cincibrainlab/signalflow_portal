@@ -10,7 +10,7 @@
     export let upload_id: string;
     let File: any = [];
     let Participant: any = [];
-    let EEGData: number[][] = [];
+    let EEGData: Float64Array[] = [];
     let svgElement: SVGSVGElement;
     let width: number;
     let height: number;
@@ -42,7 +42,7 @@
             });
             
             getEEGData(upload_id).then((response) => {
-                EEGData = response ?? [];
+                EEGData = Array.isArray(response) ? response.map(arr => new Float64Array(arr)) : [response ?? []] as Float64Array[];
                 console.log('EEGData', EEGData);
                 drawEEGPlot();
             });
@@ -133,7 +133,7 @@
 
         xAxis = svg.append("g")
             .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(xScale).tickFormat(d => `${d.toFixed(2)}s`));
+            .call(d3.axisBottom(xScale).tickFormat(d => `${Number(d).toFixed(2)}s`));
 
         svg.append("g")
             .attr("class", "y-axis")
@@ -166,7 +166,7 @@
         viewportStart = Math.floor(startSeconds * samplingRate);
         viewportEnd = Math.floor(endSeconds * samplingRate);
         xScale.domain([startSeconds, endSeconds]);
-        xAxis.call(d3.axisBottom(xScale).tickFormat(d => `${d.toFixed(2)}s`));
+        xAxis.call(d3.axisBottom(xScale).tickFormat(d => `${Number(d).toFixed(2)}s`));
 
         // Instead of calling drawEEGPlot, update only the necessary parts
         updateEEGLines();
@@ -191,7 +191,7 @@
         yScale.domain([-yScaleRange / 2000000, yScaleRange / 2000000]);
         
         // Update y-axis
-        d3.select(svgElement).select(".y-axis")
+        d3.select<SVGSVGElement, unknown>(svgElement).select<SVGSVGElement>(".y-axis")
             .call(d3.axisLeft(yScale));
 
         // Update EEG lines
