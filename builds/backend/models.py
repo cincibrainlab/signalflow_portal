@@ -99,6 +99,7 @@ class OriginalImportFile(BaseModel):
     mne_load_error: Optional[bool] = Field(default=None)
     participant: Optional[PyObjectId] = Field(default=None)
     eegid: Optional[str] = Field(default="")
+    tags: Optional[list[str]] = Field(default="")
     
 class File(BaseModel):
     upload_id: Optional[str] = Field(default="")

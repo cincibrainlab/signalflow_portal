@@ -129,6 +129,7 @@ export async function assignFileToAnalysis(analysisId: string, OriginalImportFil
   }
 }
 
+
 export async function getFormats() {
   try {
     const data = await cachedFetch(`${baseUrl}list-eeg-formats`);
@@ -298,6 +299,32 @@ export async function assignEEGParadigmToFile(ID: string, fileId: string) {
 
   cache.delete(`${baseUrl}get-original-file-catalog`);
   return response.json();
+}
+
+export async function assignTagsToFile(tags: string[], fileId: string) {
+  try {
+    const url = `${baseUrl}assign-tags-to-file/${fileId}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify( tags )
+    });
+    
+    const responseData = await response.json();
+    console.log('Response data:', responseData);
+
+    if (!response.ok) {
+      throw new Error(`Failed to assign tags: ${JSON.stringify(responseData)}`);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error('Error in assignTagsToFile:', error);
+    throw error;
+  }
 }
 
 export async function addParticipant(participantData: any) {

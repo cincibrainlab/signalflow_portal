@@ -44,7 +44,7 @@
   import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant} from '$lib/services/apiService';
   import AddParticipant from './AddParticipant.svelte';
   import { debounce } from 'lodash-es';
-  import {getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile } from '$lib/services/apiService';
+  import {getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile, assignTagsToFile } from '$lib/services/apiService';
   /** @type {import('./$types').PageData} */
   export let data;
 
@@ -67,6 +67,8 @@
   let selectedEEGFormat_Name: string = "";
   let selectedParadigmData_Name: string = "";
   let Selected_participant_id: string = "";
+  let selectedTags: string[] = [];
+  let newTag: string = '';
 
   function openDashboard(id: string) {
       goto(`/fileDashboard?id=${id}`);
@@ -76,6 +78,7 @@
     selectedFile = file;
     selectedEEGFormat_Name = file.formatData?.name || "";
     selectedParadigmData_Name = file.paradigmData?.name || "";
+    selectedTags = file.tags || [];
     isEditing = false;
   }
 
@@ -85,16 +88,30 @@
     selectedEEGFormat_Name = "";
     selectedParadigmData_Name = "";
     Selected_participant_id = "";
+    selectedTags = [];
   }
 
   function toggleEditing() {
     isEditing = !isEditing;
   }
 
+  function addTag(event: Event) {
+    event.preventDefault(); // Prevent form submission
+    if (newTag && !selectedTags.includes(newTag)) {
+      selectedTags = [...selectedTags, newTag];
+      newTag = '';
+    }
+  }
+
+  function removeTag(tag: string) {
+    selectedTags = selectedTags.filter(t => t !== tag);
+  }
+
   function saveChanges() {
     if (selectedFile) {
       if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, selectedFile.upload_id);
       if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
+      if (selectedTags.length > 0) assignTagsToFile(selectedTags, selectedFile.upload_id);
     }
     isEditing = false;
     selectedFile = null;
@@ -110,6 +127,7 @@
     editingFiles.forEach(file => {
       if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, file.upload_id);
       if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, file.upload_id);
+      if (selectedTags.length > 0) assignTagsToFile(selectedTags, file.upload_id);
       assignParticipantToFile(Selected_participant_id, file.upload_id);
     });
     isBatchEditing = false;
@@ -122,7 +140,7 @@
   let selectedGroup: string = "All"
   let selectedAgeGroup: string = "All"
   let selectedParadigm: string = "All"
-  let viewMode: "card" | "table" = "card"
+  let viewMode: "card" | "table" = "table"
 
   let sortColumn: string = ""
   let sortDirection: "asc" | "desc" = "asc"
@@ -638,12 +656,12 @@
               EEGID
               <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
             </TableHead>
-            <TableHead class="w-1/8" on:click={() => toggleSort("participant_id")}>
-              Participant ID
+            <TableHead class="w-1/8" on:click={() => toggleSort("paradigms")}>
+              Paradigm
               <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
             </TableHead>
-            <TableHead class="w-1/8" on:click={() => toggleSort("date")}>
-              Date
+            <TableHead class="w-1/8" on:click={() => toggleSort("participant_id")}>
+              Participant ID
               <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
             </TableHead>
             <TableHead class="w-1/8" on:click={() => toggleSort("diagnosis")}>
@@ -662,8 +680,8 @@
               Equipment
               <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
             </TableHead>
-            <TableHead class="w-1/8" on:click={() => toggleSort("paradigms")}>
-              Paradigm
+            <TableHead class="w-1/8" on:click={() => toggleSort("date")}>
+              Date
               <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
             </TableHead>
             <TableHead class="w-1/8">Details</TableHead>
@@ -682,8 +700,9 @@
                 on:click={() => toggleFileSelection(file.original_name)}
               >
                 <TableCell>{file.original_name}</TableCell>
+                <TableCell>{file.paradigmData?.name}</TableCell>
                 <TableCell>{file.participantData?.participant_id}</TableCell>
-                <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
+                
                 <TableCell>
                   <Badge
                     class={getDiagnosisBadgeClasses(
@@ -714,7 +733,7 @@
                   </Badge>
                 </TableCell>
                 <TableCell>{file.formatData?.name}</TableCell>
-                <TableCell>{file.paradigmData?.name}</TableCell>
+                <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <Button
                     class="text-blue-500 hover:text-blue-700 flex items-center"
@@ -815,6 +834,32 @@
               {/await}
             </div>
           </div>
+          <div class="flex flex-wrap gap-2 mb-2">
+            {#each selectedTags as tag}
+              <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
+                {tag}
+                <button on:click={() => removeTag(tag)} class="ml-1 text-blue-600 hover:text-blue-800">
+                  <X size={14} />
+                </button>
+              </span>
+            {/each}
+          </div>
+          <div class="flex">
+            <input
+              type="text"
+              id="newTag"
+              bind:value={newTag}
+              placeholder="Enter a new tag"
+              class="flex-grow p-2 border rounded-l"
+            />
+            <button
+              type="button"
+              on:click={addTag}
+              class="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600"
+            >
+              Add Tag
+            </button>
+          </div>
           <div class="flex justify-end gap-2 mt-2">
             <Button variant="outline" on:click={() => { selectedFile = null; }}>Close</Button>
             {#if !isEditing}
@@ -864,10 +909,31 @@
                 {/each}
               </select>
             </div>
-            <!-- <div class="w-full mb-4">
-              <label for="tag" class="block text-sm font-semibold text-gray-700 mb-1">Tag:</label>
-              <input id="tag" class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedTag}>
-            </div> -->
+            <div class="flex flex-wrap gap-2 mb-2">
+              {#each selectedTags as tag}
+                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3.5 py-1.5 rounded flex items-center">
+                  {tag}
+                  <button on:click={() => removeTag(tag)} class="ml-1 text-blue-600 hover:bg-blue-200">
+                    <X size={14} />
+                  </button>
+                </span>
+              {/each}
+            </div>
+            <div class="flex">
+              <input
+                type="text"
+                id="newTag"
+                bind:value={newTag}
+                placeholder="Enter a new tag"
+                class="flex-grow px-2 border rounded-l"
+              />
+              <button
+                on:click={addTag}
+                class="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600"
+              >
+                Add Tag
+              </button>
+            </div>
             <div class="flex justify-end gap-2 mt-2">
               <Button variant="outline" type="button" on:click={() => { isBatchEditing = false; editingFiles = []; }}>Cancel</Button>
               <Button type="submit" >Save Changes</Button>

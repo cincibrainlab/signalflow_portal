@@ -203,6 +203,16 @@ async def assign_eeg_paradigm_to_file(request: FileAssignmentRequest):
         logging.error(f"Error assigning EEG Paradigm to file: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     
+@router.post("/api/assign-tags-to-file/{fileId}")
+async def assign_tags_to_file(fileId: str, tags: list[str]):
+    try:
+        updated_file = await flow_db.assign_tags_to_file(tags, fileId)
+        logging.debug(f"File Updated: {updated_file}")
+        return {"success": True, "message": "Tags assigned to file successfully", "file": updated_file}
+    except Exception as e:
+        logging.error(f"Error assigning tags to file: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
 @router.get("/api/get-participant/{participantObjectId}")
 async def get_participant(participantObjectId: str):
     try:
