@@ -5,9 +5,12 @@
 
 
   export let showModal = false;
-  export let uniqueDiagnoses: string[] = [];
+  export let uniqueGroups: string[] = [];
   export let uniqueAgeGroups: string[] = [];
-  
+  export let uniqueTypes: string[] = [];
+  export let uniqueSexes: string[] = [];
+  export let uniqueHandednesses: string[] = [];
+
   const dispatch = createEventDispatcher();
 
   let newParticipant = {
@@ -22,10 +25,6 @@
     anxiety_level: null
   };
 
-  // These should be fetched from your API or passed as props
-  let UniqueGender = ["All", "male", "female", "non-binary/non-conforming", "other", "prefer not to respond"];
-  let UniqueHandedness = ["All", "right", "left", "ambidextrous", "prefer not to respond"];
-  let UniqueSpecies = ["All", "human", "mouse", "rat", "monkey", "dog", "cat", "Other"];
 
   async function handleSubmit() {
     try {
@@ -61,13 +60,34 @@
 {#if showModal}
   <section class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
     <dialog class="bg-white rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6" open>
-      <h2 class="text-2xl font-bold mb-4">Add New Participant</h2>
+      <h2 class="text-2xl font-bold mb-[20px]">Add New Participant</h2>
       <form on:submit|preventDefault={handleSubmit}>
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <span class="text-xl font-semibold text-gray-700">Participant Info</span>
+        <div class="grid grid-cols-2 gap-4 mb-[50px] mt-[10px]">
           <div>
             <label for="participant_id" class="block text-sm font-semibold text-gray-700 mb-1">Participant ID:</label>
             <input type="text" id="participant_id" bind:value={newParticipant.participant_id} required class="w-full p-2 border rounded">
           </div>
+          <div></div>
+          <div>
+            <label for="species" class="block text-sm font-semibold text-gray-700 mb-1">Type:</label>
+            <select id="species" bind:value={newParticipant.species} required class="w-full p-2 border rounded">
+              {#each uniqueTypes as type}
+                <option value={type}>{type}</option>
+              {/each}
+            </select>
+          </div>
+          <div>
+            <label for="diagnosis" class="block text-sm font-semibold text-gray-700 mb-1">Group:</label>
+            <select id="diagnosis" bind:value={newParticipant.diagnosis} required class="w-full p-2 border rounded">
+              {#each uniqueGroups as group}
+                <option value={group}>{group}</option>
+              {/each}
+            </select>
+          </div>
+        </div>
+        <span class="text-xl font-semibold text-gray-700">Clinical Measures</span>
+        <div class="grid grid-cols-2 gap-4 mt-[10px]">
           <div>
             <label for="age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
             <input type="number" id="age" bind:value={newParticipant.age} required class="w-full p-2 border rounded">
@@ -81,34 +101,18 @@
             </select>
           </div>
           <div>
-            <label for="gender" class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
-            <select id="gender" bind:value={newParticipant.gender} required class="w-full p-2 border rounded">
-              {#each UniqueGender as gender}
-                <option value={gender}>{gender}</option>
+            <label for="sex" class="block text-sm font-semibold text-gray-700 mb-1">Sex:</label>
+            <select id="sex" bind:value={newParticipant.gender} required class="w-full p-2 border rounded">
+              {#each uniqueSexes as sex}
+                <option value={sex}>{sex}</option>
               {/each}
             </select>
           </div>
           <div>
             <label for="handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
-            <select id="handedness" bind:value={newParticipant.handedness} required class="w-full p-2 border rounded">
-              {#each UniqueHandedness as handedness}
+            <select id="handedness" bind:value={newParticipant.handedness} class="w-full p-2 border rounded">
+              {#each uniqueHandednesses as handedness}
                 <option value={handedness}>{handedness}</option>
-              {/each}
-            </select>
-          </div>
-          <div>
-            <label for="species" class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
-            <select id="species" bind:value={newParticipant.species} required class="w-full p-2 border rounded">
-              {#each UniqueSpecies as species}
-                <option value={species}>{species}</option>
-              {/each}
-            </select>
-          </div>
-          <div>
-            <label for="diagnosis" class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
-            <select id="diagnosis" bind:value={newParticipant.diagnosis} required class="w-full p-2 border rounded">
-              {#each uniqueDiagnoses as diagnosis}
-                <option value={diagnosis}>{diagnosis}</option>
               {/each}
             </select>
           </div>

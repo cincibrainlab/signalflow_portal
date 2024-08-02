@@ -53,8 +53,11 @@
     participants: Participants = [],
     uniqueParadigms = ["All"],
     uniqueFormats: UniqueFormats = ["All"],
-    uniqueDiagnoses = ["All"],
-    uniqueAgeGroups = ["All"]
+    uniqueAgeGroups = ["All"],
+    uniqueGroups = ["All"],
+    uniqueTypes = ["All"],
+    uniqueSexes = ["All"],
+    uniqueHandednesses = ["All"]
   } = data;
 
   let selectedFile: any = null;
@@ -116,7 +119,7 @@
 
   let searchTerm = ""
   let debouncedSearchTerm = ""
-  let selectedDiagnosis: string = "All"
+  let selectedGroup: string = "All"
   let selectedAgeGroup: string = "All"
   let selectedParadigm: string = "All"
   let viewMode: "card" | "table" = "card"
@@ -181,9 +184,9 @@
         file.original_name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         participant?.participant_id.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
 
-      const matchesDiagnosis =
-        selectedDiagnosis === "All" ||
-        participant?.diagnosis.toLowerCase() === selectedDiagnosis.toLowerCase();
+      const matchesGroup =
+        selectedGroup === "All" ||
+        participant?.group.toLowerCase() === selectedGroup.toLowerCase();
 
       const matchesAgeGroup =
         selectedAgeGroup === "All" ||
@@ -193,7 +196,7 @@
         selectedParadigm === "All" ||
         (file.paradigmData && file.paradigmData.name.toLowerCase() === selectedParadigm.toLowerCase());
 
-      return matchesSearch && matchesDiagnosis && matchesAgeGroup && matchesParadigm;
+      return matchesSearch && matchesGroup && matchesAgeGroup && matchesParadigm;
     }).sort((a: any, b: any) => {
       if (!sortColumn) return 0;
       
@@ -437,8 +440,11 @@
           on:participantAdded={handleParticipantAdded}
           on:toast={handleToast}
           on:close={() => showAddParticipantModal = false}
-          {uniqueDiagnoses}
+          {uniqueGroups}
           {uniqueAgeGroups}
+          {uniqueTypes}
+          {uniqueSexes}
+          {uniqueHandednesses}
         />
         <Button variant="outline" on:click={() => showAddParticipantModal = true}>
           Add New Participant
@@ -474,12 +480,12 @@
         </div>
         <div>
           <label
-            for="diagnosis"
-            class="block text-sm font-medium mb-1">Diagnosis</label
+            for="group"
+            class="block text-sm font-medium mb-1">Group</label
           >
-          <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedDiagnosis}>
-            {#each uniqueDiagnoses as diagnosis}
-              <option value={diagnosis}>{diagnosis}</option>
+          <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedGroup}>
+            {#each uniqueGroups as group}
+              <option value={group}>{group}</option>
             {/each}
           </select>
         </div>
@@ -858,6 +864,10 @@
                 {/each}
               </select>
             </div>
+            <!-- <div class="w-full mb-4">
+              <label for="tag" class="block text-sm font-semibold text-gray-700 mb-1">Tag:</label>
+              <input id="tag" class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedTag}>
+            </div> -->
             <div class="flex justify-end gap-2 mt-2">
               <Button variant="outline" type="button" on:click={() => { isBatchEditing = false; editingFiles = []; }}>Cancel</Button>
               <Button type="submit" >Save Changes</Button>

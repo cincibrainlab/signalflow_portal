@@ -3,13 +3,16 @@ import { getOriginalFileCatalog, getParticipants, getParadigms, getFormats, getF
 /** @type {import('./$types').PageLoad} */
 export async function load({ }) {
     try {
-        const [fileCatalog, participants, paradigms, formats, diagnosisOptions, ageGroupOptions] = await Promise.all([
+        const [fileCatalog, participants, paradigms, formats, groupOptions, ageGroupOptions, typeOptions, sexOptions, handednessOptions] = await Promise.all([
             getOriginalFileCatalog(),
             getParticipants(),
             getParadigms(),
             getFormats(),
-            getFormOptions("Diagnosis"),
-            getFormOptions("AgeGroup")
+            getFormOptions("Group"),
+            getFormOptions("AgeGroup"),
+            getFormOptions("Type"),
+            getFormOptions("Sex"),
+            getFormOptions("Handedness")
         ]);
 
         // Process files
@@ -19,16 +22,22 @@ export async function load({ }) {
         // Process other data
         const uniqueParadigms = ["All", ...paradigms.map((item: any) => item.name)];
         const uniqueFormats = formats.map((item: any) => item.name);
-        const uniqueDiagnoses = ["All", ...diagnosisOptions.form_options];
+        const uniqueGroups = ["All", ...groupOptions.form_options];
         const uniqueAgeGroups = ["All", ...ageGroupOptions.form_options];
+        const uniqueTypes = ["All", ...typeOptions.form_options];
+        const uniqueSexes = ["All", ...sexOptions.form_options];
+        const uniqueHandednesses = ["All", ...handednessOptions.form_options];
 
         return {
             files: filesWithObjects,
             participants,
             uniqueParadigms,
             uniqueFormats,
-            uniqueDiagnoses,
-            uniqueAgeGroups
+            uniqueGroups,
+            uniqueAgeGroups,
+            uniqueTypes,
+            uniqueSexes,
+            uniqueHandednesses
         };
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -38,8 +47,11 @@ export async function load({ }) {
             participants: [],
             uniqueParadigms: ["All"],
             uniqueFormats: [],
-            uniqueDiagnoses: ["All"],
-            uniqueAgeGroups: ["All"]
+            uniqueGroups: ["All"],
+            uniqueAgeGroups: ["All"],
+            uniqueTypes: ["All"],
+            uniqueSexes: ["All"],
+            uniqueHandednesses: ["All"]
         };
     }
 }

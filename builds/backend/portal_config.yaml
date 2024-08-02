@@ -142,38 +142,46 @@ FormInfo:
 - name: Equipment
   description: Options for EEG equipment used
   form_options: 
-    - 'n/a'
     - 'S Lab Front Booth'
     - 'S Lab Back Booth'
     - 'T Clinic'
-- name: Gender
-  description: Options for gender in selections 
-  form_options:
     - 'n/a'
+- name: Sex
+  description: Options for sex in selections 
+  form_options:
     - 'Male'
     - 'Female'
-    - 'Non-Binary/Other'
+    - 'n/a'
 - name: Handedness
   description: Options for handedness in selections
   form_options:
-    - 'n/a'
     - 'Right'
     - 'Left'
     - 'Ambidextrous'
-- name: Diagnosis
-  description: Options for diagnosis in selections
-  form_options:
     - 'n/a'
+- name: Group
+  description: Options for group in selections
+  form_options:
     - 'FXS'
     - 'ASD'
     - 'DD'
     - 'Control'
     - 'Blind'
     - 'Other'
+    - 'n/a'
 - name: AgeGroup
   description: Options for age group in selections
   form_options:
-    - 'n/a'
     - 'Infant'
-    - 'Pediatric'
+    - 'Adolescent'
     - 'Adult'
+    - 'n/a'
+- name: Type
+  description: Options for type in selections
+  form_options:
+    - 'Human'
+    - 'Mouse'
+    - 'Tetrode'
+    - 'Slice'
+    - 'Stem Cell'
+    - 'n/a'

@@ -113,13 +113,12 @@
             <input type="text" id="name" bind:value={newAnalysis.name} required class="w-full p-2 border rounded">
           </div>
           <div>
-            <label for="analysis_flow" class="block text-md font-semibold text-gray-700 mb-1">Function Name:</label>
+            <label for="analysis_flow" class="block text-md font-semibold text-gray-700 mb-1">Flow Name:</label>
             <select id="analysis_flow" bind:value={newAnalysis.analysis_flow} required class="w-full p-2 border rounded">
               {#each uniqueFlows as analysisFlow}
                 <option value={analysisFlow._id}>{analysisFlow.name}</option>
               {/each}
             </select>
-            <p>Selected Flow: {newAnalysis.analysis_flow}</p>
           </div>
 
           <div>
@@ -130,7 +129,6 @@
                 on:change={handleFormatSelection}
                 required
             />
-            <p>Selected Formats: {JSON.stringify(newAnalysis.valid_formats)}</p>
           </div>
 
           <div>
@@ -141,7 +139,6 @@
                 on:change={handleParadigmSelection}
                 required
             />
-            <p>Selected Paradigms: {JSON.stringify(newAnalysis.valid_paradigms)}</p>
           </div>
           <div>
             <label for="category" class="block text-md font-semibold text-gray-700 mb-1">Category:</label>
