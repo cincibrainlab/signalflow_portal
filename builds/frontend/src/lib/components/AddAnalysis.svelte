@@ -52,6 +52,7 @@
 
   async function handleSubmit() {
     try {
+      console.log('New Analysis', newAnalysis);
       const result = await getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms);
       newAnalysis.valid_files = result.map((file: any) => file._id);
 

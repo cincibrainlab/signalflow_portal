@@ -501,47 +501,45 @@ async def assign_tags_to_file(tags, file_id):
     
     return {"success": "Tags assigned to file"}
 
-#TODO Not finished
-async def create_file_for_analysis(analysisId, OriginalImportFile_id):
+async def get_tags(fileId):
     db = await get_database()
-    
-    # Get the participant
-    selected_analysis = await db.EegAnalysis.find_one({"_id": analysisId})
-    if not selected_analysis:
-        return {"error": "Analysis not found"}
-    
-    # Check if the file exists
-    originalFile = await db.OriginalImportFile.find_one({"_id": OriginalImportFile_id})
-    if not originalFile:
+    file = await db.OriginalImportFile.find_one({"upload_id": fileId})
+    if not file:
         return {"error": "File not found"}
     
-    new_file = {}
-    new_file["upload_id"] = originalFile.get("upload_id")    
-    new_file["date_added"] = originalFile.get("date_added")
-    new_file["original_file"] = originalFile.get("_id")
-    new_file["eeg_format"] = originalFile.get("eeg_format")
-    new_file["is_primary_file"] = originalFile.get("is_primary_file")
-    new_file["has_secondary_file"] = originalFile.get("has_secondary_file")
-    new_file["secondary_filename"] = originalFile.get("secondary_filename")
-    new_file["secondary_upload_id"] = originalFile.get("secondary_upload_id")
-    new_file["hash"] = originalFile.get("hash")
-    new_file["current_status"] = originalFile.get("current_status")
+    return file.get("tags", [])
 
-    file_result = await db.File.insert_one(new_file)
+async def get_file_runs(original_file_id):
+    db = await get_database()
+    file_runs = await db.FileRun.find({"original_file_id": ObjectId(original_file_id)}).to_list(length=None)
+    if not file_runs:
+        return []
+    for file_run in file_runs:
+        file_run['_id'] = str(file_run['_id'])  # Convert ObjectId to string
+        file_run['original_file_id'] = str(file_run['original_file_id'])  # Convert ObjectId to string
+        file_run['analysis_run_id'] = str(file_run['analysis_run_id'])  # Convert ObjectId to string
+        file_run['run_created_at'] = file_run['run_created_at'].strftime('%H:%M:%S %Y-%m-%d')
+        try:
+            file_run['run_completed_at'] = file_run['run_completed_at'].strftime('%H:%M:%S %Y-%m-%d')
+        except:
+            file_run['run_completed_at'] = 'N/A'
+    return file_runs
 
-    result = await db.EegAnalysis.update_one(
-        {"_id": analysisId},
-        {
-            "$push": {
-                "files": file_result.inserted_id,
-            }
-        }
-    )
-    
-    if result.modified_count == 0:
-        return {"error": "File not updated. It may already have this file."}
-    
-    return {"success": "File assigned to analysis"}
+async def get_file_run(file_run_id):
+    db = await get_database()
+    file_run = await db.FileRun.find_one({"_id": ObjectId(file_run_id)})
+    if not file_run:
+        return []
+    file_run['_id'] = str(file_run['_id'])  # Convert ObjectId to string
+    file_run['original_file_id'] = str(file_run['original_file_id'])  # Convert ObjectId to string
+    file_run['analysis_run_id'] = str(file_run['analysis_run_id'])  # Convert ObjectId to string
+    file_run['run_created_at'] = file_run['run_created_at'].strftime('%H:%M:%S %Y-%m-%d')
+    try:
+        file_run['run_completed_at'] = file_run['run_completed_at'].strftime('%H:%M:%S %Y-%m-%d')
+    except:
+        file_run['run_completed_at'] = 'N/A'
+    return file_run
+
 
 async def get_participant(participant_object_id):
     db = await get_database()
@@ -677,6 +675,7 @@ async def get_OriginalImportFile():
             "status": upload_record.get("status"),
             "date_added": upload_record.get("date_added"),
             "hash": upload_record.get("hash"),
+            "tags": upload_record.get("tags"),
             "size": upload_record.get("size"),
             "remove_upload": upload_record.get("remove_upload"),
             "upload_email": upload_record.get("upload_email"),
@@ -1051,6 +1050,15 @@ async def get_EEG_Data(upload_id):
                 if primary_dest_path.endswith(".set"):
                     # Read EEGLAB file info 
                     eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, primary_dest_path, preload=True, verbose=True)
+
+                    psd = eeg_data.compute_psd(fmin=1, fmax=200)
+        
+                    fig = psd.plot(show=False)
+                    
+                    tempPath = await get_folder_paths()
+                    tempPath = tempPath["temp"]
+                    psdPath = f"{tempPath}/psd_{upload_id}.png"
+                    fig.savefig(psdPath)
                 elif not primary_dest_path.endswith(".fdt"):
                     eeg_data = await asyncio.to_thread(mne.io.read_raw, primary_dest_path, preload=True, verbose=True)
                 else:
@@ -1067,7 +1075,7 @@ async def get_EEG_Data(upload_id):
                 await asyncio.to_thread(os.remove, secondary_dest_path)
                 logging.info(f"Removed FDT file {secondary_dest_path}")
             
-            return eeg_data
+            return eeg_data, psdPath
     except Exception as e:
         logging.error(f"Error getting EEG data: {str(e)}")
         raise

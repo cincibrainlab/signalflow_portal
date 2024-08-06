@@ -34,9 +34,14 @@
         console.log(`Processing file with id: ${id}`);
     }
 
+    function openDashboard(id: string) {
+      goto(`/fileDashboard?id=${id}`);
+  }
+
 
     // Runs dummy data
     import { Chart } from 'chart.js/auto';
+	import { goto } from '$app/navigation';
 
     let chart: Chart<"doughnut", number[], string>;
     let chartData = {
@@ -248,7 +253,7 @@
                                     <td class="p-2 font-medium">{file.name}</td>
                                     <td class="p-2 text-center">{file.status}</td>
                                     <td class="p-2 text-right">
-                                        <button on:click={() => viewDetails(file.id)} class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-xs mr-1">View</button>
+                                        <button on:click={(event) => {event.stopPropagation(); openDashboard(file.upload_id)}} class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-xs mr-1">View</button>
                                         <button on:click={() => removeFile(file.id)} class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs">Remove</button>
                                     </td>
                                 </tr>

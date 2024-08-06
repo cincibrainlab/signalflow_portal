@@ -18,33 +18,32 @@ folder_paths:
   info_archive: portal_files/info_archive
   output: portal_files/output
   logs: portal_files/logs
+  temp: portal_files/temp
   
 # List of EEG formats
 EEGFormat:
-  - name: 'Unassigned'
-    description: 'Unassigned EEG format'
-  - name: 'EGI128/Adult'
-    description: 'EGI Hydrocel 128 (Adult)'
-  - name: 'EGI128/Infant'
-    description: 'EGI Hydrocel 128 (Infant)'
-  - name: 'EGI32/Adult'
-    description: 'EGI Hydrocel 32 (Infant)'
+  - name: 'EGI128'
+    description: 'EGI Hydrocel 128'
+  - name: 'EGI32'
+    description: 'EGI Hydrocel 32'
   - name: 'MEA30'
     description: 'NeuroNexus MEA 30'
   - name: 'MEA30V2'
     description: 'NeuroNexus MEA 30 (v2)'
+  - name: 'Unassigned'
+    description: 'Unassigned EEG format'
 
 # These will be dleted later and are just for testing ----------------------------------------------
 # List of EEG paradigms
 EEGParadigm:
-  - name: 'Unassigned'
-    description: 'Unassigned EEG paradigm'
   - name: 'Resting'
     description: 'Subject is at rest with eyes open or closed'
   - name: 'Visual'
     description: 'Subject is presented with visual stimuli'
   - name: 'Auditory Chirp'
     description: 'Version B Click-Train 2023+'
+  - name: 'Unassigned'
+    description: 'Unassigned EEG paradigm'
 
 # List of Fake Users
 User:
@@ -77,7 +76,7 @@ User:
     email: 'gavin.gammoh@cchmc.org'
     password: 'password'
     is_active: True
-    is_superuser: False
+    is_superuser: True
 
 # List of fake Participants
 Participant:
@@ -94,7 +93,7 @@ Participant:
     equipment: 'All'
   - participant_id: '0012'
     species: 'mouse'
-    age: 25
+    age: 4
     age_group: 'infant'
     gender: 'Male'
     handedness: 'Right'
@@ -104,9 +103,9 @@ Participant:
     paradigm: 'resting_state'
     equipment: 'EGI Hydrocel 128'
   - participant_id: '0274'
-    species: 'cat'
+    species: 'human'
     age: 25
-    age_group: 'infant'
+    age_group: 'adult'
     gender: 'Female'
     handedness: 'Right'
     diagnosis: 'ASD'
@@ -116,8 +115,8 @@ Participant:
     equipment: 'EGI Hydrocel 128 infant'
   - participant_id: '0280'
     species: 'mouse'
-    age: 25
-    age_group: 'pediatric'
+    age: 14
+    age_group: 'adolescent'
     gender: 'Female'
     handedness: 'Right'
     diagnosis: 'DD'
@@ -127,8 +126,8 @@ Participant:
     equipment: 'BioSemi ActiveTwo 32 infant'
   - participant_id: '0418'
     species: 'mouse'
-    age: 25
-    age_group: 'pediatric'
+    age: 16
+    age_group: 'adolescent'
     gender: 'Female'
     handedness: 'Right'
     diagnosis: 'Control'

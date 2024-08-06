@@ -24,9 +24,6 @@
     Grid,
     List,
     Rat as Mouse,
-    Cat,
-    Dog,
-    Banana,
     Calculator as FileAnalytics,
     ExternalLink,
     ArrowUpDown,
@@ -75,10 +72,10 @@
   }
 
   function openFileModal(file: any) {
+    console.log(file)
     selectedFile = file;
     selectedEEGFormat_Name = file.formatData?.name || "";
     selectedParadigmData_Name = file.paradigmData?.name || "";
-    selectedTags = file.tags || [];
     isEditing = false;
   }
 
@@ -204,7 +201,7 @@
 
       const matchesGroup =
         selectedGroup === "All" ||
-        participant?.group.toLowerCase() === selectedGroup.toLowerCase();
+        participant?.diagnosis.toLowerCase() === selectedGroup.toLowerCase();
 
       const matchesAgeGroup =
         selectedAgeGroup === "All" ||
@@ -359,14 +356,6 @@
     switch (species.toLowerCase()) {
       case "mouse":
         return Mouse
-      case "rat":
-        return Mouse
-      case "cat":
-        return Cat
-      case "dog":
-        return Dog
-      case "monkey":
-        return Banana
       default:
         return UserRound
     }
@@ -376,9 +365,6 @@
     viewMode = viewMode === "card" ? "table" : "card"
   }
 
-  function getDetailedRecordLink(eegid: string) {
-    return `/record-viz?recordId=${eegid}`
-  }
 
   let showAddParticipantModal = false;
 
@@ -435,6 +421,17 @@
     ({ message: toastMessage, type: toastType } = event.detail);
     showToast = true;
     setTimeout(() => showToast = false, 3000);
+  }
+
+  function handleMakeChanges() {
+    if (filteredSelectedFiles.length === 1) {
+      openFileModal(filteredSelectedFiles[0]);
+    } else if (filteredSelectedFiles.length > 1) {
+      openBatchEditModal(filteredSelectedFiles);
+    } else {
+      // Optionally, handle the case where no files are selected
+      alert("Please select at least one file to make changes.");
+    }
   }
 
 </script>
@@ -549,7 +546,7 @@
           </Button>
 
 
-          <Button on:click={() => openBatchEditModal(filteredSelectedFiles)}>
+          <Button on:click={handleMakeChanges}>
             Make Changes
           </Button>
         </div>
@@ -665,7 +662,7 @@
               <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
             </TableHead>
             <TableHead class="w-1/8" on:click={() => toggleSort("diagnosis")}>
-              Diagnosis
+              Group
               <ArrowUpDown class="ml-2 h-4 w-4 inline-block" />
             </TableHead>
             <TableHead class="w-1/8" on:click={() => toggleSort("age_group")}>
@@ -736,16 +733,17 @@
                 <TableCell>{new Date(file.date_added).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <Button
+                    
                     class="text-blue-500 hover:text-blue-700 flex items-center"
                     variant="outline"
                     on:click={(event) => {
                       event.stopPropagation();
-                      openFileModal(file);
+                      openDashboard(file.upload_id);
                     }}
                   >
-                  View/Edit
-                  <ExternalLink class="w-4 h-4 ml-1" />
-                </Button>
+                    View Details
+                    <ExternalLink class="w-4 h-4 ml-1" />
+                  </Button>
                 </TableCell>
                 <TableCell>
                   <input
@@ -789,6 +787,10 @@
                   {/each}
                 </select>
               </div>
+              <div class="w-full">
+                <label for="Tags" class="block text-sm font-semibold text-gray-7000 mb-1">Tags:</label>
+                <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedFile.tags}</p>
+              </div>
               <div class="w-full h-4/6">
                 <label for="Notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
                 <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes}</p>
@@ -819,7 +821,7 @@
                     <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
                   </div>
                   <div class="w-full">
-                    <label for="Diagnosis" class="block text-sm font-semibold text-gray-700 mb-1">Diagnosis:</label>
+                    <label for="Group" class="block text-sm font-semibold text-gray-700 mb-1">Group:</label>
                     <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.diagnosis}</p>
                   </div>
                   <div class="w-full">
@@ -834,32 +836,34 @@
               {/await}
             </div>
           </div>
-          <div class="flex flex-wrap gap-2 mb-2">
-            {#each selectedTags as tag}
-              <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
-                {tag}
-                <button on:click={() => removeTag(tag)} class="ml-1 text-blue-600 hover:text-blue-800">
-                  <X size={14} />
-                </button>
-              </span>
-            {/each}
-          </div>
-          <div class="flex">
-            <input
-              type="text"
-              id="newTag"
-              bind:value={newTag}
-              placeholder="Enter a new tag"
-              class="flex-grow p-2 border rounded-l"
-            />
-            <button
-              type="button"
-              on:click={addTag}
-              class="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600"
-            >
-              Add Tag
-            </button>
-          </div>
+          {#if isEditing}
+            <div class="flex flex-wrap gap-2 mb-2">
+              {#each selectedTags as tag}
+                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
+                  {tag}
+                  <button on:click={() => removeTag(tag)} class="ml-1 text-blue-600 hover:text-blue-800">
+                    <X size={14} />
+                  </button>
+                </span>
+              {/each}
+            </div>
+            <div class="flex">
+              <input
+                type="text"
+                id="newTag"
+                bind:value={newTag}
+                placeholder="Enter a new tag"
+                class="flex-grow p-2 border rounded-l"
+              />
+              <button
+                type="button"
+                on:click={addTag}
+                class="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600"
+              >
+                Add Tag
+              </button>
+            </div>
+          {/if}
           <div class="flex justify-end gap-2 mt-2">
             <Button variant="outline" on:click={() => { selectedFile = null; }}>Close</Button>
             {#if !isEditing}

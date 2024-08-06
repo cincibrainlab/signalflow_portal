@@ -48,7 +48,7 @@ export async function getOriginalFileCatalog() {
         console.log('Response data:', data);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+      console.log(data)
       return data;
   } catch (error) {
       console.error('Error fetching original file catalog:', error);
@@ -319,12 +319,21 @@ export async function assignTagsToFile(tags: string[], fileId: string) {
     if (!response.ok) {
       throw new Error(`Failed to assign tags: ${JSON.stringify(responseData)}`);
     }
-
+    cache.delete(`${baseUrl}get-tags/${fileId}`);
     return responseData;
   } catch (error) {
     console.error('Error in assignTagsToFile:', error);
     throw error;
   }
+}
+
+export async function getTags(fileId: string) {
+  const data = await cachedFetch(`${baseUrl}get-tags/${fileId}`);
+  if (!data.ok) {
+    throw new Error('Failed to get tags');
+  }
+  console.log('Get Tags Response status: OK (cached or fresh)');
+  return data;
 }
 
 export async function addParticipant(participantData: any) {
@@ -376,7 +385,11 @@ export async function getFormOptions(form_name: string) {
 
 export async function getAnalyses() {
   try {
-    const data = await cachedFetch(`${baseUrl}get-analyses`);
+    const response = await fetch(`${baseUrl}get-analyses`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
     console.log('Get Analyses Response status: OK (cached or fresh)');
     return data;
   } catch (error) {
@@ -398,12 +411,44 @@ export async function addAnalysis(analysisData: any) {
     throw new Error('Failed to add analysis');
   }
 
-  // Clear the cache for get-analyses
-  cache.delete(`${baseUrl}get-analyses`);
-
   return await response.json();
 }
 
+export async function getFileRuns(upload_id: string) {
+  try {
+    const response = await fetch(`${baseUrl}get-file-runs/${upload_id}`);
+    console.log('Get File Runs Response status:', response.status);
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.log('Response data:', data);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching file runs:', error);
+    throw error;
+  }
+}
+
+export async function getFileRun(file_run_id: string) {
+  try {
+    const response = await fetch(`${baseUrl}get-file-run/${file_run_id}`);
+    console.log('Get File Run Response status:', response.status);
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.log('Response data:', data);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching file run:', error);
+    throw error;
+  }
+}
 
 export async function sendContactMessage(formData: any) {
   console.log(JSON.stringify(formData))
@@ -438,6 +483,12 @@ export async function getEEGData(upload_id: string, sample_rate: number): Promis
     console.log('Num channels:', numchannels);
     const response = await fetch(`${baseUrl}get-eeg-data/${upload_id}/${sample_rate}`);
     console.log('Get EEG Data Response status:', response.status);
+    console.log('All response headers:', Object.fromEntries(response.headers));
+    
+    // Get the header
+    const psdPath = response.headers.get('X-Psd-Path');
+    console.log('PSD Path from header:', psdPath);
+    
     const arrayBuffer = await response.arrayBuffer();
 
     // Decompress
@@ -453,7 +504,8 @@ export async function getEEGData(upload_id: string, sample_rate: number): Promis
       "num_channels": numchannels,
       "sampling_rate": samplingrate,
       "original_sampling_rate": OriginalSamplingRate,
-      "data": reshapedArray
+      "data": reshapedArray,
+      "psd_path": psdPath
     }
   } catch (error) {
     console.error('Error:', error);

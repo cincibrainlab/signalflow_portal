@@ -27,6 +27,8 @@
   uniqueParadigms = uniqueParadigms.filter((item: any) => item.name !== "Unassigned");
   uniqueFormats = uniqueFormats.filter((item: any) => item.name !== "Unassigned");
 
+  analyses = analyses || [];
+
   function openDashboard(id: string) {
       goto(`/dashboard?id=${id}`);
   }

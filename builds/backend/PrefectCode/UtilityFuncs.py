@@ -1,3 +1,4 @@
+import datetime
 from bson import ObjectId
 from uuid import UUID
 import traceback
@@ -40,7 +41,7 @@ async def deploy_analysis(analysis_id: str, analysis_flow: str):
         console.log(f"Deployment applied with ID: {deployment_id}")
         
         # Schedule runs for each file in the analysis
-        result = await schedule_runs(analysis_id, deployment_id)
+        result = await schedule_runs(analysis_id, deployment_id, analysis_flow)
         console.log(result)
         
         return {"success": True, "message": f"Deployed {analysis_flow} for analysis_id {analysis_id}", "id": deployment_id}
@@ -49,7 +50,7 @@ async def deploy_analysis(analysis_id: str, analysis_flow: str):
         console.log(f"Traceback: {traceback.format_exc()}")
         raise
 
-async def schedule_runs(analysis_id: str, deployment_id: UUID):
+async def schedule_runs(analysis_id: str, deployment_id: UUID, analysis_flow: str):
     console.log(f"Scheduling runs for analysis_id: {analysis_id}, deployment_id: {deployment_id}")
     db = await flow_db.get_database()
     analysis = await db.EegAnalysis.find_one({"_id": ObjectId(analysis_id)})
@@ -81,6 +82,21 @@ async def schedule_runs(analysis_id: str, deployment_id: UUID):
                 console.log(f"Skipping file {file_id} as it is not a primary file.")
                 continue
             
+            file_run_id = await db.FileRun.insert_one({
+                "original_file_id": ObjectId(file_id),
+                "original_name": file.get("original_name"),
+                "analysis_name": analysis.get("name"),
+                "flow_name": analysis_flow,
+                "analysis_run_id": ObjectId(analysis_id),
+                "run_created_at": datetime.datetime.now(),
+                "status": "pending"
+            })
+
+            await db.OriginalImportFile.update_one(
+                {"_id": ObjectId(file_id)},
+                {"$push": {"fileRuns": file_run_id.inserted_id}},
+                upsert=True
+            )
             # await serve(deployment)
             await run_deployment(
                 name=deployment_id,

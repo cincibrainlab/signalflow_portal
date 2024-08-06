@@ -264,6 +264,16 @@ async def get_eeg_paradigm(ParadigmObjectID: str):
         logging.error(f"Error retrieving EEG Paradigm: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
 
+@router.get("api/get-tags/{fileId}")
+async def get_tags(fileId: str):
+    try:
+        tags = await flow_db.get_tags(fileId)
+        logging.debug(f"Tags: {tags}")
+        return {"success": True, "message": "Tags retrieved successfully", "tags": tags}
+    except Exception as e:
+        logging.error(f"Error retrieving tags: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+
 @router.post("/api/add-participant", response_model=models.Participant)
 async def add_participant(participant: models.Participant):
     try:
@@ -294,6 +304,26 @@ async def get_analyses():
         return analyses
     except Exception as e:
         logging.error(f"Error in get_analyses: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/api/get-file-runs/{original_file_id}")
+async def get_file_runs(original_file_id: str):
+    try:
+        file_runs = await flow_db.get_file_runs(original_file_id)
+        logging.info(f"Retrieved file runs: {file_runs}")
+        return file_runs
+    except Exception as e:
+        logging.error(f"Error in get_file_runs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/api/get-file-run/{file_run_id}")
+async def get_file_run(file_run_id: str):
+    try:
+        file_run = await flow_db.get_file_run(file_run_id)
+        logging.info(f"Retrieved file run: {file_run}")
+        return file_run
+    except Exception as e:
+        logging.error(f"Error in get_file_runs: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -340,7 +370,7 @@ async def get_prefect_stats(deploymentId: str):
                 "pending_runs": pending_runs,
                 "avg_runtime": str(avg_runtime),
                 "completion_rate": (completed_runs / total_runs) * 100 if total_runs > 0 else 0,
-                "success_rate": (completed_runs / (completed_runs + failed_runs)) * 1000 if (completed_runs + failed_runs) > 0 else 0,
+                "success_rate": (completed_runs / (completed_runs + failed_runs)) * 100 if (completed_runs + failed_runs) > 0 else 0,
                 "runs": [{"id": run.state_id, "status": run.state_type, "name": run.name} for run in flow_runs]
             }
             
@@ -353,7 +383,7 @@ async def get_prefect_stats(deploymentId: str):
 @router.get("/api/get-eeg-data/{upload_id}/{sample_rate}")
 async def get_EEG_Data(upload_id, sample_rate):
     # try:
-    raw_data = await flow_db.get_EEG_Data(upload_id)
+    raw_data, psdPath = await flow_db.get_EEG_Data(upload_id)
     
     # Resample to 250 Hz
     raw_data = raw_data.resample(sample_rate)
@@ -372,12 +402,21 @@ async def get_EEG_Data(upload_id, sample_rate):
     def iterfile():
         yield compressed
     
-    return StreamingResponse(iterfile(), media_type="application/octet-stream")
+    headers = {
+        "X-Psd-Path": psdPath,
+        "Access-Control-Expose-Headers": "X-Psd-Path"
+    }
+    
+    return StreamingResponse(
+        iterfile(),
+        media_type="application/octet-stream",
+        headers=headers
+    )
 
 @router.get("/api/get-eeg-data-shape/{upload_id}")
 async def get_EEG_Data_Shape(upload_id):
     # Will return the shape of the data and the sampling frequency
-    raw_data = await flow_db.get_EEG_Data(upload_id)
+    raw_data, psdPath = await flow_db.get_EEG_Data(upload_id)
     data = raw_data.get_data()
     return {
         "shape": data.shape,
