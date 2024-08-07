@@ -127,7 +127,7 @@
         </div>
         <div class="absolute bottom-6 left-6 right-6 flex justify-between gap-2 mt-2">
           <Button class="p-5" variant="outline" on:click={closeModal}>Cancel</Button>
-          <Button class="p-5" type="submit">Save Analysis</Button>
+          <Button class="p-5" type="submit">Add Participant</Button>
         </div>
       </form>
     </dialog>

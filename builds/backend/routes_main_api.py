@@ -12,7 +12,7 @@ from typing import List
 import models
 from pydantic import BaseModel
 import io
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 import numpy as np
 import zlib
 import asyncio
@@ -452,3 +452,30 @@ async def download_EEG_Data(upload_id):
         media_type="application/zip",
         headers={"Content-Disposition": f"attachment;filename={zip_filename}"}
     )
+
+@router.get("/api/get-temp-file/{file_path}")
+async def get_temp_file(file_path: str):
+    logging.info(f"Getting file: {file_path}")
+    full_path = os.path.join("./portal_files/temp", file_path)
+    if not os.path.exists(full_path):
+        return Response(content=f"File {full_path} not found", status_code=404)
+    return FileResponse(full_path)
+
+@router.delete("/api/delete-temp-file/{file_name}")
+async def delete_temp_file(file_name: str):
+    file_path = os.path.join("./portal_files/temp", file_name)
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            return {"message": f"File {file_name} deleted successfully"}
+        else:
+            return {"message": f"File {file_name} not found"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
+    
+@router.get("/api/get-file-run-output-files/{file_run_id}")
+async def get_file_run_output_files(file_run_id: str):
+    output_files, error = await flow_db.get_file_run_output_files(file_run_id)
+    if error:
+        raise HTTPException(status_code=404, detail=error)
+    return {"output_files": output_files}

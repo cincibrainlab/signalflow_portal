@@ -5,6 +5,7 @@
     import { getFileRuns } from '$lib/services/apiService';
     import { Button } from '$lib/components/ui/button';
     import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "$lib/components/ui/table";
+    import PdfViewer from 'svelte-pdf';
 
     export let data: PageData;
 
@@ -77,9 +78,8 @@
             </div>
         {:else if activeTab === 2}
             <div class="p-4">
-                <h2 class="text-2xl font-semibold mb-4">Raw Data</h2>
-                <!-- Placeholder for raw data display -->
-                <p>Raw data content goes here.</p>
+                <h2 class="text-2xl font-semibold mb-4">Pdf View</h2>
+                <PdfViewer url='./s11689-022-09455-9.pdf' />
             </div>
         {/if}
     </div>

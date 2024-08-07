@@ -944,14 +944,14 @@ async def get_upload_paths(upload_id):
     db = await get_database()
     FOLDER_PATHS = await get_folder_paths()
     UPLOAD_PATH = FOLDER_PATHS["uploads"]
-    IMPORT_PATH = FOLDER_PATHS["import"]
+    TEMP_PATH = FOLDER_PATHS["temp"]
     file_record = await db.OriginalImportFile.find_one({"upload_id": upload_id})
     if not file_record:
         raise ValueError(f"Upload ID {upload_id} not found in the database.")
     primary_upload_path = os.path.join(UPLOAD_PATH, upload_id)
     secondary_upload_path = os.path.join(UPLOAD_PATH, file_record['secondary_upload_id']) if file_record.get('secondary_upload_id') else None
-    primary_import_path = os.path.join(IMPORT_PATH, file_record['original_name'])
-    secondary_import_path = os.path.join(IMPORT_PATH, file_record['secondary_filename']) if file_record.get('secondary_filename') else None
+    primary_import_path = os.path.join(TEMP_PATH, file_record['original_name'])
+    secondary_import_path = os.path.join(TEMP_PATH, file_record['secondary_filename']) if file_record.get('secondary_filename') else None
     return {
         "upload_id": upload_id,
         "primary_upload_path": primary_upload_path,
@@ -1051,7 +1051,7 @@ async def get_EEG_Data(upload_id):
                     # Read EEGLAB file info 
                     eeg_data = await asyncio.to_thread(mne.io.read_raw_eeglab, primary_dest_path, preload=True, verbose=True)
 
-                    psd = eeg_data.compute_psd(fmin=1, fmax=200)
+                    psd = eeg_data.compute_psd(fmin=1, fmax=80)
         
                     fig = psd.plot(show=False)
                     
@@ -1079,3 +1079,29 @@ async def get_EEG_Data(upload_id):
     except Exception as e:
         logging.error(f"Error getting EEG data: {str(e)}")
         raise
+
+async def get_file_run_output_files(file_run_id: str):
+    db = await get_database()
+    file_run = await db.FileRun.find_one({"_id": ObjectId(file_run_id)})
+    if not file_run:
+        return None, "File run not found"
+
+    analysis_id = file_run.get("analysis_run_id")
+    analysis = await db.EegAnalysis.find_one({"_id": analysis_id})
+    if not analysis:
+        return None, "Analysis not found"
+
+    output_path = analysis.get("output_path")
+    if not output_path:
+        return None, "Output path not found for this analysis"
+
+    output_files = []
+    for output_file in file_run.get("output_files", []):
+        full_path = os.path.join(output_path, output_file)
+        if os.path.exists(full_path):
+            output_files.append({
+                "name": output_file,
+                "path": full_path
+            })
+
+    return output_files, None

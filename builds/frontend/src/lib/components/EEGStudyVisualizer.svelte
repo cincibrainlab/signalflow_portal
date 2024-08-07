@@ -117,10 +117,6 @@
 
   function saveBatchChanges(event: Event) {
     event.preventDefault(); // Prevent default form submission
-    if (!Selected_participant_id) {
-      alert("Please select a participant before saving changes.");
-      return;
-    }
     editingFiles.forEach(file => {
       if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, file.upload_id);
       if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, file.upload_id);

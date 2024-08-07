@@ -73,6 +73,7 @@
     "svelte-chartjs": "^3.1.5",
     "svelte-dnd-action": "^0.9.49",
     "svelte-multiselect": "^10.3.0",
+    "svelte-pdf": "^1.0.20",
     "svelte-radix": "^1.1.0",
     "svelte-simple-datatables": "^0.3.1",
     "tailwind-variants": "^0.2.1",

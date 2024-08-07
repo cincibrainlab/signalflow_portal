@@ -3,7 +3,7 @@
     // Import necessary components and data
 
     import { onMount, onDestroy } from 'svelte';
-    import { getOriginalFileFromUploadID, getParticipant, getEEGData, downloadFile, getFileRuns} from '$lib/services/apiService';
+    import { getOriginalFileFromUploadID, getParticipant, getEEGData, downloadFile, getFileRuns, baseUrl, deleteTemporaryFile} from '$lib/services/apiService';
     import * as d3 from 'd3';
 	import { Button } from './ui/button';
     import { ArrowBigLeft, ArrowBigRight, ArrowBigLeftDash, ArrowBigRightDash, ChevronDown } from 'lucide-svelte';
@@ -98,10 +98,16 @@
             // Remove the SVG content, but keep the element
         EEGData = [];
         
-        if (svgElement) {
+        if (svgElement != null) {
             while (svgElement.firstChild) {
                 svgElement.removeChild(svgElement.firstChild);
             }
+        }
+
+        if (psdPath) {
+            deleteTemporaryFile(psdPath.split('/').pop() || '').catch(error => {
+                console.error('Error deleting temporary file:', error);
+            });
         }
     });
 
@@ -335,6 +341,23 @@
 
             </section>
         </div>
+        {#if psdPath}
+            <div class="w-full mt-6">
+                <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4">Power Spectral Density</h2>
+                    {#if psdPath}
+                        <img 
+                            src={`${baseUrl}get-temp-file/${encodeURIComponent(psdPath.split('/').pop() || '')}`} 
+                            alt="Power Spectral Density Graph" 
+                            class="w-full h-auto" 
+                            on:error={(e) => console.error('Image load error:', e)}
+                        />
+                    {:else}
+                        <p>PSD graph not available</p>
+                    {/if}
+                </section>
+            </div>
+        {/if}
         <div class="w-full">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 h-full transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-xl font-semibold mb-2 ">Participant Details</h2>
