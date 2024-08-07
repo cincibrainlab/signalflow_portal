@@ -45,6 +45,15 @@
     let toastMessage = '';
     let toastType = 'success';
 
+    async function openFile(filePath: string) {
+        try {
+            const url = await getFile(filePath);
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Error opening file:', error);
+        }
+    }
+
     onMount(async () => {
         if (upload_id) {
             getOriginalFileFromUploadID(upload_id).then((response) => {

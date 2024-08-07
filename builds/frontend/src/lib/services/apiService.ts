@@ -195,7 +195,6 @@ export async function getParticipants() {
 export async function getParticipant(participantObjectId: string) {
   try {
     const data = await cachedFetch(`${baseUrl}get-participant/${participantObjectId}`);
-    console.log('Get Participant Response status: OK (cached or fresh)');
     return data.participant;
   } catch (error) {
     console.error('Error fetching participant:', error);
@@ -225,7 +224,6 @@ export async function getAnalysisFromDeploymentID(DeploymentID: string) {
 export async function getEEGFormat(FormatObjectID: string) {
   try { 
     const data = await cachedFetch(`${baseUrl}get-eeg-format/${FormatObjectID}`);
-    console.log('Get EEG Format Response status: OK (cached or fresh)');
     return data.eeg_format;
   } catch (error) {
     console.error('Error fetching EEG format:', error);
@@ -236,7 +234,6 @@ export async function getEEGFormat(FormatObjectID: string) {
 export async function getParadigm(ParadigmObjectID: string) {
   try { 
     const data = await cachedFetch(`${baseUrl}get-eeg-paradigm/${ParadigmObjectID}`);
-    console.log('Get EEG Paradigm Response status: OK (cached or fresh)');
     return data.eeg_paradigm;
   } catch (error) {
     console.error('Error fetching EEG paradigm:', error);
@@ -571,15 +568,23 @@ export async function deleteTemporaryFile(fileName: string) {
   }
 }
 
-export async function getFileRunOutputFiles(fileRunId: string) {
+export async function getFile(filePath: string) {
   try {
-      const response = await fetch(`${baseUrl}get-file-run-output-files/${fileRunId}`);
+      const encodedPath = encodeURIComponent(filePath);
+      const url = `${baseUrl}get-file/${encodedPath}`;
+      console.log('Requesting URL:', url); // Debug log
+      
+      const response = await fetch(url);
+      
       if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('Error response:', errorText); // Debug log
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
-      return await response.json();
+      
+      return response;
   } catch (error) {
-      console.error('Error fetching file run output files:', error);
+      console.error('Error fetching file:', error);
       throw error;
   }
 }

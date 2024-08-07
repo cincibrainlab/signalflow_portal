@@ -2,6 +2,7 @@
 import asyncio
 from datetime import datetime
 import sys
+import pandas as pd
 # Signalflow imports
 sys.path.append("builds/backend")
 import db as flow_db
@@ -64,6 +65,12 @@ async def SaveEEG(raw, importID, output_path):
     raw.save(f"{output_path}/raw_{importID}.fif", overwrite=True)
     output_files.append(f"{output_path}/raw_{importID}.fif")
 
+@task(name="SaveCSV", retries=1, description="Save the EEG data to the output directory.")
+async def SaveCSV(raw, importID, output_path):
+    df = raw.to_data_frame()
+    df.to_csv(f"{output_path}/csv_{importID}.csv")
+    output_files.append(f"{output_path}/csv_{importID}.csv")
+
 @task(name="update_file_runs", retries=1, description="Update the file runs with the output files.")
 async def update_file_runs(analysis_id, importID):
     db = await flow_db.get_database()
@@ -97,6 +104,7 @@ async def TemplateAnalysis_Flow(importID: str, analysis_flow: str, analysis_id: 
     config = await UtilityTasks.loadconfig()  # Load configuration file
     upload_path = config["folder_paths"]["uploads"]  # Get upload directory path
     output_files = []
+    tasks = []
 
     db = await flow_db.get_database()
     
@@ -105,7 +113,7 @@ async def TemplateAnalysis_Flow(importID: str, analysis_flow: str, analysis_id: 
     output_path = EEGAnalysis["output_path"]
     
     # Get the analysis flow from the database
-    AnalysisFlow = await db.AnalysisFlow.find_one({"name": analysis_flow})
+    # AnalysisFlow = await db.AnalysisFlow.find_one({"name": analysis_flow})
     
     # Get the file from the database
     original_file = await db.OriginalImportFile.find_one({"upload_id": importID})
@@ -168,17 +176,20 @@ async def TemplateAnalysis_Flow(importID: str, analysis_flow: str, analysis_id: 
         # Takes a long time to run, so it is commented out for now.
         # epochs = await run_ica(epochs)
         
-        await get_psd_graph(raw, importID, output_path)
+        tasks.append(get_psd_graph(raw, importID, output_path))
         
-        await SaveEEG(raw, importID, output_path)
+        tasks.append(SaveEEG(raw, importID, output_path))
 
-        await update_file_runs(analysis_id, importID)
+        tasks.append(SaveCSV(raw, importID, output_path))
+
+        
 
         # This is not recommended for signal processing and analysis functions. 
         # Because the order of the tasks is not guaranteed.
         # This is only recommended for tasks that can be run in parallel.
         # For example, creating multiple figures or saving multiple files.
-        tasks = []
         if tasks:
             await asyncio.gather(*tasks)  # Run all analysis tasks in parallel
+
+        await update_file_runs(analysis_id, importID)
 

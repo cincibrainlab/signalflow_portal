@@ -15,8 +15,8 @@ from .ComputePsdAnalysisMatlab import ComputePsdAnalysisMatlab_Flow
 #* Currently the only place new analysis flows need to be added is here and in analysis_flows.yaml
 #* The key needs to be put both in this dictionary and in the analysis_flows.yaml file
 analysis_flows = {
-    "TemplateAnalysis": TemplateAnalysis_Flow,
-    "ComputePsdAnalysis": ComputePsdAnalysisMatlab_Flow,
+    "ComputePsd - Python": TemplateAnalysis_Flow,
+    "ComputePsd - Matlab": ComputePsdAnalysisMatlab_Flow,
     # Add more flows here as needed
 }
 

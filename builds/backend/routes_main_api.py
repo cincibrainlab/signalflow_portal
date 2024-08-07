@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 import logging
 import db as flow_db
 import os
@@ -473,9 +473,15 @@ async def delete_temp_file(file_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
     
-@router.get("/api/get-file-run-output-files/{file_run_id}")
-async def get_file_run_output_files(file_run_id: str):
-    output_files, error = await flow_db.get_file_run_output_files(file_run_id)
-    if error:
-        raise HTTPException(status_code=404, detail=error)
-    return {"output_files": output_files}
+@router.get("/api/get-file/{file_path:path}")
+async def get_file(file_path: str):
+    
+    if not file_path:
+        raise HTTPException(status_code=400, detail="file_path query parameter is required")
+    
+    full_path = os.path.abspath(file_path)
+    
+    if not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(full_path, filename=os.path.basename(full_path))

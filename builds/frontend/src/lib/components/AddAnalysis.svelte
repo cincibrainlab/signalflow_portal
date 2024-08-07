@@ -57,8 +57,8 @@
       newAnalysis.valid_files = result.map((file: any) => file._id);
 
       if (newAnalysis.output_path === "") {
-        newAnalysis.output_path = "portal_files/output/";
-      }
+        newAnalysis.output_path = "./portal_files/output";
+      }1
 
       await addAnalysis(newAnalysis);
       dispatch('showToast', { message: 'Analysis added successfully', type: 'success' });

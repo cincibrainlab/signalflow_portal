@@ -1079,29 +1079,3 @@ async def get_EEG_Data(upload_id):
     except Exception as e:
         logging.error(f"Error getting EEG data: {str(e)}")
         raise
-
-async def get_file_run_output_files(file_run_id: str):
-    db = await get_database()
-    file_run = await db.FileRun.find_one({"_id": ObjectId(file_run_id)})
-    if not file_run:
-        return None, "File run not found"
-
-    analysis_id = file_run.get("analysis_run_id")
-    analysis = await db.EegAnalysis.find_one({"_id": analysis_id})
-    if not analysis:
-        return None, "Analysis not found"
-
-    output_path = analysis.get("output_path")
-    if not output_path:
-        return None, "Output path not found for this analysis"
-
-    output_files = []
-    for output_file in file_run.get("output_files", []):
-        full_path = os.path.join(output_path, output_file)
-        if os.path.exists(full_path):
-            output_files.append({
-                "name": output_file,
-                "path": full_path
-            })
-
-    return output_files, None

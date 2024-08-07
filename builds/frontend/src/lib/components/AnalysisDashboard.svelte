@@ -119,7 +119,7 @@
                 failedFiles = prefectStats.runs.filter((run: { id: string; name: string; status: string }) => run.status === 'FAILED').map((run: { id: string; name: string; status: string }) => ({id: run.id, name: run.name, status: run.status}));
             }
             // Set up periodic refresh
-            intervalId = setInterval(updatePrefectStats, 15000);
+            intervalId = setInterval(updatePrefectStats, 500);
 
         } catch (error) {
             console.error('Error in onMount:', error);
@@ -163,7 +163,7 @@
         <span class="text-2xl font-bold">Flow Name: {analysisFlow.name}</span>
     </header>
     <div class="flex flex-col lg:flex-row gap-6">
-        <div class="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="lg:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 ">Current Runs</h2>
                 <canvas id="runsChart" class="w-full"></canvas>
@@ -235,7 +235,7 @@
             
             
         </div>
-        <div class="lg:w-1/3">
+        <div class="lg:w-1/2">
             <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 h-full transition duration-300 ease-in-out hover:shadow-lg">
                 <h2 class="text-xl font-semibold mb-2 ">Files</h2>
                 <div class="overflow-y-auto">
@@ -253,7 +253,7 @@
                                     <td class="p-2 font-medium">{file.name}</td>
                                     <td class="p-2 text-center">{file.status}</td>
                                     <td class="p-2 text-right">
-                                        <button on:click={(event) => {event.stopPropagation(); openDashboard(file.upload_id)}} class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-xs mr-1">View</button>
+                                        <button on:click={(event) => {event.stopPropagation(); openDashboard(file.upload_id)}} class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-xs mr-1">Results</button>
                                         <button on:click={() => removeFile(file.id)} class="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs">Remove</button>
                                     </td>
                                 </tr>

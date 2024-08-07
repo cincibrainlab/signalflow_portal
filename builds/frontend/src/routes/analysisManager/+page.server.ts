@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({}) => {
             uniqueParadigms,
             uniqueFormats,
             uniqueFlows,
-            uniqueCategories: ["Connectivity", "test", "test2"]
+            uniqueCategories: ["Connectivity", "Psd"]
         };
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({}) => {
             uniqueParadigms: ["All"],
             uniqueFormats: ["All"],
             uniqueFlows: [],
-            uniqueCategories: ["Connectivity", "test", "test2"]
+            uniqueCategories: ["Connectivity", "Psd"]
         };
     }
 };
