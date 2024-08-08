@@ -4,12 +4,7 @@ import { fontFamily } from "tailwindcss/defaultTheme";
 const config = {
 	darkMode: ["class"],
 	content: ["./src/**/*.{html,js,svelte,ts}"],
-	safelist: [
-		"dark",
-		'bg-red-500', 'bg-purple-500', 'bg-orange-500', 'bg-green-500', 'bg-blue-500',
-		'hover:bg-red-600', 'hover:bg-purple-600', 'hover:bg-orange-600', 'hover:bg-green-600', 'hover:bg-blue-600',
-		// Add other color variations you need
-	],
+	safelist: ["dark"],
 	theme: {
 		container: {
 			center: true,
@@ -88,4 +83,3 @@ const config = {
 };
 
 export default config;
-

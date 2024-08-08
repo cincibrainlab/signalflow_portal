@@ -14,6 +14,7 @@
     TableHeader,
     TableRow,
   } from "$lib/components/ui/table"
+  import * as Select from '$lib/components/ui/select';
   import {
     ArrowUpDown,
 	  Filter,
@@ -190,36 +191,48 @@
               for="Flow"
               class="block text-sm font-medium0 mb-1">Flow</label
             >
-            <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedFunction}>
-              <option value="All">All</option>
-              {#each uniqueFlows as flow}
-                <option value={flow.name}>{flow.name}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger>
+                <Select.Value placeholder="Filter by Flow" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueFlows as flow}
+                  <Select.Item value={flow.name} on:click={() => selectedFunction = flow.name}>{flow.name}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
           <div>
             <label
               for="Format"
               class="block text-sm font-medium0 mb-1">Format</label
             >
-            <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedFormat}>
-              <option value="All">All</option>
-              {#each uniqueFormats as format}
-                <option value={format.name}>{format.name}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger>
+                <Select.Value placeholder="Filter by Format" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueFormats as format}
+                  <Select.Item value={format.name} on:click={() => selectedFormat = format.name}>{format.name}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
           <div>
             <label 
               for="Paradigm"
               class="block text-sm font-medium0 mb-1">Paradigm</label
             >
-            <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedParadigm}>
-              <option value="All">All</option>
-              {#each uniqueParadigms as paradigm}
-                <option value={paradigm.name}>{paradigm.name}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger>
+                <Select.Value placeholder="Filter by Paradigm" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueParadigms as paradigm}
+                  <Select.Item value={paradigm.name} on:click={() => selectedParadigm = paradigm.name}>{paradigm.name}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
         </div>
     </div>

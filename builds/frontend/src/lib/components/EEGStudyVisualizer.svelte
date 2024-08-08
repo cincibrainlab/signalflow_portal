@@ -1,189 +1,41 @@
 <!-- src/lib/components/EEGStudyVisualizer.svelte -->
 <script lang="ts">
-  import { goto } from "$app/navigation"
-  import { fade, slide } from "svelte/transition"
-  import { Alert} from 'flowbite-svelte';
-  import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-  } from "$lib/components/ui/card"
-  import { Button } from "$lib/components/ui/button"
-  import { Badge } from "$lib/components/ui/badge"
-  import {
-    Brain,
-    Activity,
-    Zap,
-    Cog,
-    Baby,
-    UserRound,
-    Filter,
-    Grid,
-    List,
-    Rat as Mouse,
-    Calculator as FileAnalytics,
-    ExternalLink,
-    ArrowUpDown,
-    X,
-  } from "lucide-svelte"
-  import { Input } from "$lib/components/ui/input"
-  import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-  } from "$lib/components/ui/table"
-  import { getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant} from '$lib/services/apiService';
-  import AddParticipant from './AddParticipant.svelte';
+  // 1. Imports
+  // Svelte/framework imports
+  import { goto } from "$app/navigation";
+  import { fade } from "svelte/transition";
+
+  // Third-party library imports
   import { debounce } from 'lodash-es';
-  import {getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile, assignTagsToFile } from '$lib/services/apiService';
+
+  // UI component imports
+  import { Alert } from 'flowbite-svelte';
+  import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "$lib/components/ui/card";
+  import { Button } from "$lib/components/ui/button";
+  import { Badge } from "$lib/components/ui/badge";
+  import { Input } from "$lib/components/ui/input";
+  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "$lib/components/ui/table";
+  import * as Select from "$lib/components/ui/select";
+  // Icon imports
+  import {
+    Brain, Activity, Zap, Cog, Baby, UserRound, Filter, Grid, List,
+    Rat as Mouse, ExternalLink, ArrowUpDown, X,
+  } from "lucide-svelte";
+
+  // Local component imports
+  import AddParticipant from './AddParticipant.svelte';
+
+  // Service imports
+  import { 
+    getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant,
+    getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile, assignTagsToFile 
+  } from '$lib/services/apiService';
+
+  // 2. Component props
   /** @type {import('./$types').PageData} */
   export let data;
 
-  let {
-    files: Files = [],
-    participants: Participants = [],
-    uniqueParadigms = ["All"],
-    uniqueFormats: UniqueFormats = ["All"],
-    uniqueAgeGroups = ["All"],
-    uniqueGroups = ["All"],
-    uniqueTypes = ["All"],
-    uniqueSexes = ["All"],
-    uniqueHandednesses = ["All"]
-  } = data;
-
-  let selectedFile: any = null;
-  let isEditing = false;
-  let isBatchEditing = false;
-  let editingFiles: any[] = [];
-  let selectedEEGFormat_Name: string = "";
-  let selectedParadigmData_Name: string = "";
-  let Selected_participant_id: string = "";
-  let selectedTags: string[] = [];
-  let newTag: string = '';
-
-  function openDashboard(id: string) {
-      goto(`/fileDashboard?id=${id}`);
-  }
-
-  function openFileModal(file: any) {
-    console.log(file)
-    selectedFile = file;
-    selectedEEGFormat_Name = file.formatData?.name || "";
-    selectedParadigmData_Name = file.paradigmData?.name || "";
-    isEditing = false;
-  }
-
-  function openBatchEditModal(files: any[]) {
-    editingFiles = files;
-    isBatchEditing = true;
-    selectedEEGFormat_Name = "";
-    selectedParadigmData_Name = "";
-    Selected_participant_id = "";
-    selectedTags = [];
-  }
-
-  function toggleEditing() {
-    isEditing = !isEditing;
-  }
-
-  function addTag(event: Event) {
-    event.preventDefault(); // Prevent form submission
-    if (newTag && !selectedTags.includes(newTag)) {
-      selectedTags = [...selectedTags, newTag];
-      newTag = '';
-    }
-  }
-
-  function removeTag(tag: string) {
-    selectedTags = selectedTags.filter(t => t !== tag);
-  }
-
-  function saveChanges() {
-    if (selectedFile) {
-      if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, selectedFile.upload_id);
-      if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
-      if (selectedTags.length > 0) assignTagsToFile(selectedTags, selectedFile.upload_id);
-    }
-    isEditing = false;
-    selectedFile = null;
-    getSetFiles();
-  }
-
-  function saveBatchChanges(event: Event) {
-    event.preventDefault(); // Prevent default form submission
-    editingFiles.forEach(file => {
-      if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, file.upload_id);
-      if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, file.upload_id);
-      if (selectedTags.length > 0) assignTagsToFile(selectedTags, file.upload_id);
-      assignParticipantToFile(Selected_participant_id, file.upload_id);
-    });
-    isBatchEditing = false;
-    editingFiles = [];
-    getSetFiles();
-  }
-
-  let searchTerm = ""
-  let debouncedSearchTerm = ""
-  let selectedGroup: string = "All"
-  let selectedAgeGroup: string = "All"
-  let selectedParadigm: string = "All"
-  let viewMode: "card" | "table" = "table"
-
-  let sortColumn: string = ""
-  let sortDirection: "asc" | "desc" = "asc"
-
-  function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  async function getObjectsInFiles(files: any[]) {
-    const filesWithObjects = await Promise.all(
-      files.map(async (file) => {
-        if (file.eeg_format) {
-          const formatData = await getEEGFormat(file.eeg_format);
-          file = { ...file, formatData };
-        }
-        if (file.participant) {
-          const participantData = await getParticipant(file.participant);
-          file = { ...file, participantData };
-        }
-        if (file.eeg_paradigm) {
-          const paradigmData = await getParadigm(file.eeg_paradigm);
-          file = { ...file, paradigmData };
-        }
-        return file;
-      })
-    );
-    return filesWithObjects;
-  }
-
-  function getSetFiles() {
-    sleep(500).then(() => { 
-      Files = []
-    
-      getOriginalFileCatalog()
-          .then(async (result) => {
-            const setFiles = result.filter((file: any) => file.is_primary_file === true);
-            const filesWithObjects = await getObjectsInFiles(setFiles);
-            Files = filesWithObjects;
-            console.log("Files with Objects:", Files);
-          })
-          .catch(error => {
-            console.error('Error fetching file catalog:', error);
-              // Handle the error appropriately
-          });
-    })
-  }
-
-  let filteredFiles: any = []
-  let isFiltering = false;
-
+  // 3. Reactive declarations
   $: filteredSelectedFiles = Files.filter((file: any) => selectedFiles.includes(file.original_name));
 
   $: {
@@ -252,31 +104,61 @@
     });
     isFiltering = false;
   }
-  console.log("Filtered Files:", filteredFiles)
 
-  function toggleSort(column: string) {
-    console.log("Toggling sort for column:", column)
-    if (sortColumn === column) {
-      sortDirection = sortDirection === "asc" ? "desc" : "asc"
-    } else {
-      sortColumn = column
-      sortDirection = "asc"
-    }
-    console.log("New sort column:", sortColumn)
-    console.log("New sort direction:", sortDirection)
+  $: {
+    updateDebouncedSearch(searchTerm);
   }
 
-  function getParadigmIcon(type: string) {
-    switch (type) {
-      case "resting_state":
-        return Brain
-      case "chirp":
-        return Activity
-      case "cognitive_flexibility":
-        return Cog
-      default:
-        return Zap
+  $: {
+    if (sortColumn === "eegid") {
+      console.log("Sorted files by EEGID:", filteredFiles.map((f: any) => f.original_name));
     }
+  }
+
+  // 4. State variables
+  let {
+    files: Files = [],
+    participants: Participants = [],
+    uniqueParadigms = ["All"],
+    uniqueFormats: UniqueFormats = ["All"],
+    uniqueAgeGroups = ["All"],
+    uniqueGroups = ["All"],
+    uniqueTypes = ["All"],
+    uniqueSexes = ["All"],
+    uniqueHandednesses = ["All"]
+  } = data;
+
+  let selectedFile: any = null;
+  let isEditing = false;
+  let isBatchEditing = false;
+  let editingFiles: any[] = [];
+  let selectedEEGFormat_Name: string = "";
+  let selectedParadigmData_Name: string = "";
+  let Selected_participant_id: string = "";
+  let selectedTags: string[] = [];
+  let newTag: string = '';
+  let searchTerm = "";
+  let debouncedSearchTerm = "";
+  let selectedGroup: string = "All";
+  let selectedAgeGroup: string = "All";
+  let selectedParadigm: string = "All";
+  let viewMode: "card" | "table" = "table";
+  let sortColumn: string = "";
+  let sortDirection: "asc" | "desc" = "asc";
+  let filteredFiles: any = [];
+  let isFiltering = false;
+  let selectedFiles: string[] = [];
+  let showAddParticipantModal = false;
+  let toastMessage = '';
+  let toastType: 'success' | 'error' = 'success';
+  let showToast = false;
+
+  // 5. Lifecycle methods (if any)
+  // onMount(() => { ... });
+
+  // 6. Helper functions
+  function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   function getDiagnosisBadgeClasses(diagnosis: string): string {
@@ -304,6 +186,7 @@
     const color = colorMap.get(diagnosis) || "gray"
     return `bg-${color}-500 text-white hover:bg-${color}-600`
   }
+
   function getAgeBadgeClasses(ageGroup: string): string {
     const colorMap = new Map([
       ["infant", "yellow"],
@@ -341,6 +224,7 @@
       return `bg-${color}-500 text-white hover:bg-${color}-600`
     }
   }
+
   function getAgeIcon(ageGroup: string) {
     return ageGroup === "pediatric" || ageGroup === "infant" ? Baby : UserRound
   }
@@ -357,12 +241,51 @@
     }
   }
 
-  function toggleViewMode() {
-    viewMode = viewMode === "card" ? "table" : "card"
+  function getParadigmIcon(type: string) {
+    switch (type) {
+      case "resting_state":
+        return Brain
+      case "chirp":
+        return Activity
+      case "cognitive_flexibility":
+        return Cog
+      default:
+        return Zap
+    }
   }
 
+  // 7. Event handlers
+  function toggleEditing() {
+    isEditing = !isEditing;
+  }
 
-  let showAddParticipantModal = false;
+  function toggleViewMode() {
+    viewMode = viewMode === "card" ? "table" : "card";
+  }
+
+  function toggleSort(column: string) {
+    console.log("Toggling sort for column:", column)
+    if (sortColumn === column) {
+      sortDirection = sortDirection === "asc" ? "desc" : "asc"
+    } else {
+      sortColumn = column
+      sortDirection = "asc"
+    }
+    console.log("New sort column:", sortColumn)
+    console.log("New sort direction:", sortDirection)
+  }
+
+  function toggleFileSelection(fileName: string) {
+    selectedFiles = selectedFiles.includes(fileName)
+      ? selectedFiles.filter(f => f !== fileName)
+      : [...selectedFiles, fileName];
+  }
+
+  function handleToast(event: CustomEvent) {
+    ({ message: toastMessage, type: toastType } = event.detail);
+    showToast = true;
+    setTimeout(() => showToast = false, 3000);
+  }
 
   function handleParticipantAdded() {
     // Refresh your participants list here
@@ -376,47 +299,107 @@
         });
   }
 
-  const updateDebouncedSearch = debounce((value: any) => {
-    debouncedSearchTerm = value;
-  }, 300);
-
-  $: {
-    updateDebouncedSearch(searchTerm);
-  }
-
-  $: {
-    if (sortColumn === "eegid") {
-      console.log("Sorted files by EEGID:", filteredFiles.map((f: any) => f.original_name));
+  function addTag(event: Event) {
+    event.preventDefault(); // Prevent form submission
+    if (newTag && !selectedTags.includes(newTag)) {
+      selectedTags = [...selectedTags, newTag];
+      newTag = '';
     }
   }
 
-  function log(info: any){
-    console.log(info)
+  function removeTag(tag: string) {
+    selectedTags = selectedTags.filter(t => t !== tag);
   }
 
-  let selectedFiles: string[] = [];
+  // 8. Complex logic and data fetching
+  async function getObjectsInFiles(files: any[]) {
+    const filesWithObjects = await Promise.all(
+      files.map(async (file) => {
+        if (file.eeg_format) {
+          const formatData = await getEEGFormat(file.eeg_format);
+          file = { ...file, formatData };
+        }
+        if (file.participant) {
+          const participantData = await getParticipant(file.participant);
+          file = { ...file, participantData };
+        }
+        if (file.eeg_paradigm) {
+          const paradigmData = await getParadigm(file.eeg_paradigm);
+          file = { ...file, paradigmData };
+        }
+        return file;
+      })
+    );
+    return filesWithObjects;
+  }
+
+  function getSetFiles() {
+    sleep(500).then(() => { 
+      Files = []
+    
+      getOriginalFileCatalog()
+          .then(async (result) => {
+            const setFiles = result.filter((file: any) => file.is_primary_file === true);
+            const filesWithObjects = await getObjectsInFiles(setFiles);
+            Files = filesWithObjects;
+          })
+          .catch(error => {
+            console.error('Error fetching file catalog:', error);
+              // Handle the error appropriately
+          });
+    })
+  }
+
+  function openDashboard(id: string) {
+      goto(`/fileDashboard?id=${id}`);
+  }
+
+  function openFileModal(file: any) {
+    console.log(file)
+    selectedFile = file;
+    selectedEEGFormat_Name = file.formatData?.name || "";
+    selectedParadigmData_Name = file.paradigmData?.name || "";
+    isEditing = false;
+  }
+
+  function openBatchEditModal(files: any[]) {
+    editingFiles = files;
+    isBatchEditing = true;
+    selectedEEGFormat_Name = "";
+    selectedParadigmData_Name = "";
+    Selected_participant_id = "";
+    selectedTags = [];
+  }
+
+  function saveChanges() {
+    if (selectedFile) {
+      if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, selectedFile.upload_id);
+      if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
+      if (selectedTags.length > 0) assignTagsToFile(selectedTags, selectedFile.upload_id);
+    }
+    isEditing = false;
+    selectedFile = null;
+    getSetFiles();
+  }
+
+  function saveBatchChanges(event: Event) {
+    event.preventDefault(); // Prevent default form submission
+    editingFiles.forEach(file => {
+      if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, file.upload_id);
+      if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, file.upload_id);
+      if (selectedTags.length > 0) assignTagsToFile(selectedTags, file.upload_id);
+      assignParticipantToFile(Selected_participant_id, file.upload_id);
+    });
+    isBatchEditing = false;
+    editingFiles = [];
+    getSetFiles();
+  }
 
   function SelectAllVisible(){
     selectedFiles = filteredFiles.map((f: any) => f.original_name);
   }
   function DeselectAll(){
     selectedFiles = [];
-  }
-
-  function toggleFileSelection(fileName: string) {
-    selectedFiles = selectedFiles.includes(fileName)
-      ? selectedFiles.filter(f => f !== fileName)
-      : [...selectedFiles, fileName];
-  }
-
-  let toastMessage = '';
-  let toastType: 'success' | 'error' = 'success';
-  let showToast = false;
-
-  function handleToast(event: CustomEvent) {
-    ({ message: toastMessage, type: toastType } = event.detail);
-    showToast = true;
-    setTimeout(() => showToast = false, 3000);
   }
 
   function handleMakeChanges() {
@@ -430,6 +413,13 @@
     }
   }
 
+  // 9. Exports (if any)
+  // export function someExportedFunction() { ... }
+
+  // Debounce function
+  const updateDebouncedSearch = debounce((value: any) => {
+    debouncedSearchTerm = value;
+  }, 300);
 </script>
 <div class="container mx-auto p-4">
   {#if Files.length === 0}
@@ -494,32 +484,48 @@
             for="group"
             class="block text-sm font-medium mb-1">Group</label
           >
-          <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedGroup}>
-            {#each uniqueGroups as group}
-              <option value={group}>{group}</option>
-            {/each}
-          </select>
+          <Select.Root>
+            <Select.Trigger class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ">
+              <Select.Value placeholder="All"/>
+            </Select.Trigger>
+            <Select.Content>
+              {#each uniqueGroups as group}
+                <Select.Item value={group} on:click={() => selectedGroup = group}>{group}</Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
         </div>
         <div>
           <label
             for="ageGroup"
             class="block text-sm font-medium mb-1">Age Group</label
           >
-          <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedAgeGroup}>
-            {#each uniqueAgeGroups as ageGroup}
-              <option value={ageGroup}>{ageGroup}</option>
-            {/each}
+          <Select.Root>
+            <Select.Trigger >
+              <Select.Value placeholder="All" />
+            </Select.Trigger>
+            <Select.Content>
+              {#each uniqueAgeGroups as ageGroup}
+                <Select.Item value={ageGroup} on:click={() => selectedAgeGroup = ageGroup}>{ageGroup}</Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
         </div>
         <div>
           <label
             for="paradigm"
             class="block text-sm font-medium mb-1">Paradigm</label
           >
-          <select class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedParadigm}>
-            {#each uniqueParadigms as paradigm}
-              <option value={paradigm}>{paradigm.replace("_", " ")}</option>
-            {/each}
-          </select>
+          <Select.Root >
+            <Select.Trigger>
+              <Select.Value placeholder="All" />
+            </Select.Trigger>
+            <Select.Content>
+              {#each uniqueParadigms as paradigm}
+                <Select.Item value={paradigm} on:click={() => selectedParadigm = paradigm}>{paradigm.replace("_", " ")}</Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
         </div>
         <span class="h-full align-middle flex items-center">Files Visible: {filteredFiles.length}</span>
       </div>
@@ -893,7 +899,7 @@
             </div>
             <div class="w-full mb-4">
               <label for="Format" class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
-              <select id="Format" class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name}>
+              <select id="Format" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedEEGFormat_Name}>
                 <option value="">Select a format</option>
                 {#each UniqueFormats as format}
                   <option value={format}>{format}</option>

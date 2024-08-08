@@ -4,6 +4,8 @@
   import { addAnalysis, getMatchingFiles } from '$lib/services/apiService';
 
   import MultiSelect from 'svelte-multiselect'
+	import Input from './ui/input/input.svelte';
+  import * as Select from '$lib/components/ui/select';
 
 
   let selectedFormats: any[] = []
@@ -111,15 +113,20 @@
         <div class="mb-4">
           <div>
             <label for="name" class="block text-md font-semibold text-gray-700 mb-1">Name:</label>
-            <input type="text" id="name" bind:value={newAnalysis.name} required class="w-full p-2 border rounded">
+            <Input bind:value={newAnalysis.name} required class="w-full p-2 border rounded"/>
           </div>
           <div>
             <label for="analysis_flow" class="block text-md font-semibold text-gray-700 mb-1">Flow Name:</label>
-            <select id="analysis_flow" bind:value={newAnalysis.analysis_flow} required class="w-full p-2 border rounded">
-              {#each uniqueFlows as analysisFlow}
-                <option value={analysisFlow._id}>{analysisFlow.name}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger>
+                <Select.Value placeholder="Select Flow" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueFlows as analysisFlow}
+                  <Select.Item value={analysisFlow._id} on:click={() => newAnalysis.analysis_flow = analysisFlow._id}>{analysisFlow.name}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
 
           <div>
@@ -143,21 +150,26 @@
           </div>
           <div>
             <label for="category" class="block text-md font-semibold text-gray-700 mb-1">Category:</label>
-            <select id="category" bind:value={newAnalysis.category} required class="w-full p-2 border rounded">
-              {#each uniqueCategories as category}
-                <option value={category}>{category}</option>
-              {/each}
-            </select>
+            <Select.Root>   
+              <Select.Trigger> 
+                <Select.Value placeholder="Select Category" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueCategories as category}
+                  <Select.Item value={category} on:click={() => newAnalysis.category = category}>{category}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
           <div>
             <label for="output_path" class="block text-md font-semibold text-gray-700 mb-1">Output Path:</label>
-            <input 
+            <Input 
               type="text" 
               id="output_path" 
               bind:value={newAnalysis.output_path}
               placeholder="Default: portal_files/output"
               class="w-full p-2 border rounded"
-            >
+            />
           </div>
           <div>
             <label for="description" class="block text-md font-semibold text-gray-700 mb-1">Description:</label>

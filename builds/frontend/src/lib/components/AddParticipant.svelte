@@ -2,6 +2,9 @@
   import { createEventDispatcher, onMount } from 'svelte';
   import { Button } from "$lib/components/ui/button";
   import { addParticipant, getFormOptions } from '$lib/services/apiService';
+  import * as Select from "$lib/components/ui/select";
+  import { Input } from "$lib/components/ui/input";
+
 
 
   export let showModal = false;
@@ -66,63 +69,88 @@
         <div class="grid grid-cols-2 gap-4 mb-[50px] mt-[10px]">
           <div>
             <label for="participant_id" class="block text-sm font-semibold text-gray-700 mb-1">Participant ID:</label>
-            <input type="text" id="participant_id" bind:value={newParticipant.participant_id} required class="w-full p-2 border rounded">
+            <Input type="text" id="participant_id" bind:value={newParticipant.participant_id} required class="w-full p-2 border rounded" />
           </div>
           <div></div>
           <div>
             <label for="species" class="block text-sm font-semibold text-gray-700 mb-1">Type:</label>
-            <select id="species" bind:value={newParticipant.species} required class="w-full p-2 border rounded">
-              {#each uniqueTypes as type}
-                <option value={type}>{type}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger class="">
+                <Select.Value placeholder="Select a type" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueTypes as type}
+                  <Select.Item value={type} on:click={() => newParticipant.species = type}>{type}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
           <div>
             <label for="diagnosis" class="block text-sm font-semibold text-gray-700 mb-1">Group:</label>
-            <select id="diagnosis" bind:value={newParticipant.diagnosis} required class="w-full p-2 border rounded">
-              {#each uniqueGroups as group}
-                <option value={group}>{group}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger class="">
+                <Select.Value placeholder="Select a group" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueGroups as group}
+                  <Select.Item value={group} on:click={() => newParticipant.diagnosis = group}>{group}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
         </div>
         <span class="text-xl font-semibold text-gray-700">Clinical Measures</span>
         <div class="grid grid-cols-2 gap-4 mt-[10px]">
           <div>
             <label for="age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
-            <input type="number" id="age" bind:value={newParticipant.age} required class="w-full p-2 border rounded">
+            <Input type="number" id="age" bind:value={newParticipant.age} required class="w-full p-2 border rounded" />
           </div>
           <div>
             <label for="age_group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
-            <select id="age_group" bind:value={newParticipant.age_group} required class="w-full p-2 border rounded">
-              {#each uniqueAgeGroups as ageGroup}
-                <option value={ageGroup}>{ageGroup}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger class="">
+                <Select.Value placeholder="Select an age group" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueAgeGroups as ageGroup}
+                  <Select.Item value={ageGroup} on:click={() => newParticipant.age_group = ageGroup}>{ageGroup}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
           <div>
             <label for="sex" class="block text-sm font-semibold text-gray-700 mb-1">Sex:</label>
-            <select id="sex" bind:value={newParticipant.gender} required class="w-full p-2 border rounded">
-              {#each uniqueSexes as sex}
-                <option value={sex}>{sex}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger class="">
+                <Select.Value placeholder="Select a sex" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueSexes as sex}
+                  <Select.Item value={sex} on:click={() => newParticipant.gender = sex}>{sex}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
           <div>
             <label for="handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
-            <select id="handedness" bind:value={newParticipant.handedness} class="w-full p-2 border rounded">
-              {#each uniqueHandednesses as handedness}
-                <option value={handedness}>{handedness}</option>
-              {/each}
-            </select>
+            <Select.Root>
+              <Select.Trigger class="">
+                <Select.Value placeholder="Select a handedness" />
+              </Select.Trigger>
+              <Select.Content>
+                {#each uniqueHandednesses as handedness}
+                  <Select.Item value={handedness} on:click={() => newParticipant.handedness = handedness}>{handedness}</Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
           </div>
           <div>
             <label for="iq_score" class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
-            <input type="number" id="iq_score" bind:value={newParticipant.iq_score} class="w-full p-2 border rounded">
+            <Input type="number" id="iq_score" bind:value={newParticipant.iq_score} class="w-full p-2 border rounded" />
           </div>
           <div>
             <label for="anxiety_level" class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
-            <input type="number" id="anxiety_level" bind:value={newParticipant.anxiety_level} class="w-full p-2 border rounded">
+            <Input type="number" id="anxiety_level" bind:value={newParticipant.anxiety_level} class="w-full p-2 border rounded" />
           </div>
         </div>
         <div class="absolute bottom-6 left-6 right-6 flex justify-between gap-2 mt-2">
