@@ -10,6 +10,7 @@ services:
       - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
       - ./portal_files/output:/output
+      - ./portal_files/temp:/temp
     ports:
       - "3001:1080"
     restart: always      

@@ -884,36 +884,43 @@
           <h2 class="text-2xl font-bold mb-4">Batch Edit Files</h2>
           <form on:submit={saveBatchChanges}>
             <div class="w-full mb-4">
-              <label for="Participant" class="block text-sm font-semibold text-gray-700 mb-1">Participant:</label>
-              <select 
-                id="Participant"
-                class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" 
-                bind:value={Selected_participant_id}
-                required
-              >
-                <option value="">Select a participant</option>
-                {#each Participants as participant}
-                  <option value={participant.participant_id}>{participant.participant_id}</option>
-                {/each}
-              </select>
+              <label for="Participant" class="block text-sm font-semibold text-gray-7000 mb-1">Participant:</label>
+              <Select.Root>
+                <Select.Trigger>
+                  <Select.Value placeholder="Select a participant" />
+                </Select.Trigger>
+                <Select.Content>
+                  {#each Participants as participant}
+                    <Select.Item value={participant.participant_id} on:click={() => Selected_participant_id = participant.participant_id}>{participant.participant_id}</Select.Item>
+                  {/each}
+                </Select.Content>
+              </Select.Root>
             </div>
             <div class="w-full mb-4">
               <label for="Format" class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
-              <select id="Format" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 " bind:value={selectedEEGFormat_Name}>
-                <option value="">Select a format</option>
-                {#each UniqueFormats as format}
-                  <option value={format}>{format}</option>
-                {/each}
-              </select>
+              <Select.Root>
+                <Select.Trigger>
+                  <Select.Value placeholder="Select a format" />
+                </Select.Trigger>
+                <Select.Content>
+                  {#each UniqueFormats as format}
+                    <Select.Item value={format} on:click={() => selectedEEGFormat_Name = format}>{format}</Select.Item>
+                  {/each}
+                </Select.Content>
+              </Select.Root>
             </div>
             <div class="w-full mb-4">
               <label for="Paradigm" class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
-              <select id="Paradigm" class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name}>
-                <option value="">Select a paradigm</option>
-                {#each uniqueParadigms as paradigm}
-                  <option value={paradigm}>{paradigm}</option>
-                {/each}
-              </select>
+              <Select.Root>
+                <Select.Trigger>
+                  <Select.Value placeholder="Select a paradigm" />
+                </Select.Trigger>
+                <Select.Content>
+                  {#each uniqueParadigms as paradigm}
+                    <Select.Item value={paradigm} on:click={() => selectedParadigmData_Name = paradigm}>{paradigm}</Select.Item>
+                  {/each}
+                </Select.Content>
+              </Select.Root>
             </div>
             <div class="flex flex-wrap gap-2 mb-2">
               {#each selectedTags as tag}
