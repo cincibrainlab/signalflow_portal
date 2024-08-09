@@ -16,6 +16,7 @@
   import { Input } from "$lib/components/ui/input";
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "$lib/components/ui/table";
   import * as Select from "$lib/components/ui/select";
+  import * as Sheet from "$lib/components/ui/sheet";
   // Icon imports
   import {
     Brain, Activity, Zap, Cog, Baby, UserRound, Filter, Grid, List,
@@ -152,6 +153,7 @@
   let toastMessage = '';
   let toastType: 'success' | 'error' = 'success';
   let showToast = false;
+  let saveEdits = false;
 
   // 5. Lifecycle methods (if any)
   // onMount(() => { ... });
@@ -300,7 +302,6 @@
   }
 
   function addTag(event: Event) {
-    event.preventDefault(); // Prevent form submission
     if (newTag && !selectedTags.includes(newTag)) {
       selectedTags = [...selectedTags, newTag];
       newTag = '';
@@ -354,21 +355,47 @@
       goto(`/fileDashboard?id=${id}`);
   }
 
-  function openFileModal(file: any) {
-    console.log(file)
+  function openFile(file: any) {
     selectedFile = file;
     selectedEEGFormat_Name = file.formatData?.name || "";
     selectedParadigmData_Name = file.paradigmData?.name || "";
     isEditing = false;
   }
 
-  function openBatchEditModal(files: any[]) {
+  function openBatchEdit(files: any[]) {
     editingFiles = files;
     isBatchEditing = true;
+    selectedFile = null;
     selectedEEGFormat_Name = "";
     selectedParadigmData_Name = "";
     Selected_participant_id = "";
     selectedTags = [];
+  }
+
+  function handleSheetOpenChange(open: boolean) {
+    if (!open && saveEdits){
+      if (selectedFile){
+        saveChanges()
+        console.log("saved changes")
+      }
+      else{
+        saveBatchChanges()
+        console.log("saved batch changes")
+      }
+    }
+    else if (open) {
+      if (filteredSelectedFiles.length === 1) {
+        openFile(filteredSelectedFiles[0]);
+      } else if (filteredSelectedFiles.length > 1) {
+        openBatchEdit(filteredSelectedFiles);
+      }
+    }
+    else {
+      selectedFile = null;
+      editingFiles = [];
+      isBatchEditing = false;
+      saveEdits = false;
+    }
   }
 
   function saveChanges() {
@@ -377,21 +404,24 @@
       if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, selectedFile.upload_id);
       if (selectedTags.length > 0) assignTagsToFile(selectedTags, selectedFile.upload_id);
     }
+    saveEdits = false;
     isEditing = false;
     selectedFile = null;
+    selectedTags = [];
     getSetFiles();
   }
 
-  function saveBatchChanges(event: Event) {
-    event.preventDefault(); // Prevent default form submission
+  function saveBatchChanges() {
     editingFiles.forEach(file => {
       if (selectedEEGFormat_Name) assignEEGFormatToFile(selectedEEGFormat_Name, file.upload_id);
       if (selectedParadigmData_Name) assignEEGParadigmToFile(selectedParadigmData_Name, file.upload_id);
       if (selectedTags.length > 0) assignTagsToFile(selectedTags, file.upload_id);
       assignParticipantToFile(Selected_participant_id, file.upload_id);
     });
+    saveEdits = false;
     isBatchEditing = false;
     editingFiles = [];
+    selectedTags = [];
     getSetFiles();
   }
 
@@ -400,17 +430,6 @@
   }
   function DeselectAll(){
     selectedFiles = [];
-  }
-
-  function handleMakeChanges() {
-    if (filteredSelectedFiles.length === 1) {
-      openFileModal(filteredSelectedFiles[0]);
-    } else if (filteredSelectedFiles.length > 1) {
-      openBatchEditModal(filteredSelectedFiles);
-    } else {
-      // Optionally, handle the case where no files are selected
-      alert("Please select at least one file to make changes.");
-    }
   }
 
   // 9. Exports (if any)
@@ -547,10 +566,235 @@
             Deselect all 
           </Button>
 
-
-          <Button on:click={handleMakeChanges}>
-            Make Changes
-          </Button>
+          <Sheet.Root onOpenChange={handleSheetOpenChange}>
+            <Sheet.Trigger >
+              <Button>
+                Make Changes
+              </Button>
+            </Sheet.Trigger>
+            <Sheet.Content>
+              {#key selectedFile || isBatchEditing}
+                {#if selectedFile}
+                  <Sheet.Header>
+                    <Sheet.Title>File Details</Sheet.Title>
+                    <Sheet.Description>
+                      To make changes click "Edit" then click "Save Changes" to apply.
+                    </Sheet.Description>
+                  </Sheet.Header>
+                  <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <h3 class="font-semibold">Session Info</h3>
+                      <div class="w-full">
+                        <label for="Date" class="block text-sm font-semibold text-gray-700 mb-1">Date:</label>
+                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{new Date(selectedFile.date_added).toLocaleDateString()}</p>
+                      </div>
+                      <div class="w-full">
+                        <label for="Format" class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
+                        <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name} disabled={!isEditing}>
+                          {#each UniqueFormats as format}
+                            <option value={format}>{format}</option>
+                          {/each}
+                        </select>
+                      </div>
+                      <div class="w-full">
+                        <label for="Paradigm" class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
+                        <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name} disabled={!isEditing}>
+                          {#each uniqueParadigms as paradigm}
+                            <option value={paradigm}>{paradigm}</option>
+                          {/each}
+                        </select>
+                      </div>
+                      <div class="w-full">
+                        <label for="Tags" class="block text-sm font-semibold text-gray-7000 mb-1">Tags:</label>
+                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedFile.tags}</p>
+                      </div>
+                      <div class="w-full h-4/6">
+                        <label for="Notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
+                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 class="font-semibold">Participant Info</h3>
+                      {#await getParticipant(selectedFile.participant) then selectedParticipant}
+                        {#if selectedParticipant}
+                          <div class="w-full">
+                            <label for="Age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Age Group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Gender" class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Species" class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Group" class="block text-sm font-semibold text-gray-700 mb-1">Group:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.diagnosis}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="IQ Score" class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Anxiety Level" class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level}</p>
+                          </div>
+                        {/if}
+                      {/await}
+                    </div>
+                  </div>
+                  {#if isEditing}
+                  <div class="space-y-2">
+                    <div class="flex flex-wrap gap-2">
+                      {#each selectedTags as tag}
+                        <Badge variant="secondary" class="flex items-center gap-1">
+                          {tag}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            class="h-4 w-4 p-0"
+                            on:click={() => removeTag(tag)}
+                          >
+                            <X class="h-3 w-3" />
+                            <span class="sr-only">Remove</span>
+                          </Button>
+                        </Badge>
+                      {/each}
+                    </div>
+                    <form on:submit|preventDefault={addTag} class="flex gap-2">
+                      <Input
+                        type="text"
+                        id="newTag"
+                        bind:value={newTag}
+                        placeholder="Enter a new tag"
+                        class="flex-grow"
+                      />
+                      <Button type="submit">
+                        Add Tag
+                      </Button>
+                    </form>
+                  </div>
+                  {/if}
+                  <Sheet.Footer class="flex justify-end gap-2 mt-4">
+                    <Sheet.Close>
+                      <Button variant="outline">Close</Button>
+                    </Sheet.Close>
+                    <div>
+                      {#if !isEditing}
+                        <Button on:click={toggleEditing}>Edit</Button>
+                      {:else}
+                        <Button on:click={toggleEditing}>Cancel</Button>
+                        <Sheet.Close>
+                          <Button  on:click={() => saveEdits = true}>Save Changes</Button>
+                        </Sheet.Close>
+                      {/if}
+                    </div>
+                  </Sheet.Footer>
+                {:else if isBatchEditing}
+                  <Sheet.Header>
+                    <Sheet.Title>Make Batch Changes</Sheet.Title>
+                    <Sheet.Description>
+                      Make changes to the selected files. Click "Save Changes" to apply the changes.
+                    </Sheet.Description>
+                  </Sheet.Header>
+                  <form on:submit={saveBatchChanges}>
+                    <div class="w-full mb-4">
+                      <label for="Participant" class="block text-sm font-semibold text-gray-7000 mb-1">Participant:</label>
+                      <Select.Root>
+                        <Select.Trigger>
+                          <Select.Value placeholder="Select a participant" />
+                        </Select.Trigger>
+                        <Select.Content>
+                          {#each Participants as participant}
+                            <Select.Item value={participant.participant_id} on:click={() => Selected_participant_id = participant.participant_id}>{participant.participant_id}</Select.Item>
+                          {/each}
+                        </Select.Content>
+                      </Select.Root>
+                    </div>
+                    <div class="w-full mb-4">
+                      <label for="Format" class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
+                      <Select.Root>
+                        <Select.Trigger>
+                          <Select.Value placeholder="Select a format" />
+                        </Select.Trigger>
+                        <Select.Content>
+                          {#each UniqueFormats as format}
+                            <Select.Item value={format} on:click={() => selectedEEGFormat_Name = format}>{format}</Select.Item>
+                          {/each}
+                        </Select.Content>
+                      </Select.Root>
+                    </div>
+                    <div class="w-full mb-4">
+                      <label for="Paradigm" class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
+                      <Select.Root>
+                        <Select.Trigger>
+                          <Select.Value placeholder="Select a paradigm" />
+                        </Select.Trigger>
+                        <Select.Content>
+                          {#each uniqueParadigms as paradigm}
+                            <Select.Item value={paradigm} on:click={() => selectedParadigmData_Name = paradigm}>{paradigm}</Select.Item>
+                          {/each}
+                        </Select.Content>
+                      </Select.Root>
+                    </div>
+                    <div class="space-y-2">
+                      <div class="flex flex-wrap gap-2">
+                        {#each selectedTags as tag}
+                          <Badge variant="secondary" class="flex items-center gap-1">
+                            {tag}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              class="h-4 w-4 p-0"
+                              on:click={() => removeTag(tag)}
+                            >
+                              <X class="h-3 w-3" />
+                              <span class="sr-only">Remove</span>
+                            </Button>
+                          </Badge>
+                        {/each}
+                      </div>
+                      <form on:submit|preventDefault={addTag} class="flex gap-2">
+                        <Input
+                          type="text"
+                          id="newTag"
+                          bind:value={newTag}
+                          placeholder="Enter a new tag"
+                          class="flex-grow"
+                        />
+                        <Button type="submit">
+                          Add Tag
+                        </Button>
+                      </form>
+                    </div>
+                    <Sheet.Footer class="mt-4">
+                      <Sheet.Close>
+                        <Button variant="outline" type="button">Cancel</Button>
+                        <Button type="submit"  on:click={() => saveEdits = true}>Save Changes</Button>
+                      </Sheet.Close>
+                    </Sheet.Footer>
+                  </form>
+                {:else}
+                  <Sheet.Header>
+                    <Sheet.Title>No Files Selected</Sheet.Title>
+                    <Sheet.Description>
+                      Please select one or more files to make changes.
+                    </Sheet.Description>
+                  </Sheet.Header>
+                {/if}
+              {/key}
+            </Sheet.Content>
+          </Sheet.Root>
         </div>
       </div>
       <ul>
@@ -761,199 +1005,6 @@
           {/if}
         </TableBody>
       </Table>
-    {/if}
-    {#if selectedFile}
-      <section class="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
-        <dialog class="rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-20 border-2" transition:fade open>
-          <h2 class="text-2xl font-bold mb-4">File Details</h2>
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <h3 class="font-semibold">Session Info</h3>
-              <div class="w-full">
-                <label for="Date" class="block text-sm font-semibold text-gray-700 mb-1">Date:</label>
-                <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{new Date(selectedFile.date_added).toLocaleDateString()}</p>
-              </div>
-              <div class="w-full">
-                <label for="Format" class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
-                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedEEGFormat_Name} disabled={!isEditing}>
-                  {#each UniqueFormats as format}
-                    <option value={format}>{format}</option>
-                  {/each}
-                </select>
-              </div>
-              <div class="w-full">
-                <label for="Paradigm" class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
-                <select class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto" bind:value={selectedParadigmData_Name} disabled={!isEditing}>
-                  {#each uniqueParadigms as paradigm}
-                    <option value={paradigm}>{paradigm}</option>
-                  {/each}
-                </select>
-              </div>
-              <div class="w-full">
-                <label for="Tags" class="block text-sm font-semibold text-gray-7000 mb-1">Tags:</label>
-                <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedFile.tags}</p>
-              </div>
-              <div class="w-full h-4/6">
-                <label for="Notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
-                <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes}</p>
-              </div>
-            </div>
-            <div>
-              <h3 class="font-semibold">Participant Info</h3>
-              {#await getParticipant(selectedFile.participant) then selectedParticipant}
-                {#if selectedParticipant}
-                  <div class="w-full">
-                    <label for="Age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
-                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age}</p>
-                  </div>
-                  <div class="w-full">
-                    <label for="Age Group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
-                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group}</p>
-                  </div>
-                  <div class="w-full">
-                    <label for="Gender" class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
-                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender}</p>
-                  </div>
-                  <div class="w-full">
-                    <label for="Handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
-                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness}</p>
-                  </div>
-                  <div class="w-full">
-                    <label for="Species" class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
-                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
-                  </div>
-                  <div class="w-full">
-                    <label for="Group" class="block text-sm font-semibold text-gray-700 mb-1">Group:</label>
-                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.diagnosis}</p>
-                  </div>
-                  <div class="w-full">
-                    <label for="IQ Score" class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
-                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score}</p>
-                  </div>
-                  <div class="w-full">
-                    <label for="Anxiety Level" class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
-                    <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level}</p>
-                  </div>
-                {/if}
-              {/await}
-            </div>
-          </div>
-          {#if isEditing}
-            <div class="flex flex-wrap gap-2 mb-2">
-              {#each selectedTags as tag}
-                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
-                  {tag}
-                  <button on:click={() => removeTag(tag)} class="ml-1 text-blue-600 hover:text-blue-800">
-                    <X size={14} />
-                  </button>
-                </span>
-              {/each}
-            </div>
-            <div class="flex">
-              <input
-                type="text"
-                id="newTag"
-                bind:value={newTag}
-                placeholder="Enter a new tag"
-                class="flex-grow p-2 border rounded-l"
-              />
-              <button
-                type="button"
-                on:click={addTag}
-                class="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600"
-              >
-                Add Tag
-              </button>
-            </div>
-          {/if}
-          <div class="flex justify-end gap-2 mt-2">
-            <Button variant="outline" on:click={() => { selectedFile = null; }}>Close</Button>
-            {#if !isEditing}
-              <Button on:click={toggleEditing}>Edit</Button>
-            {:else}
-              <Button on:click={toggleEditing}>Cancel</Button>
-              <Button on:click={saveChanges}>Save Changes</Button>
-            {/if}
-          </div>
-        </dialog>
-      </section>
-    {/if}
-    {#if isBatchEditing}
-      <section class="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-20" role="dialog" aria-modal="true">
-        <dialog class="rounded-lg p-6 max-w-2xl w-full overflow-auto h-5/6 z-20 border-2" transition:fade open>
-          <h2 class="text-2xl font-bold mb-4">Batch Edit Files</h2>
-          <form on:submit={saveBatchChanges}>
-            <div class="w-full mb-4">
-              <label for="Participant" class="block text-sm font-semibold text-gray-7000 mb-1">Participant:</label>
-              <Select.Root>
-                <Select.Trigger>
-                  <Select.Value placeholder="Select a participant" />
-                </Select.Trigger>
-                <Select.Content>
-                  {#each Participants as participant}
-                    <Select.Item value={participant.participant_id} on:click={() => Selected_participant_id = participant.participant_id}>{participant.participant_id}</Select.Item>
-                  {/each}
-                </Select.Content>
-              </Select.Root>
-            </div>
-            <div class="w-full mb-4">
-              <label for="Format" class="block text-sm font-semibold text-gray-700 mb-1">Format:</label>
-              <Select.Root>
-                <Select.Trigger>
-                  <Select.Value placeholder="Select a format" />
-                </Select.Trigger>
-                <Select.Content>
-                  {#each UniqueFormats as format}
-                    <Select.Item value={format} on:click={() => selectedEEGFormat_Name = format}>{format}</Select.Item>
-                  {/each}
-                </Select.Content>
-              </Select.Root>
-            </div>
-            <div class="w-full mb-4">
-              <label for="Paradigm" class="block text-sm font-semibold text-gray-700 mb-1">Paradigm:</label>
-              <Select.Root>
-                <Select.Trigger>
-                  <Select.Value placeholder="Select a paradigm" />
-                </Select.Trigger>
-                <Select.Content>
-                  {#each uniqueParadigms as paradigm}
-                    <Select.Item value={paradigm} on:click={() => selectedParadigmData_Name = paradigm}>{paradigm}</Select.Item>
-                  {/each}
-                </Select.Content>
-              </Select.Root>
-            </div>
-            <div class="flex flex-wrap gap-2 mb-2">
-              {#each selectedTags as tag}
-                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3.5 py-1.5 rounded flex items-center">
-                  {tag}
-                  <button on:click={() => removeTag(tag)} class="ml-1 text-blue-600 hover:bg-blue-200">
-                    <X size={14} />
-                  </button>
-                </span>
-              {/each}
-            </div>
-            <div class="flex">
-              <input
-                type="text"
-                id="newTag"
-                bind:value={newTag}
-                placeholder="Enter a new tag"
-                class="flex-grow px-2 border rounded-l"
-              />
-              <button
-                on:click={addTag}
-                class="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600"
-              >
-                Add Tag
-              </button>
-            </div>
-            <div class="flex justify-end gap-2 mt-2">
-              <Button variant="outline" type="button" on:click={() => { isBatchEditing = false; editingFiles = []; }}>Cancel</Button>
-              <Button type="submit" >Save Changes</Button>
-            </div>
-          </form>
-        </dialog>
-      </section>
     {/if}
   {/if}
 </div>
