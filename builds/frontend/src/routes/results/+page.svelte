@@ -3,6 +3,9 @@
     import { onMount } from 'svelte';
     import { getFile } from '$lib/services/apiService';
     import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "$lib/components/ui/table";
+    import { Tabs, TabsContent, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
+    import { Button } from "$lib/components/ui/button";
+    import { Card, CardContent, CardHeader, CardTitle } from "$lib/components/ui/card";
     import Papa from 'papaparse';
     import * as XLSX from 'xlsx';
 
@@ -12,18 +15,15 @@
     let fileRun = data.fileRun;
     let outputFiles = data.fileRun.output_files;
 
-    let activeTab = 0;
-    const tabs = ['Details', 'Table', 'Plots', 'PDFs'];
-
     let loadedFiles = {};
     let csvData = [];
     let channels = [];
     let currentPage = 0;
     const ROWS_PER_PAGE = 100;
 
-    function setActiveTab(index: number) {
-        activeTab = index;
-    }
+    $: tableLikeFiles = outputFiles.filter(file => ['csv', 'tsv', 'xlsx', 'xls'].includes(getFileExtension(file)));
+    $: plotFiles = outputFiles.filter(file => ['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(getFileExtension(file)));
+    $: pdfFiles = outputFiles.filter(file => getFileExtension(file) === 'pdf');
 
     async function loadFile(filePath: string) {
         if (!loadedFiles[filePath]) {
@@ -37,7 +37,6 @@
                     Papa.parse(text, {
                         dynamicTyping: true,
                         complete: function(results) {
-                            console.log("Parsing complete:", results);
                             channels = results.data[0].map((header, index) => 
                                 index === 0 && header === null ? '' : header
                             );
@@ -86,12 +85,7 @@
         }
     }
 
-    $: tableLikeFiles = outputFiles.filter(file => ['csv', 'tsv', 'xlsx', 'xls'].includes(getFileExtension(file)));
-    $: plotFiles = outputFiles.filter(file => ['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(getFileExtension(file)));
-    $: pdfFiles = outputFiles.filter(file => getFileExtension(file) === 'pdf');
-
     onMount(() => {
-        // Load all files when the component mounts
         outputFiles.forEach(loadFile);
     });
 </script>
@@ -102,144 +96,130 @@
         <p class="text-lg">{fileRun.analysis_name}</p>
     </header>
 
-    <div class="mb-4">
-        <ul class="flex border-b">
-            {#each tabs as tab, index}
-                <li class="-mb-px mr-1">
-                    <a
-                        class="bg-white inline-block py-2 px-4 font-semibold {activeTab === index ? 'border-l border-t border-r rounded-t text-blue-700' : 'text-blue-500 hover:text-blue-800'}"
-                        href="#{tab.toLowerCase().replace(' ', '-')}"
-                        on:click|preventDefault={() => setActiveTab(index)}
-                    >
-                        {tab}
-                    </a>
-                </li>
-            {/each}
-        </ul>
-    </div>
+    <Tabs class="w-full">
+        <TabsList class="mb-4">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="table">Table</TabsTrigger>
+            <TabsTrigger value="plots">Plots</TabsTrigger>
+            <TabsTrigger value="pdfs">PDFs</TabsTrigger>
+        </TabsList>
 
-    <div class="">
-        {#if activeTab === 0}
-            <div class="p-4">
-                <h2 class="text-2xl font-semibold mb-4">File Run Details</h2>
-                {#if fileRun}
-                    <Table>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell>Analysis Name</TableCell>
-                                <TableCell>{fileRun.analysis_name}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Flow Name</TableCell>
-                                <TableCell>{fileRun.flow_name}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>File Name</TableCell>
-                                <TableCell>{fileRun.original_name}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Status</TableCell>
-                                <TableCell>{fileRun.status}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Created At</TableCell>
-                                <TableCell>{fileRun.run_created_at}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>Completed At</TableCell>
-                                <TableCell>{fileRun.run_completed_at || 'N/A'}</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                {:else}
-                    <p>Loading file run data...</p>
-                {/if}
-            </div>
-        {:else if activeTab === 1}
-            <div class="p-4">
-                <h2 class="text-2xl font-semibold mb-4">Table Data</h2>
-                {#if tableLikeFiles.length > 0}
-                    {#each tableLikeFiles as file}
-                        <h3 class="text-xl font-semibold mt-4 mb-2">{file.split('/').pop()}</h3>
-                        {#if loadedFiles[file]}
-                            {#if getFileExtension(file) === 'csv'}
-                            <div class="flex justify-between mt-4">
-                                <button on:click={prevPage} disabled={currentPage === 0}>Previous Page</button>
+        <TabsContent value="details">
+            <Table>
+                <TableBody>
+                    <TableRow>
+                        <TableCell className="font-medium">Analysis Name</TableCell>
+                        <TableCell>{fileRun.analysis_name}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell className="font-medium">Flow Name</TableCell>
+                        <TableCell>{fileRun.flow_name}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell className="font-medium">File Name</TableCell>
+                        <TableCell>{fileRun.original_name}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell className="font-medium">Status</TableCell>
+                        <TableCell>{fileRun.status}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell className="font-medium">Created At</TableCell>
+                        <TableCell>{fileRun.run_created_at}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell className="font-medium">Completed At</TableCell>
+                        <TableCell>{fileRun.run_completed_at || 'N/A'}</TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        </TabsContent>
+
+        <TabsContent value="table">
+            {#if tableLikeFiles.length > 0}
+                {#each tableLikeFiles as file}
+                    <h3 class="text-xl font-semibold mt-6 mb-2">{file.split('/').pop()}</h3>
+                    {#if loadedFiles[file]}
+                        {#if getFileExtension(file) === 'csv'}
+                            <div class="flex justify-between mt-4 mb-2">
+                                <Button on:click={prevPage} disabled={currentPage === 0}>Previous Page</Button>
                                 <span>Page {currentPage + 1} of {Math.ceil(csvData.length / ROWS_PER_PAGE)}</span>
-                                <button on:click={nextPage} disabled={(currentPage + 1) * ROWS_PER_PAGE >= csvData.length}>Next Page</button>
+                                <Button on:click={nextPage} disabled={(currentPage + 1) * ROWS_PER_PAGE >= csvData.length}>Next Page</Button>
                             </div>
-                                <Table>
-                                    <TableHeader>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        {#each channels as channel}
+                                            <TableHead>{channel}</TableHead>
+                                        {/each}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {#each csvData.slice(currentPage * ROWS_PER_PAGE, (currentPage + 1) * ROWS_PER_PAGE) as row}
                                         <TableRow>
-                                            {#each channels as channel, index}
-                                                <TableHead>{channel}</TableHead>
+                                            {#each row as cell, index}
+                                                <TableCell class={index === 1 ? "border-r-2 border-gray-200" : ""}>{cell}</TableCell>
                                             {/each}
                                         </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {#each csvData.slice(currentPage * ROWS_PER_PAGE, (currentPage + 1) * ROWS_PER_PAGE) as row}
-                                            <TableRow>
-                                                {#each row as cell, index}
-                                                    <TableCell class={index === 1 ? "border-r-2 border-gray-200" : ""}>{cell}</TableCell>
-                                                {/each}
-                                            </TableRow>
-                                        {/each}
-                                    </TableBody>
-                                </Table>
-                                <div class="flex justify-between mt-4">
-                                    <button on:click={prevPage} disabled={currentPage === 0}>Previous Page</button>
-                                    <span>Page {currentPage + 1} of {Math.ceil(csvData.length / ROWS_PER_PAGE)}</span>
-                                    <button on:click={nextPage} disabled={(currentPage + 1) * ROWS_PER_PAGE >= csvData.length}>Next Page</button>
-                                </div>
-                            {:else if ['xlsx', 'xls'].includes(getFileExtension(file))}
-                                <!-- ... Excel file display logic ... -->
-                            {:else}
-                                <pre>{loadedFiles[file]}</pre>
-                            {/if}
+                                    {/each}
+                                </TableBody>
+                            </Table>
+                        {:else if ['xlsx', 'xls'].includes(getFileExtension(file))}
+                            <!-- Implement Excel file display logic -->
                         {:else}
-                            <p>Loading...</p>
+                            <pre class="bg-gray-100 p-4 rounded">{loadedFiles[file]}</pre>
                         {/if}
-                    {/each}
-                {:else}
-                    <p>No table-like files available.</p>
-                {/if}
-            </div>
-        {:else if activeTab === 2}
-            <div class="p-4">
-                <h2 class="text-2xl font-semibold mb-4">Plots</h2>
-                {#if plotFiles.length > 0}
-                    <div class="grid grid-cols-2 gap-4">
-                        {#each plotFiles as file}
-                            <div>
-                                <h3 class="text-xl font-semibold mb-2">{file.split('/').pop()}</h3>
+                    {:else}
+                        <p>Loading...</p>
+                    {/if}
+                {/each}
+            {:else}
+                <p>No table-like files available.</p>
+            {/if}
+        </TabsContent>
+
+        <TabsContent value="plots">
+            {#if plotFiles.length > 0}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {#each plotFiles as file}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{file.split('/').pop()}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
                                 {#if loadedFiles[file]}
                                     <img src={loadedFiles[file]} alt={file} class="max-w-full h-auto" />
                                 {:else}
                                     <p>Loading...</p>
                                 {/if}
-                            </div>
-                        {/each}
-                    </div>
-                {:else}
-                    <p>No plot files available.</p>
-                {/if}
-            </div>
-        {:else if activeTab === 3}
-            <div class="p-4">
-                <h2 class="text-2xl font-semibold mb-4">PDFs</h2>
-                {#if pdfFiles.length > 0}
-                    {#each pdfFiles as file}
-                        <h3 class="text-xl font-semibold mt-4 mb-2">{file.split('/').pop()}</h3>
-                        {#if loadedFiles[file]}
-                            <PdfViewer url={loadedFiles[file]} />
-                        {:else}
-                            <p>Loading...</p>
-                        {/if}
+                            </CardContent>
+                        </Card>
                     {/each}
-                {:else}
-                    <p>No PDF files available.</p>
-                {/if}
-            </div>
-        {/if}
-    </div>
+                </div>
+            {:else}
+                <p>No plot files available.</p>
+            {/if}
+        </TabsContent>
+
+        <TabsContent value="pdfs">
+            {#if pdfFiles.length > 0}
+                {#each pdfFiles as file}
+                    <Card class="mb-6">
+                        <CardHeader>
+                            <CardTitle>{file.split('/').pop()}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {#if loadedFiles[file]}
+                                <iframe src={loadedFiles[file]} width="100%" height="600px" title={file}></iframe>
+                            {:else}
+                                <p>Loading...</p>
+                            {/if}
+                        </CardContent>
+                    </Card>
+                {/each}
+            {:else}
+                <p>No PDF files available.</p>
+            {/if}
+        </TabsContent>
+    </Tabs>
 </main>
