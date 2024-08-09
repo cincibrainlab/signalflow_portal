@@ -4,7 +4,15 @@ import { fontFamily } from "tailwindcss/defaultTheme";
 const config = {
 	darkMode: ["class"],
 	content: ["./src/**/*.{html,js,svelte,ts}"],
-	safelist: ["dark"],
+	safelist: [
+		"dark",
+		"bg-red-500", "hover:bg-red-600",
+		"bg-purple-500", "hover:bg-purple-600",
+		"bg-orange-500", "hover:bg-orange-600",
+		"bg-green-500", "hover:bg-green-600",
+		"bg-blue-500", "hover:bg-blue-600",
+		"bg-gray-500", "hover:bg-gray-600",
+	],
 	theme: {
 		container: {
 			center: true,
@@ -47,7 +55,7 @@ const config = {
 				card: {
 					DEFAULT: "hsl(var(--card) / <alpha-value>)",
 					foreground: "hsl(var(--card-foreground) / <alpha-value>)"
-				}
+				},
 			},
 			borderRadius: {
 				lg: "var(--radius)",
