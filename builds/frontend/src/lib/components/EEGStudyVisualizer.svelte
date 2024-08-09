@@ -17,6 +17,8 @@
   import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "$lib/components/ui/table";
   import * as Select from "$lib/components/ui/select";
   import * as Sheet from "$lib/components/ui/sheet";
+  import * as Pagination from "$lib/components/ui/pagination";
+  import { ChevronLeft, ChevronRight } from "lucide-svelte";
   // Icon imports
   import {
     Brain, Activity, Zap, Cog, Baby, UserRound, Filter, Grid, List,
@@ -155,6 +157,13 @@
   let showToast = false;
   let saveEdits = false;
 
+  let currentPage = 1;
+  let itemsPerPage = 10;
+
+  $: totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+  $: paginatedFiles = filteredFiles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  console.log(filteredFiles)
+
   // 5. Lifecycle methods (if any)
   // onMount(() => { ... });
 
@@ -281,6 +290,10 @@
     selectedFiles = selectedFiles.includes(fileName)
       ? selectedFiles.filter(f => f !== fileName)
       : [...selectedFiles, fileName];
+  }
+
+  function handlePageChange(event: CustomEvent<number>) {
+    currentPage = event.detail;
   }
 
   function handleToast(event: CustomEvent) {
@@ -813,7 +826,7 @@
     </div>
     {#if viewMode === "card"}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {#each filteredFiles as file}
+        {#each paginatedFiles as file}
           {#await getParticipant(file.participant) then participant}
             <Card
               class="hover:shadow-lg transition-shadow duration-300 relative cursor-pointer"
@@ -937,7 +950,7 @@
               <TableCell colspan={10} class="text-center">Loading...</TableCell>
             </TableRow>
           {:else}
-            {#each filteredFiles as file (file.original_name)}
+            {#each paginatedFiles as file (file.original_name)}
               <TableRow 
                 class="table-row-transition cursor-pointer"
                 on:click={() => toggleFileSelection(file.original_name)}
@@ -1006,6 +1019,81 @@
         </TableBody>
       </Table>
     {/if}
+
+    <div class="flex justify-between items-center mt-4">
+      <div class="w-1/4">
+        <!-- This empty div helps balance the layout -->
+      </div>
+      
+      <Pagination.Root 
+        count={filteredFiles.length} 
+        perPage={itemsPerPage} 
+        let:pages 
+        let:currentPage
+      >
+        <Pagination.Content>
+          <Pagination.Item>
+            <Pagination.PrevButton on:click={() => currentPage > 1 && handlePageChange(new CustomEvent('change', { detail: currentPage - 1 }))}>
+              <ChevronLeft class="h-4 w-4" />
+              <span class="sr-only">Previous</span>
+            </Pagination.PrevButton>
+          </Pagination.Item>
+          {#each pages as page (page.key)}
+            {#if page.type === "ellipsis"}
+              <Pagination.Item>
+                <Pagination.Ellipsis />
+              </Pagination.Item>
+            {:else}
+              <Pagination.Item>
+                <Pagination.Link {page} isActive={currentPage === page.value} on:click={() => handlePageChange(new CustomEvent('change', { detail: page.value }))}>
+                  {page.value}
+                </Pagination.Link>
+              </Pagination.Item>
+            {/if}
+          {/each}
+          <Pagination.Item>
+            <Pagination.NextButton on:click={() => currentPage < totalPages && handlePageChange(new CustomEvent('change', { detail: currentPage + 1 }))}>
+              <span class="sr-only">Next</span>
+              <ChevronRight class="h-4 w-4" />
+            </Pagination.NextButton>
+          </Pagination.Item>
+        </Pagination.Content>
+      </Pagination.Root>
+    
+      <div class="flex items-center space-x-2 w-1/4 justify-end">
+        <span class="text-sm text-gray-700">Items per page:</span>
+        <Button 
+          variant={itemsPerPage === 10 ? "default" : "outline"} 
+          size="sm" 
+          on:click={() => {
+            itemsPerPage = 10;
+            currentPage = 1;
+          }}
+        >
+          10
+        </Button>
+        <Button 
+          variant={itemsPerPage === 20 ? "default" : "outline"} 
+          size="sm" 
+          on:click={() => {
+            itemsPerPage = 20;
+            currentPage = 1;
+          }}
+        >
+          20
+        </Button>
+        <Button 
+          variant={itemsPerPage === 30 ? "default" : "outline"} 
+          size="sm" 
+          on:click={() => {
+            itemsPerPage = 30;
+            currentPage = 1;
+          }}
+        >
+          30
+        </Button>
+      </div>
+    </div>
   {/if}
 </div>
 {#if showToast}
