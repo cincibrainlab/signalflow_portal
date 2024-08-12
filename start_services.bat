@@ -1,12 +1,10 @@
 @echo off
 
-:: Start the Postgres database in a new terminal
-start cmd /k "docker compose up sf_db sf_uploader -d && cd builds/backend && python main.py"
+:: Set environment variables
+set BACKEND_PORT=8001
+set FRONTEND_PORT=5173
+set DB_PORT=27017
+set UPLOADER_PORT=1080
 
-:: Start the Svelte frontend in another new terminal
-start cmd /k "cd builds/frontend && npm run dev"
-
-:: Start the Prefect server in another new terminal
-start cmd /k "prefect worker start --pool analysis-process-pool"
-
-
+:: Start all services using Docker Compose
+docker compose up --build sf_portal

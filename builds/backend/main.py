@@ -35,7 +35,8 @@ console = Console()
 app = FastAPI()
 app.include_router(main_api_router)
 
-origins = ["http://localhost:5173"]  # Add your development URL
+frontend_port = os.environ.get('FRONTEND_PORT', '5173')
+origins = [f"http://localhost:{frontend_port}"]
 
 app.add_middleware(
     CORSMiddleware,

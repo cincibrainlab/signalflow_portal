@@ -1,5 +1,4 @@
-export const baseUrl = "http://127.0.0.1:3005/prefect/";
-
+export const baseUrl = `http://127.0.0.1:${import.meta.env.VITE_BACKEND_PORT || '3005'}/prefect/`;
 export interface PrefectRun {
     id: string;
     name: string;

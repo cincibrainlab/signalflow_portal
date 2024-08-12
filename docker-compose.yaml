@@ -1,14 +1,32 @@
 services:
-  # sf_portal:
-  #   container_name: sf_portal
-  #   image:sf_image
-  #     volumes:
-  #     - ./portal_files/uploads:/uploads
-  #     - ./portal_files/import:/import
-  #     - ./portal_files/info_archive:/info_archive
-  #     - ./portal_files/output:/output
-  #     - ./portal_files/temp:/temp
-
+  sf_portal:
+    container_name: sf_portal
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=0
+    volumes:
+      - ./portal_files/uploads:/uploads
+      - ./portal_files/import:/import
+      - ./portal_files/info_archive:/info_archive
+      - ./portal_files/output:/output
+      - ./portal_files/temp:/temp
+      - ./config:/config
+    ports:
+      - "3005:${BACKEND_PORT}"
+      - "5173:${FRONTEND_PORT}"
+    environment:
+      - BACKEND_PORT=${BACKEND_PORT}
+      - FRONTEND_PORT=${FRONTEND_PORT}
+      - DB_PORT=${DB_PORT}
+      - UPLOADER_PORT=${UPLOADER_PORT}
+    networks:
+      - eeg-network
+    command: >
+      sh -c "cd /app/backend && python main.py & 
+             cd /app/frontend && npm run dev -- --host 0.0.0.0 &
+             wait"
 
   sf_uploader:
     container_name: sf_uploader

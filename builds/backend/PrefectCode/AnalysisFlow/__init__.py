@@ -8,7 +8,7 @@
 # Import all modules in the package
 #* You will need to import each analysis flow here
 from .TemplateAnalysis import TemplateAnalysis_Flow
-from .ComputePsdAnalysisMatlab import ComputePsdAnalysisMatlab_Flow
+# from .ComputePsdAnalysisMatlab import ComputePsdAnalysisMatlab_Flow
 
 
 # Define package-level variables
@@ -16,7 +16,7 @@ from .ComputePsdAnalysisMatlab import ComputePsdAnalysisMatlab_Flow
 #* The key needs to be put both in this dictionary and in the analysis_flows.yaml file
 analysis_flows = {
     "ComputePsd - Python": TemplateAnalysis_Flow,
-    "ComputePsd - Matlab": ComputePsdAnalysisMatlab_Flow,
+    # "ComputePsd - Matlab": ComputePsdAnalysisMatlab_Flow,
     # Add more flows here as needed
 }
 

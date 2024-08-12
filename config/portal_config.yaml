@@ -1,24 +1,24 @@
 # Configuration settings
 database:
-  url: mongodb://localhost:3002/sfportal
+  url: mongodb://localhost:27017/sfportal
   reset: False
 
 frontend:
   url: http://localhost:5173
 
 api:
-  port: 3005
-  # 8001
+  port: 8001
+  # 3005
 
 # This file is used to configure the portal
 folder_paths:
-  root: portal_files
-  uploads: portal_files/uploads
-  import: portal_files/import
-  info_archive: portal_files/info_archive
-  output: portal_files/output
-  logs: portal_files/logs
-  temp: portal_files/temp
+  root: .
+  uploads: /uploads
+  import: /import
+  info_archive: /info_archive
+  output: /output
+  logs: /logs
+  temp: /temp
   
 # List of EEG formats
 EEGFormat:

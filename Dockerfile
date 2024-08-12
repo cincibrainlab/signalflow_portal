@@ -6,15 +6,12 @@
 # docker run -it sf_portal
 
 # Use an official Python runtime as a parent image
-FROM python:3.10.14-slim-bullseye
+FROM python:3.10.14-slim-bookworm
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Clone the GitHub repository
-RUN apt-get update && apt-get install -y git && \
-    git clone https://github.com/cincibrainlab/signalflow_portal.git . && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY ./builds/ ./
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -22,12 +19,16 @@ RUN apt-get update && apt-get install -y \
     tmux \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip
-
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install npm dependencies
-RUN npm install
+RUN cd frontend && npm install
 
-CMD [ "tail", "-f", "/dev/null" ]
+EXPOSE 5173
+EXPOSE 8001
+
+ENV BACKEND_PORT=8001
+ENV FRONTEND_PORT=5173
+ENV DB_PORT=27017
+ENV UPLOADER_PORT=1080
