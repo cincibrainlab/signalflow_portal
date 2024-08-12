@@ -1,4 +1,14 @@
 services:
+  # sf_portal:
+  #   container_name: sf_portal
+  #   image:sf_image
+  #     volumes:
+  #     - ./portal_files/uploads:/uploads
+  #     - ./portal_files/import:/import
+  #     - ./portal_files/info_archive:/info_archive
+  #     - ./portal_files/output:/output
+  #     - ./portal_files/temp:/temp
+
 
   sf_uploader:
     container_name: sf_uploader

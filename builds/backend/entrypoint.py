@@ -56,8 +56,8 @@ async def check_entrypoint(console: Console):
         return False
     
     # Add the portal config path to the database
-    portal_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'portal_config.yaml')
-    analysis_flows_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'analysis_flows.yaml')
+    portal_config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config', 'portal_config.yaml')
+    analysis_flows_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config', 'analysis_flows.yaml')
     entrypoint_check['portal_config_path'] = await add_portal_config_path(portal_config_path, analysis_flows_path)
     status_icon = '✅' if entrypoint_check['portal_config_path'] else '❌'
     console.print(f"[bold]{status_icon} Portal Config Path Assigned:[/bold] [yellow]{portal_config_path}[/yellow]")
