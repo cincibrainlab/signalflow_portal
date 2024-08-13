@@ -3,7 +3,6 @@ services:
     container_name: sf_portal
     build: .
     volumes:
-      - ./builds:/app/
       - ./portal_files/uploads:/uploads
       - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
@@ -16,6 +15,7 @@ services:
     environment:
       - BACKEND_PORT=8001
       - FRONTEND_PORT=5173
+      - DB_HOST=sf_db
       - DB_PORT=27017
       - UPLOADER_PORT=1080
     networks:

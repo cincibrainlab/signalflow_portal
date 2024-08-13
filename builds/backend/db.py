@@ -18,8 +18,9 @@ import models
 from bson import ObjectId
 import asyncio
 
-DB_PORT = int(os.environ.get('DB_PORT', '3002'))
-MONGO_URL = f"mongodb://localhost:{DB_PORT}"
+DB_HOST = os.environ.get('DB_HOST', 'sf_db')
+DB_PORT = os.environ.get('DB_PORT', '27017')
+MONGO_URL = f"mongodb://{DB_HOST}:{DB_PORT}"
 DATABASE_NAME = "sfportal"
 
 client = AsyncIOMotorClient(MONGO_URL, server_api=ServerApi('1'))
