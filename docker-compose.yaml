@@ -1,12 +1,9 @@
 services:
   sf_portal:
     container_name: sf_portal
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - BUILDKIT_INLINE_CACHE=0
+    build: .
     volumes:
+      - ./builds:/app/
       - ./portal_files/uploads:/uploads
       - ./portal_files/import:/import
       - ./portal_files/info_archive:/info_archive
@@ -14,13 +11,13 @@ services:
       - ./portal_files/temp:/temp
       - ./config:/config
     ports:
-      - "3005:${BACKEND_PORT}"
-      - "5173:${FRONTEND_PORT}"
+      - "3005:8001"
+      - "5173:5173"
     environment:
-      - BACKEND_PORT=${BACKEND_PORT}
-      - FRONTEND_PORT=${FRONTEND_PORT}
-      - DB_PORT=${DB_PORT}
-      - UPLOADER_PORT=${UPLOADER_PORT}
+      - BACKEND_PORT=8001
+      - FRONTEND_PORT=5173
+      - DB_PORT=27017
+      - UPLOADER_PORT=1080
     networks:
       - eeg-network
     command: >
