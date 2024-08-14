@@ -47,6 +47,7 @@
 	};
 
 	onMount(() => {
+    console.log("Fetching db status")
 		updateDbStatus();
 	});
 </script>

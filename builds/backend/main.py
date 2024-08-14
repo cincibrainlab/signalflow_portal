@@ -36,7 +36,7 @@ app = FastAPI()
 app.include_router(main_api_router)
 
 frontend_port = os.environ.get('FRONTEND_PORT', '5173')
-origins = [f"http://localhost:{frontend_port}", f"http://172.22.0.4:{frontend_port}/"]
+origins = [f"http://localhost:{frontend_port}", f"http://172.22.0.2:{frontend_port}/"]
 
 app.add_middleware(
     CORSMiddleware,

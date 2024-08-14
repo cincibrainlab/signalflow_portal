@@ -9,6 +9,8 @@ services:
       - ./portal_files/output:/output
       - ./portal_files/temp:/temp
       - ./config:/config
+      - ./builds/backend:/app/backend
+      - ./builds/frontend/src:/app/frontend/src
     ports:
       - "3005:8001"
       - "5173:5173"

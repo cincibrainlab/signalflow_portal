@@ -18,7 +18,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 WORKDIR /app/frontend
 RUN rm -rf node_modules package-lock.json
 RUN npm install --platform=linux --arch=x64 --include=dev
-RUN ls -la  # Add this line
 
 EXPOSE 5173
 EXPOSE 8001
