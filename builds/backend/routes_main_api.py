@@ -495,7 +495,7 @@ async def get_tags(fileId: str):
 @router.post("/api/add-tag")
 async def add_tag(tag: dict):
     try:
-        new_tag = await flow_db.add_tag(tag['name'], tag['color'])
+        new_tag = await flow_db.add_tag(tag['name'], tag['color'], tag['text_class'])
         return {"success": True, "message": "Tag added successfully", "tag": new_tag}
     except Exception as e:
         logging.error(f"Error adding tag: {str(e)}")

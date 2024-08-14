@@ -3,6 +3,7 @@
     import { Button } from "$lib/components/ui/button";
     import { Badge } from "$lib/components/ui/badge";
     import { Input } from "$lib/components/ui/input";
+    import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
     import { addTag } from '$lib/services/apiService';
     import ColorPicker from 'svelte-awesome-color-picker';
 
@@ -13,12 +14,12 @@
     let newTag = {
         name: '',
         color: '#000000',
-        text_color: '#000000'
+        text_class: 'text-white'
     };
 
     async function handleSubmit() {
         try {
-            await addTag(newTag.name, newTag.color);
+            await addTag(newTag.name, newTag.color, newTag.text_class);
             dispatch('tagAdded', newTag);
             dispatch('toast', { message: 'Tag added successfully', type: 'success' });
             closeModal();
@@ -35,7 +36,7 @@
         newTag = {
             name: '',
             color: '#000000',
-            text_color: '#000000'
+            text_class: 'text-white'
         };
     }
 </script>
@@ -49,13 +50,21 @@
                     <div>
                         <label for="name" class="block text-base font-semibold text-gray-700 mb-1">Tag Name:</label>
                         <Input type="text" id="name" bind:value={newTag.name} required class="w-full p-2 border rounded" />
+                        <Tabs value={newTag.text_class} onValueChange={(value) => newTag.text_class = value}>
+                            <TabsList class="grid w-full grid-cols-2">
+                                <TabsTrigger value="text-white">Light</TabsTrigger>
+                                <TabsTrigger value="text-black">Dark</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </div>
+                    
                     <label for="color" class="block text-base font-semibold text-gray-7000 mb-1">Tag Color:</label>
                     <div class="flex justify-center">
                         <ColorPicker bind:hex={newTag.color} isOpen={true} isPopup={false} canChangeMode={false} isInput={false} />
                     </div>
+                    
                     <div class="flex flex-wrap justify-center gap-2 mt-2">
-                        <Badge class="text-black text-base" style="background-color: {newTag.color};">{newTag.name || "Example"}</Badge>
+                        <Badge class="text-base {newTag.text_class}" style="background-color: {newTag.color};">{newTag.name || "Example"}</Badge>
                     </div>
                 </div>
                 <div class="flex justify-between gap-2 mt-2">

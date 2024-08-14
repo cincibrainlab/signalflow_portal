@@ -285,7 +285,7 @@
         <span class="text-xl font-semibold">Tags:</span>
         <div class="flex flex-wrap justify-center gap-2 mt-2">
             {#each File.tags as tag}
-                <Badge class="text-black text-base" style="background-color: {tag.color};">{tag.name}</Badge>
+                <Badge class="{tag.text_class} text-base" style="background-color: {tag.color};">{tag.name}</Badge>
             {/each}
         </div>
     </div>

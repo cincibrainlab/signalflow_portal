@@ -639,7 +639,7 @@
                         <div class="flex flex-wrap gap-2">
                           {#if selectedFile.tags}
                             {#each selectedFile.tags as tag}
-                              <Badge class="text-black" style="background-color: {tag.color};">{tag.name}</Badge>
+                              <Badge class="{tag.text_class}" style="background-color: {tag.color};">{tag.name}</Badge>
                             {/each}
                           {:else}
                             <p class="block text-sm font-medium text-gray-7000 mb-1 w-full h-auto">No tags assigned</p>
@@ -648,7 +648,7 @@
                       </div>
                       <div class="w-full h-4/6">
                         <label for="Notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
-                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes || "x"}</p>
+                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes || ""}</p>
                       </div>
                     </div>
                     <div>
@@ -768,7 +768,7 @@
                         {#each selectedTags as tag}
                           <Badge 
                             variant="secondary" 
-                            class="flex items-center gap-1"
+                            class="flex items-center gap-1 {tag.text_class}"
                             style="background-color: {tag.color};"
                           >
                             {tag.label}

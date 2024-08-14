@@ -1073,13 +1073,14 @@ async def get_EEG_Data(upload_id):
         raise
 
 
-async def add_tag(tag_name, color):
+async def add_tag(tag_name, color, text_class):
     db = await get_database()
-    result = await db.Tags.insert_one({"name": tag_name, "color": color})
+    result = await db.Tags.insert_one({"name": tag_name, "color": color, "text_class": text_class})
     return {
         "id": str(result.inserted_id),
         "name": tag_name,
-        "color": color
+        "color": color,
+        "text_class": text_class
     }
 
 async def get_tags(fileId):
@@ -1093,7 +1094,7 @@ async def get_tags(fileId):
 async def get_all_tags():
     db = await get_database()
     tags = await db.Tags.find().to_list(length=None)
-    return [{"id": str(tag['_id']), "label": tag['name'], "color": tag['color']} for tag in tags]
+    return [{"id": str(tag['_id']), "label": tag['name'], "color": tag['color'], "text_class":tag['text_class']} for tag in tags]
 
 async def update_tag_color(tag_name, new_color):
     db = await get_database()

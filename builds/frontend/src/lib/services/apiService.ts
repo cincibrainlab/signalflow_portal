@@ -563,13 +563,13 @@ export async function getTags() {
   }
 }
 
-export async function addTag(tagName: string, color: string) {
+export async function addTag(tagName: string, color: string, text_class: string) {
   const response = await fetch(`${baseUrl}add-tag`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ name: tagName, color }),
+    body: JSON.stringify({ name: tagName, color, text_class}),
   });
 
   if (!response.ok) {
