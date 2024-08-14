@@ -19,6 +19,8 @@
   import * as Sheet from "$lib/components/ui/sheet";
   import * as Pagination from "$lib/components/ui/pagination";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
+  import MultiSelect from 'svelte-multiselect';
+
   // Icon imports
   import {
     Brain, Activity, Zap, Cog, Baby, UserRound, Filter, Grid, List,
@@ -27,11 +29,12 @@
 
   // Local component imports
   import AddParticipant from './AddParticipant.svelte';
+  import AddTag from './AddTag.svelte';
 
   // Service imports
   import { 
     getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant,
-    getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile, assignTagsToFile 
+    getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile, assignTagsToFile, getTags 
   } from '$lib/services/apiService';
 
   // 2. Component props
@@ -128,9 +131,9 @@
     uniqueGroups = ["All"],
     uniqueTypes = ["All"],
     uniqueSexes = ["All"],
-    uniqueHandednesses = ["All"]
+    uniqueHandednesses = ["All"],
+    tags: tags
   } = data;
-
   let selectedFile: any = null;
   let isEditing = false;
   let isBatchEditing = false;
@@ -152,6 +155,7 @@
   let isFiltering = false;
   let selectedFiles: string[] = [];
   let showAddParticipantModal = false;
+  let showAddTagModal = false;
   let toastMessage = '';
   let toastType: 'success' | 'error' = 'success';
   let showToast = false;
@@ -252,17 +256,16 @@
     }
   }
 
-  function getParadigmIcon(type: string) {
-    switch (type) {
-      case "resting_state":
-        return Brain
-      case "chirp":
-        return Activity
-      case "cognitive_flexibility":
-        return Cog
-      default:
-        return Zap
-    }
+  function handleTagAdded(event) {
+  // Refresh your tags list here
+    getTags()
+      .then(result => {
+        tags = result;
+      })
+      .catch(error => {
+        console.error('Error fetching tags:', error);
+        // Handle the error appropriately
+      });
   }
 
   // 7. Event handlers
@@ -323,6 +326,10 @@
 
   function removeTag(tag: string) {
     selectedTags = selectedTags.filter(t => t !== tag);
+  }
+
+  function handleTagSelection(event) {
+    selectedTags = event.detail;
   }
 
   // 8. Complex logic and data fetching
@@ -483,6 +490,16 @@
           Add New Participant
         </Button>
 
+        <AddTag
+          bind:showModal={showAddTagModal}
+          on:tagAdded={handleTagAdded}
+          on:toast={handleToast}
+          on:close={() => showAddTagModal = false}
+        />
+        <Button variant="outline" on:click={() => showAddTagModal = true}>
+          Add New Tag
+        </Button>
+
         <Button
           on:click={toggleViewMode}
           
@@ -570,7 +587,7 @@
             class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
             on:click={SelectAllVisible}
           >
-            Select all Visible 
+            Select all  
           </Button>
           <Button
             class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
@@ -619,11 +636,19 @@
                       </div>
                       <div class="w-full">
                         <label for="Tags" class="block text-sm font-semibold text-gray-7000 mb-1">Tags:</label>
-                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedFile.tags}</p>
+                        <div class="flex flex-wrap gap-2">
+                          {#if selectedFile.tags}
+                            {#each selectedFile.tags as tag}
+                              <Badge class="text-black" style="background-color: {tag.color};">{tag.name}</Badge>
+                            {/each}
+                          {:else}
+                            <p class="block text-sm font-medium text-gray-7000 mb-1 w-full h-auto">No tags assigned</p>
+                          {/if}
+                        </div>
                       </div>
                       <div class="w-full h-4/6">
                         <label for="Notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
-                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes}</p>
+                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes || "x"}</p>
                       </div>
                     </div>
                     <div>
@@ -668,34 +693,12 @@
                   </div>
                   {#if isEditing}
                   <div class="space-y-2">
-                    <div class="flex flex-wrap gap-2">
-                      {#each selectedTags as tag}
-                        <Badge variant="secondary" class="flex items-center gap-1">
-                          {tag}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            class="h-4 w-4 p-0"
-                            on:click={() => removeTag(tag)}
-                          >
-                            <X class="h-3 w-3" />
-                            <span class="sr-only">Remove</span>
-                          </Button>
-                        </Badge>
-                      {/each}
-                    </div>
-                    <form on:submit|preventDefault={addTag} class="flex gap-2">
-                      <Input
-                        type="text"
-                        id="newTag"
-                        bind:value={newTag}
-                        placeholder="Enter a new tag"
-                        class="flex-grow"
-                      />
-                      <Button type="submit">
-                        Add Tag
-                      </Button>
-                    </form>
+                    <MultiSelect
+                      options={tags}
+                      bind:selected={selectedTags}
+                      on:change={handleTagSelection}
+                      placeholder="Select tags"
+                    />
                   </div>
                   {/if}
                   <Sheet.Footer class="flex justify-end gap-2 mt-4">
@@ -761,34 +764,23 @@
                       </Select.Root>
                     </div>
                     <div class="space-y-2">
-                      <div class="flex flex-wrap gap-2">
+                      <div class="flex flex-wrap gap-2 justify-center mb-2">
                         {#each selectedTags as tag}
-                          <Badge variant="secondary" class="flex items-center gap-1">
-                            {tag}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              class="h-4 w-4 p-0"
-                              on:click={() => removeTag(tag)}
-                            >
-                              <X class="h-3 w-3" />
-                              <span class="sr-only">Remove</span>
-                            </Button>
+                          <Badge 
+                            variant="secondary" 
+                            class="flex items-center gap-1"
+                            style="background-color: {tag.color};"
+                          >
+                            {tag.label}
                           </Badge>
                         {/each}
                       </div>
-                      <form on:submit|preventDefault={addTag} class="flex gap-2">
-                        <Input
-                          type="text"
-                          id="newTag"
-                          bind:value={newTag}
-                          placeholder="Enter a new tag"
-                          class="flex-grow"
-                        />
-                        <Button type="submit">
-                          Add Tag
-                        </Button>
-                      </form>
+                      <MultiSelect
+                        options={tags}
+                        bind:selected={selectedTags}
+                        on:change={handleTagSelection}
+                        placeholder="Select tags"
+                      />
                     </div>
                     <Sheet.Footer class="mt-4">
                       <Sheet.Close>

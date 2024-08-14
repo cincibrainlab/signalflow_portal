@@ -1,7 +1,6 @@
 // src/services/apiService.ts
 import pako from 'pako';
 
-
 export const baseUrl = "http://127.0.0.1:3005/api/";
 
 const cache = new Map<string, { data: any; timestamp: number }>();
@@ -48,7 +47,6 @@ export async function getOriginalFileCatalog() {
         console.log('Response data:', data);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      console.log(data)
       return data;
   } catch (error) {
       console.error('Error fetching original file catalog:', error);
@@ -298,40 +296,6 @@ export async function assignEEGParadigmToFile(ID: string, fileId: string) {
   return response.json();
 }
 
-export async function assignTagsToFile(tags: string[], fileId: string) {
-  try {
-    const url = `${baseUrl}assign-tags-to-file/${fileId}`;
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify( tags )
-    });
-    
-    const responseData = await response.json();
-    console.log('Response data:', responseData);
-
-    if (!response.ok) {
-      throw new Error(`Failed to assign tags: ${JSON.stringify(responseData)}`);
-    }
-    cache.delete(`${baseUrl}get-tags/${fileId}`);
-    return responseData;
-  } catch (error) {
-    console.error('Error in assignTagsToFile:', error);
-    throw error;
-  }
-}
-
-export async function getTags(fileId: string) {
-  const data = await cachedFetch(`${baseUrl}get-tags/${fileId}`);
-  if (!data.ok) {
-    throw new Error('Failed to get tags');
-  }
-  console.log('Get Tags Response status: OK (cached or fresh)');
-  return data;
-}
 
 export async function addParticipant(participantData: any) {
   console.log(JSON.stringify(participantData))
@@ -586,5 +550,74 @@ export async function getFile(filePath: string) {
   } catch (error) {
       console.error('Error fetching file:', error);
       throw error;
+  }
+}
+
+export async function getTags() {
+  try {
+    const data = await cachedFetch(`${baseUrl}get-all-tags`);
+    return data.tags;
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    throw new Error('Failed to get tags');
+  }
+}
+
+export async function addTag(tagName: string, color: string) {
+  const response = await fetch(`${baseUrl}add-tag`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name: tagName, color }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to add tag');
+  }
+
+  return response.json();
+}
+
+export async function updateTagColor(tagName: string, newColor: string) {
+  const response = await fetch(`${baseUrl}update-tag-color`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name: tagName, color: newColor }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update tag color');
+  }
+
+  return response.json();
+}
+
+export async function assignTagsToFile(tags: any[], fileId: string) {
+  try {
+    const url = `${baseUrl}assign-tags-to-file/${fileId}`;
+    console.log('Tags being sent:', tags);  // Log the tags for debugging
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(tags) 
+    });
+    
+    const responseData = await response.json();
+    console.log('Response data:', responseData);
+
+    if (!response.ok) {
+      throw new Error(`Failed to assign tags: ${JSON.stringify(responseData)}`);
+    }
+    cache.delete(`${baseUrl}get-tags/${fileId}`);
+    return responseData;
+  } catch (error) {
+    console.error('Error in assignTagsToFile:', error);
+    throw error;
   }
 }

@@ -184,3 +184,11 @@ FormInfo:
     - 'Slice'
     - 'Stem Cell'
     - 'n/a'
+
+Tags:
+- name: Connectivity
+  color: '#8f58ed'
+- name: Entrain
+  color: '#f74639'
+- name: MEA
+  color: '#5ded58'

@@ -501,14 +501,6 @@ async def assign_tags_to_file(tags, file_id):
     
     return {"success": "Tags assigned to file"}
 
-async def get_tags(fileId):
-    db = await get_database()
-    file = await db.OriginalImportFile.find_one({"upload_id": fileId})
-    if not file:
-        return {"error": "File not found"}
-    
-    return file.get("tags", [])
-
 async def get_file_runs(original_file_id):
     db = await get_database()
     file_runs = await db.FileRun.find({"original_file_id": ObjectId(original_file_id)}).to_list(length=None)
@@ -1079,3 +1071,58 @@ async def get_EEG_Data(upload_id):
     except Exception as e:
         logging.error(f"Error getting EEG data: {str(e)}")
         raise
+
+
+async def add_tag(tag_name, color):
+    db = await get_database()
+    result = await db.Tags.insert_one({"name": tag_name, "color": color})
+    return {
+        "id": str(result.inserted_id),
+        "name": tag_name,
+        "color": color
+    }
+
+async def get_tags(fileId):
+    db = await get_database()
+    file = await db.OriginalImportFile.find_one({"upload_id": fileId})
+    if not file:
+        return {"error": "File not found"}
+    
+    return file.get("tags", [])
+
+async def get_all_tags():
+    db = await get_database()
+    tags = await db.Tags.find().to_list(length=None)
+    return [{"id": str(tag['_id']), "label": tag['name'], "color": tag['color']} for tag in tags]
+
+async def update_tag_color(tag_name, new_color):
+    db = await get_database()
+    result = await db.Tags.update_one(
+        {"name": tag_name},
+        {"$set": {"color": new_color}}
+    )
+    return result.modified_count > 0
+
+async def assign_tags_to_file(tags, file_id):
+    db = await get_database()
+
+    file = await db.OriginalImportFile.find_one({"upload_id": file_id})
+    if not file:
+        return {"error": "File not found"}
+    
+    result = await db.OriginalImportFile.update_one(
+        {"upload_id": file_id},
+        {
+            "$addToSet": {
+                "tags": {"$each": tags}
+            },
+            "$set": {
+                "status": add_status_code(201)
+            }
+        }
+    )
+
+    if result.modified_count == 0:
+        return {"error": "File not updated. It may already have these tags."}
+    
+    return {"success": "Tags assigned to file"}

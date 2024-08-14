@@ -281,12 +281,14 @@
         <h2 class="text-xl font-semibold ">Filename: {File.original_name}</h2>
     </header>
     {#if File.tags}
-        <div class="text-center mb-4">
-            <span class="text-xl font-semibold">Tags:</span>
+    <div class="text-center mb-4">
+        <span class="text-xl font-semibold">Tags:</span>
+        <div class="flex flex-wrap justify-center gap-2 mt-2">
             {#each File.tags as tag}
-                <Badge class ='text-base'>{tag}</Badge>
+                <Badge class="text-black text-base" style="background-color: {tag.color};">{tag.name}</Badge>
             {/each}
         </div>
+    </div>
     {/if}
     <div class="flex flex-col gap-6">
         <div class="w-full">

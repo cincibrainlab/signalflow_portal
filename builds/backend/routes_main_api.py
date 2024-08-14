@@ -202,16 +202,6 @@ async def assign_eeg_paradigm_to_file(request: FileAssignmentRequest):
     except Exception as e:
         logging.error(f"Error assigning EEG Paradigm to file: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    
-@router.post("/api/assign-tags-to-file/{fileId}")
-async def assign_tags_to_file(fileId: str, tags: list[str]):
-    try:
-        updated_file = await flow_db.assign_tags_to_file(tags, fileId)
-        logging.debug(f"File Updated: {updated_file}")
-        return {"success": True, "message": "Tags assigned to file successfully", "file": updated_file}
-    except Exception as e:
-        logging.error(f"Error assigning tags to file: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/api/get-participant/{participantObjectId}")
 async def get_participant(participantObjectId: str):
@@ -485,3 +475,49 @@ async def get_file(file_path: str):
         raise HTTPException(status_code=404, detail="File not found")
     
     return FileResponse(full_path, filename=os.path.basename(full_path))
+
+@router.post("/api/assign-tags-to-file/{fileId}")
+async def assign_tags_to_file_route(fileId: str, tags: List[dict]):
+    formatted_tags = [{"id": tag["id"], "name": tag["label"], "color": tag["color"]} for tag in tags]
+    result = await flow_db.assign_tags_to_file(formatted_tags, fileId)
+    return result
+    
+@router.get("api/get-tags/{fileId}")
+async def get_tags(fileId: str):
+    try:
+        tags = await flow_db.get_tags(fileId)
+        logging.debug(f"Tags: {tags}")
+        return {"success": True, "message": "Tags retrieved successfully", "tags": tags}
+    except Exception as e:
+        logging.error(f"Error retrieving tags: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    
+@router.post("/api/add-tag")
+async def add_tag(tag: dict):
+    try:
+        new_tag = await flow_db.add_tag(tag['name'], tag['color'])
+        return {"success": True, "message": "Tag added successfully", "tag": new_tag}
+    except Exception as e:
+        logging.error(f"Error adding tag: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@router.get("/api/get-all-tags")
+async def get_all_tags():
+    try:
+        tags = await flow_db.get_all_tags()
+        return {"success": True, "message": "All tags retrieved successfully", "tags": tags}
+    except Exception as e:
+        logging.error(f"Error retrieving all tags: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.put("/api/update-tag-color")
+async def update_tag_color(tag_name: str, new_color: str):
+    try:
+        updated = await flow_db.update_tag_color(tag_name, new_color)
+        if updated:
+            return {"success": True, "message": "Tag color updated successfully"}
+        else:
+            return {"success": False, "message": "Tag not found or color not updated"}
+    except Exception as e:
+        logging.error(f"Error updating tag color: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
