@@ -83,7 +83,7 @@ async def set_logging():
 
 async def set_cors():
     frontend_info = await get_frontend_info()
-    origins = [frontend_info["url"], "http://localhost:5173"]  # Add your development URL
+    origins = [frontend_info["url"], "http://localhost:5173", "http://sf_portal:5173"]
     console.print(f"🌐 [bold cyan]Setting CORS for origins:[/bold cyan] {origins}")
     
     app.add_middleware(
@@ -113,7 +113,7 @@ async def main():
         port = api_info["port"]
         console.print(f"🚀 Starting server on port {port}")
         
-        config = uvicorn.Config("main:app", host="127.0.0.1", port=port, reload=True)
+        config = uvicorn.Config("main:app", host="0.0.0.0", port=port, reload=True)
         server = uvicorn.Server(config)
         await server.serve()
     except Exception as e:

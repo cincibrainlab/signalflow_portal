@@ -22,6 +22,9 @@ services:
       - UPLOADER_PORT=1080
     networks:
       - eeg-network
+    depends_on:
+      - sf_db
+      - sf_uploader
     command: >
       sh -c "cd /app/backend && python main.py & 
              cd /app/frontend && npm run dev -- --host 0.0.0.0 &

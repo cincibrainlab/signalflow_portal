@@ -1,7 +1,7 @@
 // src/services/apiService.ts
 import pako from 'pako';
 
-export const baseUrl = `http://localhost:${import.meta.env.VITE_BACKEND_PORT || '8001'}/api/`;
+export const baseUrl = `http://sf_portal:8001/api/`;
 
 const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
