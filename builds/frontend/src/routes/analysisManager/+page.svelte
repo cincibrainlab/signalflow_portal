@@ -24,7 +24,7 @@
   /** @type {import('./$types').PageData} */
   export let data;
 
-  let { analyses, uniqueParadigms, uniqueFormats, uniqueFlows, uniqueCategories } = data;
+  let { analyses, uniqueParadigms, uniqueFormats, uniqueFlows, uniqueCategories, tags } = data;
   uniqueParadigms = uniqueParadigms.filter((item: any) => item.name !== "Unassigned");
   uniqueFormats = uniqueFormats.filter((item: any) => item.name !== "Unassigned");
 
@@ -168,6 +168,7 @@
             {uniqueFormats}
             {uniqueFlows}
             {uniqueCategories}
+            {tags}
           />
           <Button  on:click={() => showAddAnalysisModal = true}>
             Add New Analysis

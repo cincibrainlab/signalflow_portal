@@ -18,6 +18,7 @@
   import * as Select from "$lib/components/ui/select";
   import * as Sheet from "$lib/components/ui/sheet";
   import * as Pagination from "$lib/components/ui/pagination";
+  import * as Tooltip from "$lib/components/ui/tooltip/index.js";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
   import MultiSelect from 'svelte-multiselect';
 
@@ -204,9 +205,9 @@
 
   function getAgeBadgeClasses(ageGroup: string): string {
     const colorMap = new Map([
-      ["infant", "yellow"],
-      ["pediatric", "green"],
-      ["adult", "blue"],
+      ["infant", "blue"],
+      ["adolescent", "green"],
+      ["adult", "yellow"],
     ])
 
     const availableColors = [
@@ -315,17 +316,6 @@
             console.error('Error fetching participants:', error);
             // Handle the error appropriately
         });
-  }
-
-  function addTag(event: Event) {
-    if (newTag && !selectedTags.includes(newTag)) {
-      selectedTags = [...selectedTags, newTag];
-      newTag = '';
-    }
-  }
-
-  function removeTag(tag: string) {
-    selectedTags = selectedTags.filter(t => t !== tag);
   }
 
   function handleTagSelection(event) {
@@ -656,36 +646,36 @@
                       {#await getParticipant(selectedFile.participant) then selectedParticipant}
                         {#if selectedParticipant}
                           <div class="w-full">
-                            <label for="Age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age}</p>
-                          </div>
-                          <div class="w-full">
-                            <label for="Age Group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group}</p>
-                          </div>
-                          <div class="w-full">
-                            <label for="Gender" class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender}</p>
-                          </div>
-                          <div class="w-full">
-                            <label for="Handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness}</p>
-                          </div>
-                          <div class="w-full">
-                            <label for="Species" class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
-                          </div>
-                          <div class="w-full">
                             <label for="Group" class="block text-sm font-semibold text-gray-700 mb-1">Group:</label>
                             <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.diagnosis}</p>
                           </div>
                           <div class="w-full">
+                            <label for="Species" class="block text-sm font-semibold text-gray-700 mb-1">Type:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age || "n/a"}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Age Group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group || "n/a"}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Gender" class="block text-sm font-semibold text-gray-700 mb-1">Sex:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender || "n/a"}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness || "n/a"}</p>
+                          </div>
+                          <div class="w-full">
                             <label for="IQ Score" class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score}</p>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score || "n/a"}</p>
                           </div>
                           <div class="w-full">
                             <label for="Anxiety Level" class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level}</p>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level || "n/a"}</p>
                           </div>
                         {/if}
                       {/await}
@@ -836,7 +826,12 @@
               <div class="overflow-hidden">
                 <CardHeader>
                   <CardTitle class="flex items-center justify-between flex-wrap">
-                    <span class="break-all pr-6">Name: {file.original_name}</span>
+                    <Tooltip.Root>
+                      <Tooltip.Trigger class="truncate max-w-80">{file.original_name}</Tooltip.Trigger>
+                      <Tooltip.Content>
+                        <p>{file.original_name}</p>
+                      </Tooltip.Content>
+                    </Tooltip.Root>
                     <div class="flex gap-2 flex-wrap">
                       <Badge
                         class={getDiagnosisBadgeClasses(
@@ -947,7 +942,14 @@
                 class="table-row-transition cursor-pointer"
                 on:click={() => toggleFileSelection(file.original_name)}
               >
-                <TableCell>{file.original_name}</TableCell>
+                <TableCell>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger class="truncate max-w-72">{file.original_name}</Tooltip.Trigger>
+                    <Tooltip.Content>
+                      <p>{file.original_name}</p>
+                    </Tooltip.Content>
+                  </Tooltip.Root>
+                </TableCell>
                 <TableCell>{file.paradigmData?.name}</TableCell>
                 <TableCell>{file.participantData?.participant_id}</TableCell>
                 

@@ -157,6 +157,12 @@ async def get_matching_files(valid_formats: list[str], valid_paradigms: list[str
     file_catalog = await flow_db.get_matchingFiles(valid_formats, valid_paradigms)
     return [models.OriginalImportFile(**upload) for upload in file_catalog]
 
+@router.post("/api/get-matching-tagged-files")
+async def get_matching_tagged_files(valid_tags: List[dict]):
+    logging.info("Getting tagged files...")
+    file_catalog = await flow_db.get_matchingTagged(valid_tags)
+    return [models.OriginalImportFile(**upload) for upload in file_catalog]
+
 @router.get("/api/get-participants")
 async def get_participants():
     logging.info("Getting participants...")
@@ -478,7 +484,7 @@ async def get_file(file_path: str):
 
 @router.post("/api/assign-tags-to-file/{fileId}")
 async def assign_tags_to_file_route(fileId: str, tags: List[dict]):
-    formatted_tags = [{"id": tag["id"], "name": tag["label"], "color": tag["color"]} for tag in tags]
+    formatted_tags = [{"id": tag["id"], "name": tag["label"], "color": tag["color"], "text_class": tag["text_class"]} for tag in tags]
     result = await flow_db.assign_tags_to_file(formatted_tags, fileId)
     return result
     

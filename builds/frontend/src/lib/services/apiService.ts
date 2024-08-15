@@ -95,8 +95,37 @@ export async function getMatchingFiles(valid_formats: any[], valid_paradigms: an
       console.log('Response data:', data);
       return data;
   } catch (error) {
-      console.error('Error fetching original file catalog:', error);
+      console.error('Error fetching matching file catalog:', error);
       throw error;
+  }
+}
+
+export async function getMatchingTaggedFiles(valid_tags: any[]) {
+  try {
+    const url = `${baseUrl}get-matching-tagged-files`;
+    console.log('Tags being sent to server:', valid_tags);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify( valid_tags )
+    });
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.log('Error response data:', errorData);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(errorData)}`);
+    }
+    
+    const data = await response.json();
+    console.log('Response data:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching matching tagged file catalog:', error);
+    throw error;
   }
 }
 

@@ -563,6 +563,7 @@ async def get_analysis_from_deployment_id(DeploymentID):
             "valid_formats": analysis.get("valid_formats"),
             "valid_paradigms": analysis.get("valid_paradigms"),
             "valid_files": analysis.get("valid_files"),
+            "valid_tags": analysis.get("valid_tags"),
             "deployment_id": analysis.get("deployment_id"),
             "output_path": analysis.get("output_path"),
             "parameters": analysis.get("parameters")
@@ -695,6 +696,17 @@ async def get_matchingFiles(valid_formats, valid_paradigms):
         "eeg_paradigm": {"$in": valid_paradigms}
     }).to_list(length=None)
     
+    return valid_files
+
+async def get_matchingTagged(valid_tags):
+    # Extract just the tag names from the input
+    tag_names = [tag['label'] for tag in valid_tags]
+    
+    # Use $all operator to find documents that contain all specified tags
+    valid_files = await db.OriginalImportFile.find({
+        "tags.name": {"$all": tag_names}
+    }).to_list(length=None)
+
     return valid_files
 
 async def get_form_options(FormField: str):

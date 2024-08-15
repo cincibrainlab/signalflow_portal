@@ -12,6 +12,7 @@
 	import { fade } from 'svelte/transition';
     import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "$lib/components/ui/table"
 	import { goto } from '$app/navigation';
+    import { Checkbox } from "$lib/components/ui/checkbox"
 
     export let data;
     let upload_id: string = data.upload_id;
@@ -31,7 +32,7 @@
     let xAxis: d3.Selection<SVGGElement, unknown, null, undefined>;
     let chartArea: d3.Selection<SVGGElement, unknown, null, undefined>;
 
-    let yScaleRange = 15; // Default y-scale range in microvolts
+    let yScaleRange = 50; // Default y-scale range in microvolts
     let samplingRate = 100; // Default sampling rate
     let numSecondsToDisplay = 5;
     let viewportStart = 0;
@@ -44,6 +45,8 @@
     let showToast = false;
     let toastMessage = '';
     let toastType = 'success';
+
+    let selectedChannels: number[] = [];
 
     async function openFile(filePath: string) {
         try {
@@ -79,6 +82,7 @@
                 psdPath = response.psd_path;
                 console.log('psdPath', psdPath);
                 console.log('EEGData', EEGData);
+                selectedChannels = Array.from({ length: numChannels }, (_, i) => i);
                 drawEEGPlot();
                 updateYScale(yScaleRange);
             });
@@ -142,7 +146,7 @@
             .domain([-yScaleRange / 2, yScaleRange / 2])
             .range([height, 0]);
 
-        const channelHeight = height / EEGData.length;
+        const channelHeight = height / selectedChannels.length;
 
         const clipPath = svg.append("defs").append("clipPath")
             .attr("id", "clip")
@@ -153,17 +157,18 @@
         chartArea = svg.append("g")
             .attr("clip-path", "url(#clip)");
 
-        EEGData.forEach((channel, i) => {
+        selectedChannels.forEach((channelIndex, i) => {
+            const channel = EEGData[channelIndex];
             const yOffset = i * channelHeight;
 
             const scaledLine = d3.line<number>()
                 .x((d, i) => xScale((viewportStart + i) / samplingRate))
-                .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / EEGData.length);
+                .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / selectedChannels.length);
 
             chartArea.append("path")
                 .datum(channel.slice(viewportStart, viewportEnd))
                 .attr("fill", "none")
-                .attr("stroke", d3.schemeCategory10[i % 10])
+                .attr("stroke", d3.schemeCategory10[channelIndex % 10])
                 .attr("stroke-width", 1.5)
                 .attr("d", scaledLine);
 
@@ -172,7 +177,7 @@
                 .attr("y", yOffset + channelHeight / 2)
                 .attr("dy", ".35em")
                 .attr("text-anchor", "end")
-                .text(`Ch ${i + 1}`);
+                .text(`Ch ${channelIndex + 1}`);
         });
 
         xAxis = svg.append("g")
@@ -196,16 +201,31 @@
 
     function updateEEGLines() {
         const height = svgElement.clientHeight - 50; // Subtracting 50 to account for margins
-        const channelHeight = height / EEGData.length;
+        const channelHeight = height / selectedChannels.length;
 
         chartArea.selectAll("path")
-            .data(EEGData)
-            .attr("d", (channel, i) => {
+            .data(selectedChannels)
+            .join("path")
+            .attr("d", (channelIndex, i) => {
+                const channel = EEGData[channelIndex];
                 const yOffset = i * channelHeight;
                 return d3.line<number>()
                     .x((d, i) => xScale((viewportStart + i) / samplingRate))
-                    .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / EEGData.length)(channel.slice(viewportStart, viewportEnd));
-            });
+                    .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / selectedChannels.length)(channel.slice(viewportStart, viewportEnd));
+            })
+            .attr("fill", "none")
+            .attr("stroke", (channelIndex) => d3.schemeCategory10[channelIndex % 10])
+            .attr("stroke-width", 1.5);
+
+        // Update channel labels
+        d3.select(svgElement).selectAll("text")
+            .data(selectedChannels)
+            .join("text")
+            .attr("x", -10)
+            .attr("y", (_, i) => i * channelHeight + channelHeight / 2)
+            .attr("dy", ".35em")
+            .attr("text-anchor", "end")
+            .text(channelIndex => `Ch ${channelIndex + 1}`);
     }
 
     function updateYScale(newRange: number) {
@@ -273,6 +293,15 @@
         downloadFile(upload_id);
     }
 
+    function toggleChannel(channelIndex: number) {
+        if (selectedChannels.includes(channelIndex)) {
+            selectedChannels = selectedChannels.filter(ch => ch !== channelIndex);
+        } else {
+            selectedChannels = [...selectedChannels, channelIndex].sort((a, b) => a - b);
+        }
+        drawEEGPlot();
+    }
+
 </script>
 
 <main class="w-11/12 mx-auto p-6 min-h-screen">
@@ -325,6 +354,26 @@
                             <Button on:click={() => navigateViewport(5)}>5s<ArrowBigRightDash/></Button>
                         </div>
                     </div>
+                    <section class="dark:bg-white dark:text-black rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-lg">
+                        <h2 class="text-xl font-semibold mb-4">Channel Selection</h2>
+                        <div class="grid grid-cols-4 gap-4">
+                            {#each Array(numChannels) as _, i}
+                                <div class="flex items-center space-x-2">
+                                    <Checkbox 
+                                        id="channel-{i}" 
+                                        checked={selectedChannels.includes(i)}
+                                        onCheckedChange={() => toggleChannel(i)}
+                                    />
+                                    <label
+                                        for="channel-{i}"
+                                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    >
+                                        Channel {i + 1}
+                                    </label>
+                                </div>
+                            {/each}
+                        </div>
+                    </section>
                 </div>
 
                 <div class="mt-8">

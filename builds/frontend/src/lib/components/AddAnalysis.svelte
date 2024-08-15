@@ -1,7 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { Button } from "$lib/components/ui/button";
-  import { addAnalysis, getMatchingFiles } from '$lib/services/apiService';
+  import { addAnalysis, getMatchingFiles, getMatchingTaggedFiles } from '$lib/services/apiService';
+  import { Tabs, TabsList, TabsTrigger } from "$lib/components/ui/tabs";
+  import * as Tooltip from "$lib/components/ui/tooltip/index.js";
+
+
 
   import MultiSelect from 'svelte-multiselect'
 	import Input from './ui/input/input.svelte';
@@ -10,6 +14,7 @@
 
   let selectedFormats: any[] = []
   let selectedParadigms: any[] = []
+  let selectedTags: any[] = []
 
   let runAnalysis_choice = false;
   let added_analysis_id: string
@@ -26,6 +31,7 @@
     valid_files: string[]; // or any other specific type
     output_path: string;
     parameters: string;
+    valid_tags;
   }
 
   let newAnalysis: Analysis = {
@@ -37,7 +43,8 @@
     valid_paradigms: [] as string[], // specify the type here
     valid_files: [] as string[], // specify the type here
     output_path: '',
-    parameters: ''
+    parameters: '',
+    valid_tags: []
   };
 
   // These should be fetched from your API or passed as props
@@ -46,6 +53,7 @@
     export let uniqueFormats: any[] = [];
     export let uniqueFlows: any[] = [];
     export let uniqueCategories: string[] = [];
+    export let tags: any[] = [];
 
   onMount(async () => {
     uniqueParadigms = uniqueParadigms.map((item: any) => ({ id: item._id, label: item.name }));
@@ -55,8 +63,15 @@
   async function handleSubmit() {
     try {
       console.log('New Analysis', newAnalysis);
-      const result = await getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms);
-      newAnalysis.valid_files = result.map((file: any) => file._id);
+      let baseResult = await getMatchingFiles(newAnalysis.valid_formats, newAnalysis.valid_paradigms);
+      baseResult = baseResult.map((file: any) => file._id);
+      if (newAnalysis.valid_tags.length > 0) {
+        let taggedResult = await getMatchingTaggedFiles(newAnalysis.valid_tags);
+        taggedResult = taggedResult.map((file: any) => file._id);
+        newAnalysis.valid_files = [...baseResult, ...taggedResult];
+      } else {
+        newAnalysis.valid_files = baseResult;
+      }
 
       if (newAnalysis.output_path === "") {
         newAnalysis.output_path = "./portal_files/output";
@@ -85,10 +100,12 @@
       valid_paradigms: [] as string[], // specify the type here
       valid_files: [] as string[], // specify the type here
       output_path: '',
-      parameters: ''
+      parameters: '',
+      valid_tags: []
     };
     selectedFormats = []
     selectedParadigms = []
+    selectedTags = []
     runAnalysis_choice = false;
     added_analysis_id = ""
   }
@@ -148,18 +165,34 @@
                 required
             />
           </div>
+<!-- 
+          <Tabs>
+            <TabsList class="grid w-full grid-cols-2">
+              <TabsTrigger value="text-white">
+                <Tooltip.Root>
+                  <Tooltip.Trigger >All</Tooltip.Trigger>
+                  <Tooltip.Content>
+                    <p>Files must match all of the selected Tags</p>
+                  </Tooltip.Content>
+                </Tooltip.Root>
+              </TabsTrigger>
+              <TabsTrigger value="text-white">
+                <Tooltip.Root>
+                  <Tooltip.Trigger>Any</Tooltip.Trigger>
+                  <Tooltip.Content>
+                    <p>Files must match one of the selected Tags</p>
+                  </Tooltip.Content>
+                </Tooltip.Root>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs> -->
+
           <div>
-            <label for="category" class="block text-md font-semibold text-gray-700 mb-1">Category:</label>
-            <Select.Root>   
-              <Select.Trigger> 
-                <Select.Value placeholder="Select Category" />
-              </Select.Trigger>
-              <Select.Content>
-                {#each uniqueCategories as category}
-                  <Select.Item value={category} on:click={() => newAnalysis.category = category}>{category}</Select.Item>
-                {/each}
-              </Select.Content>
-            </Select.Root>
+            <label for="tags" class="block text-md font-semibold text-gray-700 mb-1">Valid Tags:</label>
+            <MultiSelect
+              options={tags}
+              bind:selected={newAnalysis.valid_tags}
+            />
           </div>
           <div>
             <label for="output_path" class="block text-md font-semibold text-gray-700 mb-1">Output Path:</label>
