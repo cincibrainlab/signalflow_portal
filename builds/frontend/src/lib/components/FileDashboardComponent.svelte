@@ -157,27 +157,28 @@
         chartArea = svg.append("g")
             .attr("clip-path", "url(#clip)");
 
-        selectedChannels.forEach((channelIndex, i) => {
-            const channel = EEGData[channelIndex];
-            const yOffset = i * channelHeight;
+        EEGData.forEach((channel, i) => {
+            if (selectedChannels.includes(i)) {
+                const yOffset = selectedChannels.indexOf(i) * channelHeight;
 
-            const scaledLine = d3.line<number>()
-                .x((d, i) => xScale((viewportStart + i) / samplingRate))
-                .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / selectedChannels.length);
+                const scaledLine = d3.line<number>()
+                    .x((d, i) => xScale((viewportStart + i) / samplingRate))
+                    .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / EEGData.length);
 
-            chartArea.append("path")
-                .datum(channel.slice(viewportStart, viewportEnd))
-                .attr("fill", "none")
-                .attr("stroke", d3.schemeCategory10[channelIndex % 10])
-                .attr("stroke-width", 1.5)
-                .attr("d", scaledLine);
+                chartArea.append("path")
+                    .datum(channel.slice(viewportStart, viewportEnd))
+                    .attr("fill", "none")
+                    .attr("stroke", d3.schemeCategory10[i % 10])
+                    .attr("stroke-width", 1.5)
+                    .attr("d", scaledLine);
 
-            svg.append("text")
-                .attr("x", -10)
-                .attr("y", yOffset + channelHeight / 2)
-                .attr("dy", ".35em")
-                .attr("text-anchor", "end")
-                .text(`Ch ${channelIndex + 1}`);
+                svg.append("text")
+                    .attr("x", -10)
+                    .attr("y", yOffset + channelHeight / 2)
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "end")
+                    .text(`Ch ${i + 1}`);
+            }
         });
 
         xAxis = svg.append("g")
@@ -204,28 +205,16 @@
         const channelHeight = height / selectedChannels.length;
 
         chartArea.selectAll("path")
-            .data(selectedChannels)
-            .join("path")
-            .attr("d", (channelIndex, i) => {
-                const channel = EEGData[channelIndex];
-                const yOffset = i * channelHeight;
-                return d3.line<number>()
-                    .x((d, i) => xScale((viewportStart + i) / samplingRate))
-                    .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / selectedChannels.length)(channel.slice(viewportStart, viewportEnd));
-            })
-            .attr("fill", "none")
-            .attr("stroke", (channelIndex) => d3.schemeCategory10[channelIndex % 10])
-            .attr("stroke-width", 1.5);
-
-        // Update channel labels
-        d3.select(svgElement).selectAll("text")
-            .data(selectedChannels)
-            .join("text")
-            .attr("x", -10)
-            .attr("y", (_, i) => i * channelHeight + channelHeight / 2)
-            .attr("dy", ".35em")
-            .attr("text-anchor", "end")
-            .text(channelIndex => `Ch ${channelIndex + 1}`);
+            .data(EEGData)
+            .attr("d", (channel, i) => {
+                if (selectedChannels.includes(i)) {
+                    const yOffset = selectedChannels.indexOf(i) * channelHeight;
+                    return d3.line<number>()
+                        .x((d, i) => xScale((viewportStart + i) / samplingRate))
+                        .y(d => yOffset + channelHeight / 2 + (yScale(d) - yScale(0)) / EEGData.length)(channel.slice(viewportStart, viewportEnd));
+                }
+                return '';
+            });
     }
 
     function updateYScale(newRange: number) {
