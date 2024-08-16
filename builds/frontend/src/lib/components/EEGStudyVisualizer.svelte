@@ -37,6 +37,7 @@
     getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant,
     getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile, assignTagsToFile, getTags 
   } from '$lib/services/apiService';
+	import { cn } from "$lib/utils";
 
   // 2. Component props
   /** @type {import('./$types').PageData} */
@@ -688,6 +689,14 @@
                       bind:selected={selectedTags}
                       on:change={handleTagSelection}
                       placeholder="Select tags"
+                      outerDivClass={cn(
+                        "border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring aria-[invalid]:border-destructive data-[placeholder]:[&>span]:text-muted-foreground flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+                      )}
+                      ulOptionsClass={cn(
+                        "bg-popover text-popover-foreground relative z-50 min-w-[8rem] overflow-hidden rounded-md border shadow-md focus:outline-none",
+                      )}
+                      liOptionClass="relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                      liSelectedClass="bg-accent text-accent-foreground"
                     />
                   </div>
                   {/if}
@@ -765,12 +774,22 @@
                           </Badge>
                         {/each}
                       </div>
-                      <MultiSelect
-                        options={tags}
-                        bind:selected={selectedTags}
-                        on:change={handleTagSelection}
-                        placeholder="Select tags"
-                      />
+                      <div class="space-y-2">
+                        <MultiSelect
+                          options={tags}
+                          bind:selected={selectedTags}
+                          on:change={handleTagSelection}
+                          placeholder="Select tags"
+                          outerDivClass={cn(
+                            "border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring aria-[invalid]:border-destructive data-[placeholder]:[&>span]:text-muted-foreground flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+                          )}
+                          ulOptionsClass={cn(
+                            "bg-popover text-popover-foreground relative z-50 min-w-[8rem] overflow-hidden rounded-md border shadow-md focus:outline-none",
+                          )}
+                          liOptionClass="relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                          liSelectedClass="bg-accent text-accent-foreground"
+                        />
+                      </div>
                     </div>
                     <Sheet.Footer class="mt-4">
                       <Sheet.Close>
