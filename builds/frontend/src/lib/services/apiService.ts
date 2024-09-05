@@ -1,7 +1,13 @@
 // src/services/apiService.ts
 import pako from 'pako';
 
-export const baseUrl = `http://sf_portal:8001/api/`;
+import { browser } from '$app/environment';
+
+export const baseUrl = browser
+  ? `http://${window.location.hostname}:3005/api/`
+  : import.meta.env.VITE_API_BASE_URL || `http://sf_portal:8001/api/`;
+
+// ... rest of the file remains the same
 
 const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds

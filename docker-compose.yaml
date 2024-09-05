@@ -20,6 +20,8 @@ services:
       - DB_HOST=sf_db
       - DB_PORT=27017
       - UPLOADER_PORT=1080
+      - VITE_API_BASE_URL=http://sf_portal:8001/api/
+      - VITE_PREFECT_BASE_URL=http://sf_portal:8001/prefect/
     networks:
       - eeg-network
     depends_on:
