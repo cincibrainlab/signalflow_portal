@@ -4,7 +4,7 @@ database:
   reset: False
 
 frontend:
-  url: http://172.22.0.2:5173/
+  url: http://localhost:5173/
 
 api:
   port: 8001
@@ -163,7 +163,6 @@ FormInfo:
   form_options:
     - 'FXS'
     - 'ASD'
-    - 'TDC'
     - 'DD'
     - 'Control'
     - 'Blind'
@@ -185,14 +184,3 @@ FormInfo:
     - 'Slice'
     - 'Stem Cell'
     - 'n/a'
-
-Tags:
-- name: Connectivity
-  color: '#8f58ed'
-  text_class: 'text-black'
-- name: Entrain
-  color: '#f74639'
-  text_class: 'text-black'
-- name: MEA
-  color: '#5ded58'
-  text_class: 'text-black'

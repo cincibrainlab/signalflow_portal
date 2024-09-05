@@ -452,14 +452,14 @@ async def download_EEG_Data(upload_id):
 @router.get("/api/get-temp-file/{file_path}")
 async def get_temp_file(file_path: str):
     logging.info(f"Getting file: {file_path}")
-    full_path = os.path.join("./portal_files/temp", file_path)
+    full_path = os.path.join("/temp", file_path)
     if not os.path.exists(full_path):
         return Response(content=f"File {full_path} not found", status_code=404)
     return FileResponse(full_path)
 
 @router.delete("/api/delete-temp-file/{file_name}")
 async def delete_temp_file(file_name: str):
-    file_path = os.path.join("./portal_files/temp", file_name)
+    file_path = os.path.join("/temp", file_name)
     try:
         if os.path.exists(file_path):
             os.remove(file_path)

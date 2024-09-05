@@ -18,8 +18,8 @@ import models
 from bson import ObjectId
 import asyncio
 
-DB_HOST = os.environ.get('DB_HOST', 'sf_db')
-DB_PORT = os.environ.get('DB_PORT', '27017')
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = os.environ.get('DB_PORT', '3002')
 MONGO_URL = f"mongodb://{DB_HOST}:{DB_PORT}"
 DATABASE_NAME = "sfportal"
 
