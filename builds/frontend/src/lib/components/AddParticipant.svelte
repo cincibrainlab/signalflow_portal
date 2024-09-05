@@ -103,7 +103,7 @@
         <div class="grid grid-cols-2 gap-4 mt-[10px]">
           <div>
             <label for="age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
-            <Input type="number" id="age" bind:value={newParticipant.age} required class="w-full p-2 border rounded" />
+            <Input type="number" id="age" bind:value={newParticipant.age} class="w-full p-2 border rounded" />
           </div>
           <div>
             <label for="age_group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>

@@ -1,9 +1,9 @@
-import { getOriginalFileCatalog, getParticipants, getParadigms, getFormats, getFormOptions, getEEGFormat, getParticipant, getParadigm } from '$lib/services/apiService';
+import { getOriginalFileCatalog, getParticipants, getParadigms, getFormats, getFormOptions, getEEGFormat, getParticipant, getParadigm, getTags } from '$lib/services/apiService';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ }) {
     try {
-        const [fileCatalog, participants, paradigms, formats, groupOptions, ageGroupOptions, typeOptions, sexOptions, handednessOptions] = await Promise.all([
+        const [fileCatalog, participants, paradigms, formats, groupOptions, ageGroupOptions, typeOptions, sexOptions, handednessOptions, tags] = await Promise.all([
             getOriginalFileCatalog(),
             getParticipants(),
             getParadigms(),
@@ -12,7 +12,8 @@ export async function load({ }) {
             getFormOptions("AgeGroup"),
             getFormOptions("Type"),
             getFormOptions("Sex"),
-            getFormOptions("Handedness")
+            getFormOptions("Handedness"),
+            getTags()
         ]);
 
         // Process files
@@ -37,7 +38,8 @@ export async function load({ }) {
             uniqueAgeGroups,
             uniqueTypes,
             uniqueSexes,
-            uniqueHandednesses
+            uniqueHandednesses,
+            tags
         };
     } catch (error) {
         console.error('Error fetching data:', error);

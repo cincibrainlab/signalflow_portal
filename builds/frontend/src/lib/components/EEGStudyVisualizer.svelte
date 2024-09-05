@@ -18,7 +18,10 @@
   import * as Select from "$lib/components/ui/select";
   import * as Sheet from "$lib/components/ui/sheet";
   import * as Pagination from "$lib/components/ui/pagination";
+  import * as Tooltip from "$lib/components/ui/tooltip/index.js";
   import { ChevronLeft, ChevronRight } from "lucide-svelte";
+  import MultiSelect from 'svelte-multiselect';
+
   // Icon imports
   import {
     Brain, Activity, Zap, Cog, Baby, UserRound, Filter, Grid, List,
@@ -27,12 +30,14 @@
 
   // Local component imports
   import AddParticipant from './AddParticipant.svelte';
+  import AddTag from './AddTag.svelte';
 
   // Service imports
   import { 
     getOriginalFileCatalog, getParticipants, assignParticipantToFile, getParticipant,
-    getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile, assignTagsToFile 
+    getEEGFormat, getParadigm, assignEEGFormatToFile, assignEEGParadigmToFile, assignTagsToFile, getTags 
   } from '$lib/services/apiService';
+	import { cn } from "$lib/utils";
 
   // 2. Component props
   /** @type {import('./$types').PageData} */
@@ -128,9 +133,9 @@
     uniqueGroups = ["All"],
     uniqueTypes = ["All"],
     uniqueSexes = ["All"],
-    uniqueHandednesses = ["All"]
+    uniqueHandednesses = ["All"],
+    tags: tags
   } = data;
-
   let selectedFile: any = null;
   let isEditing = false;
   let isBatchEditing = false;
@@ -152,6 +157,7 @@
   let isFiltering = false;
   let selectedFiles: string[] = [];
   let showAddParticipantModal = false;
+  let showAddTagModal = false;
   let toastMessage = '';
   let toastType: 'success' | 'error' = 'success';
   let showToast = false;
@@ -200,9 +206,9 @@
 
   function getAgeBadgeClasses(ageGroup: string): string {
     const colorMap = new Map([
-      ["infant", "yellow"],
-      ["pediatric", "green"],
-      ["adult", "blue"],
+      ["infant", "blue"],
+      ["adolescent", "green"],
+      ["adult", "yellow"],
     ])
 
     const availableColors = [
@@ -252,17 +258,16 @@
     }
   }
 
-  function getParadigmIcon(type: string) {
-    switch (type) {
-      case "resting_state":
-        return Brain
-      case "chirp":
-        return Activity
-      case "cognitive_flexibility":
-        return Cog
-      default:
-        return Zap
-    }
+  function handleTagAdded(event) {
+  // Refresh your tags list here
+    getTags()
+      .then(result => {
+        tags = result;
+      })
+      .catch(error => {
+        console.error('Error fetching tags:', error);
+        // Handle the error appropriately
+      });
   }
 
   // 7. Event handlers
@@ -314,15 +319,8 @@
         });
   }
 
-  function addTag(event: Event) {
-    if (newTag && !selectedTags.includes(newTag)) {
-      selectedTags = [...selectedTags, newTag];
-      newTag = '';
-    }
-  }
-
-  function removeTag(tag: string) {
-    selectedTags = selectedTags.filter(t => t !== tag);
+  function handleTagSelection(event) {
+    selectedTags = event.detail;
   }
 
   // 8. Complex logic and data fetching
@@ -483,6 +481,16 @@
           Add New Participant
         </Button>
 
+        <AddTag
+          bind:showModal={showAddTagModal}
+          on:tagAdded={handleTagAdded}
+          on:toast={handleToast}
+          on:close={() => showAddTagModal = false}
+        />
+        <Button variant="outline" on:click={() => showAddTagModal = true}>
+          Add New Tag
+        </Button>
+
         <Button
           on:click={toggleViewMode}
           
@@ -570,7 +578,7 @@
             class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
             on:click={SelectAllVisible}
           >
-            Select all Visible 
+            Select all  
           </Button>
           <Button
             class="w-full h-9 font-semibold rounded-md bg-blue-500 text-white hover:bg-blue-700"
@@ -619,11 +627,19 @@
                       </div>
                       <div class="w-full">
                         <label for="Tags" class="block text-sm font-semibold text-gray-7000 mb-1">Tags:</label>
-                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedFile.tags}</p>
+                        <div class="flex flex-wrap gap-2">
+                          {#if selectedFile.tags}
+                            {#each selectedFile.tags as tag}
+                              <Badge class="{tag.text_class}" style="background-color: {tag.color};">{tag.name}</Badge>
+                            {/each}
+                          {:else}
+                            <p class="block text-sm font-medium text-gray-7000 mb-1 w-full h-auto">No tags assigned</p>
+                          {/if}
+                        </div>
                       </div>
                       <div class="w-full h-4/6">
                         <label for="Notes" class="block text-sm font-semibold text-gray-700 mb-1">Notes:</label>
-                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes}</p>
+                        <p class="block text-sm font-medium text-gray-700 mb-1 w-full resize-none h-5/6">{selectedFile.notes || ""}</p>
                       </div>
                     </div>
                     <div>
@@ -631,36 +647,36 @@
                       {#await getParticipant(selectedFile.participant) then selectedParticipant}
                         {#if selectedParticipant}
                           <div class="w-full">
-                            <label for="Age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age}</p>
-                          </div>
-                          <div class="w-full">
-                            <label for="Age Group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group}</p>
-                          </div>
-                          <div class="w-full">
-                            <label for="Gender" class="block text-sm font-semibold text-gray-700 mb-1">Gender:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender}</p>
-                          </div>
-                          <div class="w-full">
-                            <label for="Handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness}</p>
-                          </div>
-                          <div class="w-full">
-                            <label for="Species" class="block text-sm font-semibold text-gray-700 mb-1">Species:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
-                          </div>
-                          <div class="w-full">
                             <label for="Group" class="block text-sm font-semibold text-gray-700 mb-1">Group:</label>
                             <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.diagnosis}</p>
                           </div>
                           <div class="w-full">
+                            <label for="Species" class="block text-sm font-semibold text-gray-700 mb-1">Type:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.species}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Age" class="block text-sm font-semibold text-gray-700 mb-1">Age:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age || "n/a"}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Age Group" class="block text-sm font-semibold text-gray-700 mb-1">Age Group:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.age_group || "n/a"}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Gender" class="block text-sm font-semibold text-gray-700 mb-1">Sex:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.gender || "n/a"}</p>
+                          </div>
+                          <div class="w-full">
+                            <label for="Handedness" class="block text-sm font-semibold text-gray-700 mb-1">Handedness:</label>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.handedness || "n/a"}</p>
+                          </div>
+                          <div class="w-full">
                             <label for="IQ Score" class="block text-sm font-semibold text-gray-700 mb-1">IQ Score:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score}</p>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.iq_score || "n/a"}</p>
                           </div>
                           <div class="w-full">
                             <label for="Anxiety Level" class="block text-sm font-semibold text-gray-700 mb-1">Anxiety Level:</label>
-                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level}</p>
+                            <p class="block text-sm font-medium text-gray-700 mb-1 w-full h-auto">{selectedParticipant.anxiety_level || "n/a"}</p>
                           </div>
                         {/if}
                       {/await}
@@ -668,34 +684,20 @@
                   </div>
                   {#if isEditing}
                   <div class="space-y-2">
-                    <div class="flex flex-wrap gap-2">
-                      {#each selectedTags as tag}
-                        <Badge variant="secondary" class="flex items-center gap-1">
-                          {tag}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            class="h-4 w-4 p-0"
-                            on:click={() => removeTag(tag)}
-                          >
-                            <X class="h-3 w-3" />
-                            <span class="sr-only">Remove</span>
-                          </Button>
-                        </Badge>
-                      {/each}
-                    </div>
-                    <form on:submit|preventDefault={addTag} class="flex gap-2">
-                      <Input
-                        type="text"
-                        id="newTag"
-                        bind:value={newTag}
-                        placeholder="Enter a new tag"
-                        class="flex-grow"
-                      />
-                      <Button type="submit">
-                        Add Tag
-                      </Button>
-                    </form>
+                    <MultiSelect
+                      options={tags}
+                      bind:selected={selectedTags}
+                      on:change={handleTagSelection}
+                      placeholder="Select tags"
+                      outerDivClass={cn(
+                        "border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring aria-[invalid]:border-destructive data-[placeholder]:[&>span]:text-muted-foreground flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+                      )}
+                      ulOptionsClass={cn(
+                        "bg-popover text-popover-foreground relative z-50 min-w-[8rem] overflow-hidden rounded-md border shadow-md focus:outline-none",
+                      )}
+                      liOptionClass="relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                      liSelectedClass="bg-accent text-accent-foreground"
+                    />
                   </div>
                   {/if}
                   <Sheet.Footer class="flex justify-end gap-2 mt-4">
@@ -761,34 +763,33 @@
                       </Select.Root>
                     </div>
                     <div class="space-y-2">
-                      <div class="flex flex-wrap gap-2">
+                      <div class="flex flex-wrap gap-2 justify-center mb-2">
                         {#each selectedTags as tag}
-                          <Badge variant="secondary" class="flex items-center gap-1">
-                            {tag}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              class="h-4 w-4 p-0"
-                              on:click={() => removeTag(tag)}
-                            >
-                              <X class="h-3 w-3" />
-                              <span class="sr-only">Remove</span>
-                            </Button>
+                          <Badge 
+                            variant="secondary" 
+                            class="flex items-center gap-1 {tag.text_class}"
+                            style="background-color: {tag.color};"
+                          >
+                            {tag.label}
                           </Badge>
                         {/each}
                       </div>
-                      <form on:submit|preventDefault={addTag} class="flex gap-2">
-                        <Input
-                          type="text"
-                          id="newTag"
-                          bind:value={newTag}
-                          placeholder="Enter a new tag"
-                          class="flex-grow"
+                      <div class="space-y-2">
+                        <MultiSelect
+                          options={tags}
+                          bind:selected={selectedTags}
+                          on:change={handleTagSelection}
+                          placeholder="Select tags"
+                          outerDivClass={cn(
+                            "border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring aria-[invalid]:border-destructive data-[placeholder]:[&>span]:text-muted-foreground flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+                          )}
+                          ulOptionsClass={cn(
+                            "bg-popover text-popover-foreground relative z-50 min-w-[8rem] overflow-hidden rounded-md border shadow-md focus:outline-none",
+                          )}
+                          liOptionClass="relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                          liSelectedClass="bg-accent text-accent-foreground"
                         />
-                        <Button type="submit">
-                          Add Tag
-                        </Button>
-                      </form>
+                      </div>
                     </div>
                     <Sheet.Footer class="mt-4">
                       <Sheet.Close>
@@ -844,7 +845,12 @@
               <div class="overflow-hidden">
                 <CardHeader>
                   <CardTitle class="flex items-center justify-between flex-wrap">
-                    <span class="break-all pr-6">Name: {file.original_name}</span>
+                    <Tooltip.Root>
+                      <Tooltip.Trigger class="truncate max-w-80">{file.original_name}</Tooltip.Trigger>
+                      <Tooltip.Content>
+                        <p>{file.original_name}</p>
+                      </Tooltip.Content>
+                    </Tooltip.Root>
                     <div class="flex gap-2 flex-wrap">
                       <Badge
                         class={getDiagnosisBadgeClasses(
@@ -955,7 +961,14 @@
                 class="table-row-transition cursor-pointer"
                 on:click={() => toggleFileSelection(file.original_name)}
               >
-                <TableCell>{file.original_name}</TableCell>
+                <TableCell>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger class="truncate max-w-72">{file.original_name}</Tooltip.Trigger>
+                    <Tooltip.Content>
+                      <p>{file.original_name}</p>
+                    </Tooltip.Content>
+                  </Tooltip.Root>
+                </TableCell>
                 <TableCell>{file.paradigmData?.name}</TableCell>
                 <TableCell>{file.participantData?.participant_id}</TableCell>
                 

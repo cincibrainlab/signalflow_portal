@@ -85,9 +85,6 @@ class OriginalImportFile(BaseModel):
     dataset_id: Optional[str] = Field(default="")
     eeg_format: Optional[PyObjectId] = Field(default=None)
     eeg_paradigm: Optional[PyObjectId] = Field(default=None)
-    # paradigm_start_time: Optional[datetime] = Field(default=None)
-    # paradigm_duration: Optional[int] = Field(default=-1)
-    # upload_user: Optional[User] = Field(default=None)
     status: Optional[str] = Field(default="")
     date_added: Optional[str] = Field(default="")
     hash: Optional[str] = Field(default="")
@@ -100,7 +97,7 @@ class OriginalImportFile(BaseModel):
     participant: Optional[PyObjectId] = Field(default=None)
     fileRuns: Optional[list[PyObjectId]] = Field(default=None)
     eegid: Optional[str] = Field(default="")
-    tags: Optional[list[str]] = Field(default="")
+    tags: Optional[list[dict]] = Field(default=None)
     
 class FileRun(BaseModel):
     original_file_id: Optional[PyObjectId] = Field(default=None)
@@ -167,4 +164,8 @@ class UserGroup(BaseModel):
     eegAnalyses: Optional[list[PyObjectId]] = Field(default=None)
     sessions: Optional[list[PyObjectId]] = Field(default=None)
     
-    
+class Tag(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    name: str = Field(...)
+    color: str = Field(default="#000000")  # Default to black if no color is specified
+    text_class: str = Field(default="text-white")
