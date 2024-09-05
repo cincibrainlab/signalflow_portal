@@ -9,7 +9,7 @@ services:
       - ./portal_files/output:/output
       - ./portal_files/temp:/temp
       - ./portal_files/logs:/logs
-      - ./config:/config
+      - ./config:/config 
       - ./builds/backend:/app/backend
       - ./builds/frontend/src:/app/frontend/src
     ports:

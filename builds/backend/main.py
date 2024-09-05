@@ -94,18 +94,12 @@ async def set_logging():
 
         # File handler
         file_handler = logging.FileHandler(log_file_path)
-        file_handler.setLevel(logging.DEBUG)
+        file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
 
-        # Console handler
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
-        console_handler.setFormatter(formatter)
-
         # Set up the root logger
-        logging.root.setLevel(logging.INFO)
+        logging.root.setLevel(logging.DEBUG)
         logging.root.addHandler(file_handler)
-        logging.root.addHandler(console_handler)
 
         console.print(f"📝 Logging configured to file: {log_file_path}")
         
