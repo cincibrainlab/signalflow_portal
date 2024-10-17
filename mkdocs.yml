@@ -1,4 +1,15 @@
 site_name: SignalFLow Vault
 site_url: https://mydomain.org/vault
 theme:
-  name: material
+  name: 'cinder'
+nav:
+  - SignalFlow Vault: index.md
+  - User Guide:
+    - Installation: userguide/installation.md
+    - Docker: userguide/docker.md
+    - Backend: userguide/backend.md
+    - Frontend: userguide/frontend.md
+  - Tutorials:
+    - Placeholder
+  - Changelog:
+    - Placeholder

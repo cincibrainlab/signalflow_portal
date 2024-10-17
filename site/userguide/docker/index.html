@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../../img/favicon.ico">
+  <title>Docker - SignalFLow Vault</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <link href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Docker";
+    var mkdocs_page_input_path = "userguide\\docker.md";
+    var mkdocs_page_url = "/vault/userguide/docker/";
+  </script>
+  
+  <script src="../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../.." class="icon icon-home"> SignalFLow Vault</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="tocbase current">
+    
+    
+      
+
+
+  <li class="navtree toctree-l1 inactive">
+    <a class="" href="../..">SignalFlow Vault</a>
+  </li>
+    
+      
+  <li class="navtree toctree-l1 label">
+    <p class="caption">User Guide</p>
+  </li>
+
+
+  
+
+  
+    <li class="navtree toctree-l1 group">
+      <ul class="navtree subnav-l1 current">
+          
+
+
+  <li class="navtree toctree-l2 inactive">
+    <a class="" href="../installation/">Installation</a>
+  </li>
+        
+          
+
+
+  
+    
+    <li class="navtree toctree-l2 page current">
+      <a class="current" href="./">
+        Docker
+          <span class="toctree-expand"></span>
+      </a>
+    </li>
+    
+      
+
+
+
+  <li class="toctree-l2 current">
+    <ul class="subnav-l2 current">
+    
+      
+          
+
+  <li class="toctree-l3 current with-children">
+    <a href="#docker-usage">
+      Docker Usage
+      <span class="toctree-expand"></span>
+    </a>
+  </li>
+
+
+
+  <li class="toctree-l3 current">
+    <ul class="subnav-l3 current">
+    
+      
+        <li class="toctree-l4">
+          <a class="toctree-l5" href="#1-check-docker-version">1. Check Docker Version</a>
+        </li>
+    
+      
+        <li class="toctree-l4">
+          <a class="toctree-l5" href="#2-list-running-containers">2. List Running Containers</a>
+        </li>
+    
+      
+        <li class="toctree-l4">
+          <a class="toctree-l5" href="#3-list-all-containers">3. List All Containers</a>
+        </li>
+    
+      
+        <li class="toctree-l4">
+          <a class="toctree-l5" href="#4-stop-a-running-container">4. Stop a Running Container</a>
+        </li>
+    
+      
+        <li class="toctree-l4">
+          <a class="toctree-l5" href="#5-start-a-container">5. Start a Container</a>
+        </li>
+    
+      
+        <li class="toctree-l4">
+          <a class="toctree-l5" href="#6-view-container-logs">6. View Container Logs</a>
+        </li>
+    
+    </ul>
+  </li>
+
+      
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#configuration-for-sf_uploader">Configuration for sf_uploader</a>
+        </li>
+    
+      
+        <li class="toctree-l3">
+          <a class="toctree-l4" href="#database-configuration-for-sf_db">Database Configuration for sf_db</a>
+        </li>
+    
+    </ul>
+  </li>
+
+
+  
+        
+          
+
+
+  <li class="navtree toctree-l2 inactive">
+    <a class="" href="../backend.md">Backend</a>
+  </li>
+        
+          
+
+
+  <li class="navtree toctree-l2 inactive">
+    <a class="" href="../frontend.md">Frontend</a>
+  </li>
+        
+      </ul>
+    </li>
+    
+      
+  <li class="navtree toctree-l1 label">
+    <p class="caption">Tutorials</p>
+  </li>
+
+
+  
+
+  
+    <li class="navtree toctree-l1 group">
+      <ul class="navtree subnav-l1 current">
+          
+
+
+  <li class="navtree toctree-l2 inactive">
+    <a class="" href="../../Placeholder">None</a>
+  </li>
+        
+      </ul>
+    </li>
+    
+      
+  <li class="navtree toctree-l1 label">
+    <p class="caption">Changelog</p>
+  </li>
+
+
+  
+
+  
+    <li class="navtree toctree-l1 group">
+      <ul class="navtree subnav-l1 current">
+          
+
+
+  <li class="navtree toctree-l2 inactive">
+    <a class="" href="../../Placeholder">None</a>
+  </li>
+        
+      </ul>
+    </li>
+    
+  </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../..">SignalFLow Vault</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>User Guide &raquo;</li>
+        
+      
+    
+    <li>Docker</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="docker">Docker</h1>
+<h2 id="docker-usage">Docker Usage</h2>
+<p>Docker can be managed using either the command line or the docker desktop application.
+Some useful commands are: </p>
+<h4 id="1-check-docker-version">1. Check Docker Version</h4>
+<p>To check the installed version of Docker, use:
+   <code>bash
+   docker --version</code></p>
+<h4 id="2-list-running-containers">2. List Running Containers</h4>
+<p>To see all currently running containers:
+   <code>bash
+   docker ps</code></p>
+<h4 id="3-list-all-containers">3. List All Containers</h4>
+<p>To list all containers, including stopped ones:
+   <code>bash
+   docker ps -a</code></p>
+<h4 id="4-stop-a-running-container">4. Stop a Running Container</h4>
+<p>To stop a running container:
+   <code>bash
+   docker stop &lt;container_name_or_id&gt;</code></p>
+<h4 id="5-start-a-container">5. Start a Container</h4>
+<p>To start a stopped container:
+   <code>bash
+   docker start &lt;container_name_or_id&gt;</code></p>
+<h4 id="6-view-container-logs">6. View Container Logs</h4>
+<p>To view the logs of a running container:
+   <code>bash
+   docker logs &lt;container_name_or_id&gt;</code></p>
+<h2 id="configuration-for-sf_uploader">Configuration for sf_uploader</h2>
+<p>The <code>sf_uploader</code> service is defined in the <code>docker-compose.yaml</code> file. This service uses the <code>tusproject/tusd:v1.9</code> image to handle file uploads. Below are the key configurations for this service:</p>
+<ul>
+<li><strong>Container Name</strong>: <code>sf_uploader</code></li>
+<li><strong>Image</strong>: <code>tusproject/tusd:v1.9</code></li>
+<li><strong>Command</strong>: <code>-verbose -upload-dir=/uploads</code></li>
+<li><strong>Volumes</strong>:</li>
+<li><code>tusd:/data</code></li>
+<li><code>./portal_files/uploads:/uploads</code></li>
+<li><code>./portal_files/input:/input</code></li>
+<li><code>./portal_files/info_archive:/info_archive</code></li>
+<li><code>./portal_files/output:/output</code></li>
+<li><strong>Ports</strong>: <code>3001:1080</code></li>
+<li><strong>Restart Policy</strong>: <code>always</code></li>
+<li><strong>Networks</strong>: <code>eeg-network</code></li>
+</ul>
+<p>This configuration ensures that the <code>sf_uploader</code> service is always running and accessible on port <code>3001</code>. The volumes map local directories to the container's directories, facilitating data persistence and access across different services.</p>
+<h2 id="database-configuration-for-sf_db">Database Configuration for sf_db</h2>
+<p>The <code>sf_db</code> service is defined in the <code>docker-compose.yaml</code> file. This service uses the <code>postgres:13</code> image to handle database operations. Below are the key configurations for this service:</p>
+<ul>
+<li><strong>Container Name</strong>: <code>sf_db</code></li>
+<li><strong>Image</strong>: <code>mongo:latest</code></li>
+<li><strong>Ports</strong>: <code>3002:27017</code></li>
+<li><strong>Volumes</strong>: <code>sfdb-db-volume:/data/db</code></li>
+<li><strong>Restart Policy</strong>: <code>always</code></li>
+<li><strong>Networks</strong>: <code>eeg-network</code></li>
+</ul>
+<p>This configuration ensures that the <code>sf_db</code> service is always running and accessible on port <code>3002</code>. The volume maps a local directory to the container's directory, ensuring data persistence.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="../installation/" class="btn btn-neutral" title="Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../installation/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+
+</body>
+</html>

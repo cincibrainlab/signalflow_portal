@@ -1,4 +1,4 @@
-# SignalflowEEG Portal Documentation
+# SignalFlow Vault 
 
 Welcome to the SignalflowEEG documentation. This guide will help you understand how to set up and use the SignalflowEEG application, which includes both a frontend (JavaScript) and a backend (Python/FastAPI).
 
@@ -26,6 +26,32 @@ SignalflowEEG is an application designed for processing EEG data. It features a 
 - Python 3.8+
 - Node.js 18+
 - Docker (optional, for containerized deployment)
+
+## Installation
+
+### Downloading the Repository 
+
+To get started with editing the files, you need to clone the repository to your local machine. Follow these steps:
+
+1. **Clone the Repository**:
+   Open your terminal and run the following command to clone the repository:
+   ```bash
+   git clone https://github.com/cincibrainlab/SignalflowEEG.git
+   ```
+2. **Navigate to the Project Directory**:
+   Change into the project directory:
+   ```bash
+   cd SignalflowEEG
+   ```
+
+3. **Build and Execute Docker Images**
+   In order to run the vault you will need 3 docker containers running, all of which are defined in the docker-compose.yaml
+   In order to create these containers you can run:
+   ```bash
+   docker compose up -d sf_uploader sf_db sf_portal
+   ```
+
+   It may take some time for the images to build but once they are running you will have a completely containerized application!
 
 
 ### Other backend components
