@@ -49,7 +49,7 @@ app.add_middleware(
 
 
 async def run_startup_process():
-    restart_database = True
+    restart_database = False
     if restart_database:
         initialize_database()
         if not await check_entrypoint(console):
@@ -60,7 +60,7 @@ async def run_startup_process():
             initialize_database()
 
     logger = await set_logging()
-    logger.debug("Logging test message from run_startup_process")
+    logger.info("Logging test message from run_startup_process")
     
     await set_cors()
     

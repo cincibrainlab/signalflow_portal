@@ -86,7 +86,17 @@ To get started with editing the files, you need to clone the repository to your 
    cd SignalflowEEG
    ```
 
-3. **Install Dependencies**:
+   And thats it!
+
+3. **Build and Execute Docker Images**
+   In order to run the vault you will need 3 docker containers running, all of which are defined in the docker-compose.yaml
+   In order to create these containers you can run:
+   ```bash
+   docker compose up -d sf_uploader sf_db sf_portal
+   ```
+
+   It may take some time for the images to build but once they are running you will have a completely containerized application!
+<!-- 3. **Install Dependencies**:
    Install the necessary dependencies for both the backend and frontend.
 
    **Backend**:
@@ -98,7 +108,7 @@ To get started with editing the files, you need to clone the repository to your 
    **Frontend**:
    ```bash
    cd ../frontend
-   npm install
+   npm install -->
    ```
 
 4. **Start Application**
@@ -123,20 +133,20 @@ To get started with editing the files, you need to clone the repository to your 
 
 For a production deployment, you can use Docker to containerize the application. Follow these steps:
 
-1. **Build the Docker Image**:
+1. **Build the Docker Images**:
    Navigate to the root directory of the project and run the following command to build the Docker image:
    ```bash
-   docker build -t signalfloweeg:latest .
+   docker compose up -d sf_uploader sf_db sf_portal
    ```
 
-2. **Run the Docker Container**:
+<!-- 2. **Run the Docker Container**:
    After building the image, you can run the container using:
    ```bash
    docker run -d -p 8000:8000 signalfloweeg:latest
-   ```
+   ``` -->
 
 3. **Access the Application**:
-   Open your web browser and go to `http://localhost:8000` to access the SignalflowEEG application.
+   Open your web browser and go to `http://localhost:5173` to access the SignalflowEEG application.
 
 4. **Stopping the Container**:
    To stop the running container, first find the container ID using:

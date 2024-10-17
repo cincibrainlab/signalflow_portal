@@ -10,5 +10,6 @@
             "username": "sfportal",
             "password": "sfportal"
         }
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }
