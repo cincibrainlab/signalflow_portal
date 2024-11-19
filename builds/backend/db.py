@@ -479,29 +479,6 @@ async def assign_eeg_paradigm_to_file(eeg_paradigm_name, file_id):
     
     return {"success": "EEGParadigm assigned to file"}
 
-async def assign_tags_to_file(tags, file_id):
-    db = await get_database()
-
-    file = await db.OriginalImportFile.find_one({"upload_id": file_id})
-    if not file:
-        return {"error": "File not found"}
-    
-    result = await db.OriginalImportFile.update_one(
-        {"upload_id": file_id},
-        {
-            "$addToSet": {
-                "tags": {"$each": tags}
-            },
-            "$set": {
-                "status": add_status_code(201)
-            }
-        }
-    )
-
-    if result.modified_count == 0:
-        return {"error": "File not updated. It may already have these tags."}
-    
-    return {"success": "Tags assigned to file"}
 
 async def get_file_runs(original_file_id):
     db = await get_database()

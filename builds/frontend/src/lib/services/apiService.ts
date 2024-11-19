@@ -4,8 +4,8 @@ import pako from 'pako';
 import { browser } from '$app/environment';
 
 export const baseUrl = browser
-  ? `http://${window.location.hostname}:3005/api/`
-  : import.meta.env.VITE_API_BASE_URL || `http://sf_portal:8001/api/`;
+  ? import.meta.env.VITE_API_BASE_URL // This will use the local URL
+  : import.meta.env.VITE_API_BASE_URL; // This will use the Docker URL
 
 // ... rest of the file remains the same
 

@@ -1,7 +1,7 @@
 site_name: SignalFLow Vault
 site_url: https://mydomain.org/vault
 theme:
-  name: 'cinder'
+  name: 'rtd-dropdown'
 nav:
   - SignalFlow Vault: index.md
   - User Guide:

@@ -13,12 +13,12 @@ api:
 # This file is used to configure the portal
 folder_paths:
   root: .
-  uploads: /uploads
-  import: /import
-  info_archive: /info_archive
-  output: /output
-  logs: /logs
-  temp: /temp
+  uploads: ./uploads
+  import: ./import
+  info_archive: ./info_archive
+  output: ./output
+  logs: ./logs
+  temp: ./temp
   
 # List of EEG formats
 EEGFormat:
